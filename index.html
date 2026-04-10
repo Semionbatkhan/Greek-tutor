@@ -206,7 +206,7 @@ const SECTIONS=[{
       {id:15,greek:"πιάνο",ru:"пианино",emoji:"🎹",cat:"Музыка"},
       {id:16,greek:"βάζο",ru:"ваза",emoji:"🏺",cat:"Дом"},
       {id:17,greek:"καναπές",ru:"диван",emoji:"🛋️",cat:"Дом"},
-      {id:18,greek:"ντουλάπι",ru:"шкаф",emoji:"🪵",cat:"Дом"},
+      {id:18,greek:"ντουλάπι",ru:"шкаф",emoji:"🗄️",cat:"Дом"},
       {id:19,greek:"τσάντα",ru:"сумка",emoji:"👜",cat:"Одежда"},
       {id:20,greek:"ετικέτα",ru:"этикетка",emoji:"🏷️",cat:"Другое"},
       {id:21,greek:"φωτογραφία",ru:"фотография",emoji:"📷",cat:"Другое"},
@@ -411,6 +411,11 @@ function save(){
   LS.set('wlPage',S.wlPage);
   LS.set('unitScores',S.unitScores);
   LS.set('practiceTab',S.practiceTab);
+  if(S.mode==='unit'&&S.activeUnit){
+    LS.set('session',{unitId:S.activeUnit.id,queue:S.queue.map(w=>w.id),qi:S.qi,score:S.score,errs:S.errs.map(w=>w.id),answers:S.answers||[]});
+  } else {
+    LS.set('session',null);
+  }
 }
 
 function showToast(msg){S.toast=msg;render();setTimeout(()=>{S.toast=null;render();},2000);}
@@ -546,9 +551,19 @@ function renderHome(){
 }
 
 function startUnit(unit){
-  S.activeUnit=unit;S.queue=shuffle(unit.words);S.qi=0;
-  S.score={c:0,w:0,st:0};S.errs=[];S.mode='unit';
-  nextEx();render();
+  const sess=LS.get('session',null);
+  if(sess&&sess.unitId===unit.id&&sess.qi<sess.queue.length){
+    S.activeUnit=unit;
+    S.queue=sess.queue.map(id=>ALL_WORDS.find(w=>w.id===id)).filter(Boolean);
+    S.qi=sess.qi;
+    S.score=sess.score||{c:0,w:0,st:0};
+    S.errs=sess.errs.map(id=>ALL_WORDS.find(w=>w.id===id)).filter(Boolean);
+    S.answers=sess.answers||[];
+  } else {
+    S.activeUnit=unit;S.queue=shuffle(unit.words);S.qi=0;
+    S.score={c:0,w:0,st:0};S.errs=[];S.answers=[];
+  }
+  S.mode='unit';nextEx();render();
 }
 
 function nextEx(){
@@ -561,19 +576,21 @@ function nextEx(){
 
 function advance(ok){
   S.score.c+=ok?1:0;S.score.w+=ok?0:1;S.score.st=ok?S.score.st+1:0;
+  if(!S.answers)S.answers=[];
+  S.answers.push(ok?'ok':'err');
   if(!ok&&S.ex?.word){
     S.errs.push(S.ex.word);
-    // Add to checked (practice) if not already
     if(!S.checked.has(S.ex.word.id)){
       S.checked.add(S.ex.word.id);
-      save();
     }
   }
   S.qi++;
+  save();
   if(S.qi<S.queue.length){nextEx();render();}
   else{
     const pct=Math.round((S.score.c/(S.score.c+S.score.w||1))*100);
     S.unitScores[S.activeUnit.id]=pct;
+    LS.set('session',null);
     save();render();
   }
 }
@@ -604,21 +621,26 @@ function renderUnitEx(){
     sc.appendChild(card);wrap.appendChild(sc);return wrap;
   }
 
-  const pct=Math.round((S.qi/S.queue.length)*100);
   const ps=el('div','ps');
   const back=el('button');back.textContent='←';back.style.cssText='background:none;border:none;color:var(--mu);cursor:pointer;font-size:22px;font-weight:900';
   back.onclick=()=>{S.mode='home';render();};
   ps.appendChild(back);
-  const pname=el('span');pname.style.cssText='font-size:12px;color:var(--mu);font-weight:800;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap';
+  const pname=el('span');pname.style.cssText='font-size:12px;color:var(--mu);font-weight:800;max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap';
   pname.textContent=S.activeUnit?.titleRu||'';ps.appendChild(pname);
-  const pbw=el('div','pb-wrap');const pbf=el('div','pb-fill');pbf.style.width=pct+'%';pbw.appendChild(pbf);
-  ps.appendChild(pbw);
+  // Colored segments progress bar
+  const segWrap=el('div');segWrap.style.cssText='flex:1;display:flex;gap:2px;height:10px;border-radius:99px;overflow:hidden;background:#e0e7ff';
+  const total=S.queue.length;
+  const answers=S.answers||[];
+  for(let i=0;i<total;i++){
+    const seg=el('div');seg.style.cssText=`flex:1;height:100%;transition:background .3s;`;
+    if(i<answers.length){seg.style.background=answers[i]==='ok'?'#10b981':'#ef4444';}
+    else if(i===answers.length){seg.style.background='#c7d2fe';}
+    else{seg.style.background='#e0e7ff';}
+    segWrap.appendChild(seg);
+  }
+  ps.appendChild(segWrap);
   const pnum=el('div','pt2');pnum.textContent=`${S.qi+1}/${S.queue.length}`;ps.appendChild(pnum);
   wrap.appendChild(ps);
-
-  const sco=el('div','sco');
-  sco.innerHTML=`<div class="chip g">✅ ${S.score.c}</div><div class="chip r">❌ ${S.score.w}</div><div class="chip y">🔥 ${S.score.st}</div>`;
-  wrap.appendChild(sco);
 
   const sc=el('div','sc');sc.appendChild(renderEx());wrap.appendChild(sc);
   return wrap;
@@ -656,17 +678,24 @@ function renderEx(){
     ew.appendChild(card);
   }
   else if(type==='C4'){
-    const lbl=el('div','ex');lbl.textContent='Выбери перевод';ew.appendChild(lbl);
+    const ruToGr=!!S.ex.ruToGr;
+    const lbl=el('div','ex');lbl.textContent=ruToGr?'Выбери по-гречески':'Выбери перевод';ew.appendChild(lbl);
     const card=el('div','card cc');
     const em=el('div','be');em.textContent=word.emoji;card.appendChild(em);
-    const row=el('div');row.style.cssText='display:flex;align-items:center;justify-content:center;gap:10px';
-    const w=el('div','bw');w.textContent=word.greek;row.appendChild(w);row.appendChild(spkBtn());card.appendChild(row);
+    if(ruToGr){
+      const w=el('div','bw bwr');w.textContent=word.ru;card.appendChild(w);
+    } else {
+      const row=el('div');row.style.cssText='display:flex;align-items:center;justify-content:center;gap:10px';
+      const w=el('div','bw');w.textContent=word.greek;row.appendChild(w);row.appendChild(spkBtn());card.appendChild(row);
+    }
     ew.appendChild(card);
     const chs=el('div','chs');
     S.ex.opts.forEach(o=>{
       let cls='cb2';if(S.chosen){if(o.id===word.id)cls+=' ck';else if(o.id===S.chosen)cls+=' cw';}
-      const b=el('button',cls);b.textContent=o.ru;if(S.chosen)b.disabled=true;
-      b.onclick=()=>{S.chosen=o.id;render();setTimeout(()=>advance(o.id===word.id),1000);};
+      const b=el('button',cls);
+      b.textContent=ruToGr?o.greek:o.ru;
+      if(S.chosen)b.disabled=true;
+      b.onclick=()=>{if(ruToGr)speak(o.greek);S.chosen=o.id;render();setTimeout(()=>advance(o.id===word.id),1000);};
       chs.appendChild(b);
     });
     ew.appendChild(chs);
@@ -689,7 +718,12 @@ function renderEx(){
     }else{
       const cb=el('button','btn bpr bfw');cb.textContent='Проверить';cb.onclick=doWrite;ew.appendChild(cb);
       const sw=el('div','swl');sw.textContent='Не могу писать — выбрать из 4 →';
-      sw.onclick=()=>{const src=ALL_WORDS.filter(w=>w.id!==word.id);S.ex={type:'C4',word,opts:shuffle([word,...pick(src,3)])};S.wv='';S.ws=null;S.chosen=null;render();};
+      sw.onclick=()=>{
+        const src=ALL_WORDS.filter(w=>w.id!==word.id);
+        // Show Russian word, pick Greek options
+        S.ex={type:'C4',word,opts:shuffle([word,...pick(src,3)]),ruToGr:true};
+        S.wv='';S.ws=null;S.chosen=null;render();
+      };
       ew.appendChild(sw);
     }
     setTimeout(()=>{const i=document.querySelector('.wi');if(i&&!S.ws)i.focus();},50);
