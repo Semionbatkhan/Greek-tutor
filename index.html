@@ -483,6 +483,9 @@ function buildPEx(){
 // ─── RENDER ───────────────────────────────────────────────
 function render(){
   const app=document.getElementById('app');
+  // Remember which input was focused before re-render
+  const focusedId=document.activeElement?.dataset?.persist;
+  const focusedVal=document.activeElement?.value;
   app.innerHTML='';
   const nav=el('div','nav');
   [['learn','🎓','Учиться'],['words','📖','Слова'],['practice','⚡','Практика'],['phonics','🔤','Фонетика']].forEach(([id,icon,label])=>{
@@ -498,6 +501,11 @@ function render(){
   if(S.tab==='phonics')app.appendChild(renderPhonics());
   if(S.popup)app.appendChild(renderPopup());
   if(S.toast){const t=el('div','toast');t.textContent=S.toast;app.appendChild(t);}
+  // Restore focus to search inputs
+  if(focusedId){
+    const el2=document.querySelector(`[data-persist="${focusedId}"]`);
+    if(el2){el2.focus();if(focusedVal!==undefined){el2.value=focusedVal;el2.setSelectionRange(focusedVal.length,focusedVal.length);}}
+  }
 }
 
 function el(tag,cls,html){const e=document.createElement(tag);if(cls)e.className=cls;if(html)e.innerHTML=html;return e;}
@@ -742,7 +750,7 @@ function renderEx(){
       ew.appendChild(fb);
     }else{
       const cb=el('button','btn bpr bfw');cb.textContent='Проверить';cb.onclick=doWrite;ew.appendChild(cb);
-      const sw=el('div','swl');sw.textContent='Не хочу писать — выбрать из 4';
+      const sw=el('div','swl');sw.textContent='Не хочу писать';
       sw.onclick=()=>{
         const src=ALL_WORDS.filter(w=>w.id!==word.id);
         // Card stays with Russian word, 4 options in Greek
@@ -753,13 +761,13 @@ function renderEx(){
     }
   }
   else if(type==='MATCH'){
-    const lbl=el('div','ex');lbl.textContent='Соедини пары · 🔊 при нажатии';ew.appendChild(lbl);
+    const lbl=el('div','ex');lbl.textContent='Соедини пары';ew.appendChild(lbl);
     if(S.mDoneAll){const done=el('div','card cc pop');done.style.color='var(--ok)';done.style.fontSize='20px';done.textContent='🎉 Все пары найдены!';ew.appendChild(done);}
     const mg=el('div','mg');
     const mcL=el('div','mc'),mcR=el('div','mc');
     S.ex.ll.forEach(gr=>{
       let cls='mi';if(S.mDone.includes(gr))cls+=' mm';else if(S.mSelGr===gr)cls+=' ms';else if(S.mWrong.includes(gr))cls+=' mw';
-      const d=el('div',cls);d.textContent='🔊 '+gr;d.onclick=()=>handleMGr(gr);mcL.appendChild(d);
+      const d=el('div',cls);d.textContent=gr;d.onclick=()=>handleMGr(gr);mcL.appendChild(d);
     });
     S.ex.rl.forEach(ru=>{
       const pair=S.ex.pairs.find(p=>p.ru===ru);let cls='mi';
@@ -805,7 +813,7 @@ function renderWords(){
   const allCk=pageWords.length>0&&pageWords.every(w=>S.checked.has(w.id));
 
   const wlt=el('div','wlt');
-  const inp=el('input','wls');inp.placeholder='Поиск...';inp.value=S.wlSearch;
+  const inp=el('input','wls');inp.placeholder='Поиск...';inp.value=S.wlSearch;inp.dataset.persist='wl-search';
   inp.oninput=e=>{S.wlSearch=e.target.value;S.wlPage=0;render();};
   wlt.appendChild(inp);
   const eb=el('button','wleb');eb.textContent='↓ Конец';
@@ -905,7 +913,7 @@ function renderPractice(){
     }
     if(!S.pFcRev){
       const btn2=el('button','btn bot');btn2.style.cssText='margin-top:16px;flex:unset;padding:10px 24px';
-      btn2.textContent='Показать '+(isGR?'перевод':'по-гречески');
+      btn2.textContent='Показать перевод';
       btn2.onclick=()=>{S.pFcRev=true;render();};card.appendChild(btn2);
     }else{
       const ans=el('div','fca');
@@ -940,7 +948,7 @@ function renderPractice(){
     S.pEx.ll.forEach(gr=>{
       const isD=S.pMDone.includes(gr);
       let cls='mi'+(isD?' mm':S.pMSelL===gr?' ms':S.pMWrong.includes(gr)?' mw':'');
-      const d=el('div',cls);d.textContent='🔊 '+gr;
+      const d=el('div',cls);d.textContent=gr;
       d.onclick=()=>handlePL(gr);
       const pair=S.pEx.pairs.find(p=>p.greek===gr);
       d.onmousedown=()=>{lpTimer=setTimeout(()=>{S.popup={word:pair,fromPractice:true,fromMatch:gr};render();},650);};
@@ -996,7 +1004,7 @@ function renderLearnedWords(wrap){
 
   // Search
   const wlt=el('div','wlt');
-  const inp=el('input','wls');inp.placeholder='Поиск в выученных...';inp.value=S.lwSearch;
+  const inp=el('input','wls');inp.placeholder='Поиск в выученных...';inp.value=S.lwSearch;inp.dataset.persist='lw-search';
   inp.oninput=e=>{S.lwSearch=e.target.value;render();};
   wlt.appendChild(inp);wrap.appendChild(wlt);
 
@@ -1073,6 +1081,18 @@ function renderPopup(){
 }
 
 // ─── INIT ─────────────────────────────────────────────────
+// Version migration: preserve user progress across updates
+// We never wipe localStorage - only add new words to checked
+(function migrate(){
+  const currentIds=new Set(ALL_IDS);
+  const savedChecked=new Set(LS.get('checked',null)||ALL_IDS);
+  // Add any new word IDs that weren't in previous version
+  ALL_IDS.forEach(id=>{
+    if(!savedChecked.has(id)){savedChecked.add(id);}
+  });
+  S.checked=savedChecked;
+  LS.set('checked',[...savedChecked]);
+})();
 render();
 </script>
 </body>
