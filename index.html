@@ -211,7 +211,7 @@ const SECTIONS=[{
       {id:20,greek:"ετικέτα",ru:"этикетка",emoji:"🏷️",cat:"Другое"},
       {id:21,greek:"φωτογραφία",ru:"фотография",emoji:"📷",cat:"Другое"},
       {id:22,greek:"δελφίνι",ru:"дельфин",emoji:"🐬",cat:"Природа"},
-      {id:23,greek:"βάλτος",ru:"болото",emoji:"🌿",cat:"Природа"},
+      {id:23,greek:"βάλτος",ru:"болото",emoji:"🪷",cat:"Природа"},
       {id:24,greek:"μανάβης",ru:"овощной магазин",emoji:"🥦",cat:"Другое"},
       {id:25,greek:"ασανσέρ",ru:"лифт",emoji:"🛗",cat:"Дом"},
       {id:26,greek:"αφίσα",ru:"афиша/плакат",emoji:"🎪",cat:"Культура"},
@@ -544,6 +544,23 @@ function renderHome(){
       `;
       ur.onclick=()=>startUnit(u);
       sb.appendChild(ur);
+      // Show retry errors button if unit has saved errors
+      const sess=LS.get('session',null);
+      const unitErrs=LS.get('unitErrs_'+u.id,[]);
+      if(unitErrs.length>0){
+        const errRow=el('div');errRow.style.cssText='padding:8px 16px 10px;border-top:1px solid #f0f4ff;';
+        const errBtn=el('button','btn ber bfw');errBtn.style.cssText='font-size:13px;padding:10px;';
+        errBtn.textContent=`🔁 Повторить ошибки (${unitErrs.length})`;
+        errBtn.onclick=e=>{
+          e.stopPropagation();
+          const errWords=unitErrs.map(id=>ALL_WORDS.find(w=>w.id===id)).filter(Boolean);
+          S.activeUnit=u;S.queue=shuffle(errWords);S.qi=0;
+          S.score={c:0,w:0,st:0};S.errs=[];S.answers=[];S.mode='unit';
+          LS.set('session',null);
+          nextEx();render();
+        };
+        errRow.appendChild(errBtn);sb.appendChild(errRow);
+      }
     });
     sc.appendChild(sb);
   });
@@ -571,7 +588,7 @@ function nextEx(){
   const word=S.queue[S.qi%S.queue.length];
   S.ex=buildEx(word,S.queue);
   S.fcRev=false;S.chosen=null;S.wv='';S.ws=null;
-  S.mSelGr=null;S.mSelRu=null;S.mDone=[];S.mWrong=[];S.mDoneAll=false;
+  S.mSelGr=null;S.mSelRu=null;S.mDone=[];S.mWrong=[];S.mDoneAll=false;S.mWrongCount=0;
 }
 
 function advance(ok){
@@ -590,6 +607,12 @@ function advance(ok){
   else{
     const pct=Math.round((S.score.c/(S.score.c+S.score.w||1))*100);
     S.unitScores[S.activeUnit.id]=pct;
+    // Save errors for retry button on home screen
+    if(S.errs.length>0){
+      LS.set('unitErrs_'+S.activeUnit.id, S.errs.map(w=>w.id));
+    } else {
+      LS.set('unitErrs_'+S.activeUnit.id, []);
+    }
     LS.set('session',null);
     save();render();
   }
@@ -701,9 +724,12 @@ function renderEx(){
     ew.appendChild(chs);
   }
   else if(type==='WRITE'){
+    const wDir=S.ex.dir||'ruToGr';
+    const isGrWrite=wDir==='grToRu'; // show greek, type russian - not typical, so ruToGr = show ru, type greek
     const lbl=el('div','ex');lbl.textContent='Напиши по-гречески';ew.appendChild(lbl);
     const card=el('div','card cc');
     const em=el('div','be');em.textContent=word.emoji;card.appendChild(em);
+    // Always show Russian, type Greek (most useful for learner)
     const w=el('div','bw bwr');w.textContent=word.ru;card.appendChild(w);
     ew.appendChild(card);
     const inp=el('input','wi'+(S.ws?' w'+S.ws:''));
@@ -720,13 +746,12 @@ function renderEx(){
       const sw=el('div','swl');sw.textContent='Не могу писать — выбрать из 4 →';
       sw.onclick=()=>{
         const src=ALL_WORDS.filter(w=>w.id!==word.id);
-        // Show Russian word, pick Greek options
+        // Card stays with Russian word, 4 options in Greek
         S.ex={type:'C4',word,opts:shuffle([word,...pick(src,3)]),ruToGr:true};
         S.wv='';S.ws=null;S.chosen=null;render();
       };
       ew.appendChild(sw);
     }
-    setTimeout(()=>{const i=document.querySelector('.wi');if(i&&!S.ws)i.focus();},50);
   }
   else if(type==='MATCH'){
     const lbl=el('div','ex');lbl.textContent='Соедини пары · 🔊 при нажатии';ew.appendChild(lbl);
@@ -743,7 +768,7 @@ function renderEx(){
       const d=el('div',cls);d.textContent=ru;d.onclick=()=>handleMRu(ru);mcR.appendChild(d);
     });
     mg.appendChild(mcL);mg.appendChild(mcR);ew.appendChild(mg);
-    if(S.mDoneAll){const nb=el('button','btn bpr bfw');nb.textContent='Далее →';nb.onclick=()=>advance(true);ew.appendChild(nb);}
+    if(S.mDoneAll){const nb=el('button','btn bpr bfw');nb.textContent='Далее →';nb.onclick=()=>advance(S.mWrongCount===0);ew.appendChild(nb);}
   }
   return ew;
 }
@@ -758,7 +783,7 @@ function handleMGr(gr){
   if(S.mSelRu){
     const pair=S.ex.pairs.find(p=>p.greek===gr);
     if(pair&&pair.ru===S.mSelRu){S.mDone=[...S.mDone,gr];S.mSelGr=null;S.mSelRu=null;if(S.mDone.length===S.ex.pairs.length)S.mDoneAll=true;}
-    else{S.mWrong=[gr,S.mSelRu];setTimeout(()=>{S.mWrong=[];S.mSelGr=null;S.mSelRu=null;render();},700);}
+    else{S.mWrongCount=(S.mWrongCount||0)+1;S.mWrong=[gr,S.mSelRu];setTimeout(()=>{S.mWrong=[];S.mSelGr=null;S.mSelRu=null;render();},700);}
   }else S.mSelGr=gr;render();
 }
 function handleMRu(ru){
@@ -766,7 +791,7 @@ function handleMRu(ru){
   if(S.mSelGr){
     const pair=S.ex.pairs.find(p=>p.greek===S.mSelGr);
     if(pair&&pair.ru===ru){S.mDone=[...S.mDone,S.mSelGr];S.mSelGr=null;S.mSelRu=null;if(S.mDone.length===S.ex.pairs.length)S.mDoneAll=true;}
-    else{S.mWrong=[S.mSelGr,ru];setTimeout(()=>{S.mWrong=[];S.mSelGr=null;S.mSelRu=null;render();},700);}
+    else{S.mWrongCount=(S.mWrongCount||0)+1;S.mWrong=[S.mSelGr,ru];setTimeout(()=>{S.mWrong=[];S.mSelGr=null;S.mSelRu=null;render();},700);}
   }else S.mSelRu=ru;render();
 }
 
