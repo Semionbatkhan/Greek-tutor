@@ -60,6 +60,7 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--txt);min-h
 .cb2:disabled{cursor:default}
 .cb2.ck{border-color:var(--ok);background:#d1fae5;color:#065f46}
 .cb2.cw{border-color:var(--er);background:#fee2e2;color:#991b1b}
+.cb2.ms{border-color:var(--acc);background:#ede9fe;color:var(--acc)}
 
 /* WRITE */
 .wi{width:100%;padding:15px;background:var(--sur);border:2px solid #e0e7ff;
@@ -185,6 +186,132 @@ const LS={
 };
 
 // ─── DATA ─────────────────────────────────────────────────
+// ─── FILL-IN EXERCISES ────────────────────────────────────
+// type: FILL — sentence with blank, choose correct word
+const FILL_EXERCISES = [
+  // s1u1 — from textbook exercises, listening-style
+  {id:"f1",unitId:"s1u1",
+   sentence:"Η Άννα παίρνει ___ για να πάει στη δουλειά.",
+   hint:"Средство передвижения в городе",
+   answer:"ταξί",
+   options:["ταξί","αεροπλάνο","βαπόρι","τρένο"],
+   translation:"Анна берёт ___ чтобы поехать на работу.",
+   emoji:"🚕"},
+  {id:"f2",unitId:"s1u1",
+   sentence:"Στο μαγαζί αγοράζω ___ για το σπίτι μου.",
+   hint:"Предмет мебели для отдыха",
+   answer:"καναπέ",
+   options:["καναπέ","βάζο","ντουλάπι","ασανσέρ"],
+   translation:"В магазине я покупаю ___ для своего дома.",
+   emoji:"🛋️"},
+  {id:"f3",unitId:"s1u1",
+   sentence:"Ο Γιάννης παίζει ___ πολύ ωραία.",
+   hint:"Струнный инструмент",
+   answer:"κιθάρα",
+   options:["κιθάρα","πιάνο","ζάρι","τσάντα"],
+   translation:"Янис играет на ___ очень красиво.",
+   emoji:"🎸"},
+  // s1u2 — vowel sounds
+  {id:"f4",unitId:"s1u2",
+   sentence:"Η Ελένη αγοράζει ___, ___ και ___ από τον μανάβη.",
+   hint:"Три овоща из магазина",
+   answer:"ντομάτα, ελιές και αγγούρι",
+   options:["ντομάτα, ελιές και αγγούρι","γάλα, μέλι και νερό","μήλα, πορτοκάλια και φρούτα","μακαρόνια, ούζο και κοτόπουλο"],
+   translation:"Элени покупает ___, ___ и ___ у зеленщика.",
+   emoji:"🍅"},
+  {id:"f5",unitId:"s1u2",
+   sentence:"Ο Γιάννης παρακολουθεί ___ και παίζει ___.",
+   hint:"Телевизор и вид спорта",
+   answer:"τηλεόραση και μπάσκετ",
+   options:["τηλεόραση και μπάσκετ","ταινίες και ποδόσφαιρο","θέατρο και τένις","διάβασμα και βόλτα"],
+   translation:"Янис смотрит ___ и играет в ___.",
+   emoji:"📺"},
+  // s1u3 — seasons & months
+  {id:"f6",unitId:"s1u3",
+   sentence:"Το ___ είναι κρύο και έχει χιόνι. Το ___ είναι ζεστό.",
+   hint:"Зима и лето",
+   answer:"χειμώνας είναι κρύο, καλοκαίρι είναι ζεστό",
+   options:["χειμώνας / καλοκαίρι","φθινόπωρο / άνοιξη","καλοκαίρι / χειμώνας","άνοιξη / φθινόπωρο"],
+   translation:"___ холодная и со снегом. ___ жаркое.",
+   emoji:"❄️"},
+  {id:"f7",unitId:"s1u3",
+   sentence:"Η Μαρία έχει γενέθλια τον ___. Ο Πέτρος έχει γενέθλια τον ___.",
+   hint:"Август и Декабрь",
+   answer:"Αύγουστο / Δεκέμβριο",
+   options:["Αύγουστο / Δεκέμβριο","Ιανουάριο / Μάρτιο","Νοέμβριο / Οκτώβριο","Φεβρουάριο / Σεπτέμβριο"],
+   translation:"У Марии день рождения в ___. У Петроса день рождения в ___.",
+   emoji:"📅"},
+  // s1u4 — clothes
+  {id:"f8",unitId:"s1u4",
+   sentence:"Σήμερα βρέχει. Παίρνω την ___ και τις ___.",
+   hint:"Защита от дождя",
+   answer:"ομπρέλα και τις μπότες",
+   options:["ομπρέλα και τις μπότες","τσάντα και τα παπούτσια","παλτό και τις παντόφλες","φούστα και το πουκάμισο"],
+   translation:"Сегодня дождь. Беру ___ и ___.",
+   emoji:"☂️"},
+  {id:"f9",unitId:"s1u4",
+   sentence:"Το ___ μου είναι μπλε και το ___ μου είναι άσπρο.",
+   hint:"Брюки и рубашка",
+   answer:"παντελόνι / πουκάμισο",
+   options:["παντελόνι / πουκάμισο","φόρεμα / μπλούζα","παλτό / μπουφάν","φούστα / παντόφλες"],
+   translation:"Мои ___ синие, а моя ___ белая.",
+   emoji:"👔"},
+  // s1u5 — animals
+  {id:"f10",unitId:"s1u5",
+   sentence:"Στο αγρόκτημα υπάρχουν ___, ___ και ___.",
+   hint:"Три животных с фермы",
+   answer:"γάτα, σκυλί και άλογο",
+   options:["γάτα, σκυλί και άλογο","λαγός, κουνέλι και πουλί","γουρούνι, κατσίκα και κόκορας","δελφίνι, γαϊδούρι και κότα"],
+   translation:"На ферме есть ___, ___ и ___.",
+   emoji:"🐴"},
+  // s1u6 — music & school
+  {id:"f11",unitId:"s1u6",
+   sentence:"Στην τάξη έχουμε ___, ___ και ___.",
+   hint:"Три предмета в классе",
+   answer:"χάρακα, μολύβι και χαρτί",
+   options:["χάρακα, μολύβι και χαρτί","κασετίνα, ξύστρα και χάρτη","ντραμς, βιολί και κιθάρα","μαντολίνο, ακορντεόν και πιάνο"],
+   translation:"В классе у нас есть ___, ___ и ___.",
+   emoji:"✏️"},
+];
+
+// ─── LISTEN EXERCISES ─────────────────────────────────────
+// type: LISTEN — play text, fill blanks
+const LISTEN_EXERCISES = [
+  {
+    id:"l1", unitId:"s1u3",
+    title:"Άννα στην Αθήνα",
+    titleRu:"Анна в Афинах",
+    text:"Η Άννα πήγε διακοπές το καλοκαίρι. Πήγε στην Αθήνα και μετά στη Σαντορίνη. Της άρεσε πολύ η θάλασσα και τα όμορφα μέρη. Επίσης, επισκέφτηκε μια αγορά και αγόρασε δώρα. Δεν της άρεσε πολύ η ζέστη στην Αθήνα. Αλλά γενικά πέρασε πολύ καλά!",
+    textRu:"Анна поехала в отпуск летом. Она поехала в Афины, а потом на Санторини. Ей очень понравилось море и красивые места. Также она посетила рынок и купила подарки. Ей не очень понравилась жара в Афинах. Но в целом она провела время очень хорошо!",
+    questions:[
+      {
+        q:"Πότε πήγε διακοπές η Άννα;",
+        qRu:"Когда Анна поехала в отпуск?",
+        answer:"το καλοκαίρι",
+        options:["το καλοκαίρι","το χειμώνα","την άνοιξη","το φθινόπωρο"]
+      },
+      {
+        q:"Πού πήγε πρώτα η Άννα;",
+        qRu:"Куда Анна поехала сначала?",
+        answer:"στην Αθήνα",
+        options:["στην Αθήνα","στη Σαντορίνη","στη Θεσσαλονίκη","στην Κρήτη"]
+      },
+      {
+        q:"Τι της άρεσε πολύ;",
+        qRu:"Что ей очень понравилось?",
+        answer:"η θάλασσα",
+        options:["η θάλασσα","η ζέστη","η αγορά","τα δώρα"]
+      },
+      {
+        q:"Τι δεν της άρεσε;",
+        qRu:"Что ей не понравилось?",
+        answer:"η ζέστη στην Αθήνα",
+        options:["η ζέστη στην Αθήνα","η θάλασσα","η Σαντορίνη","τα δώρα"]
+      },
+    ]
+  },
+];
+
 const SECTIONS=[{
   id:"s1",title:"Εισαγωγική Ενότητα",subtitle:"Вводный раздел",
   units:[
@@ -217,6 +344,7 @@ const SECTIONS=[{
       {id:26,greek:"αφίσα",ru:"афиша/плакат",emoji:"🎪",cat:"Культура"},
       {id:27,greek:"μαγιό",ru:"купальник",emoji:"👙",cat:"Одежда"},
       {id:28,greek:"κασκόλ",ru:"шарф",emoji:"🧣",cat:"Одежда"},
+      {id:29,greek:"βερικοκιά",ru:"абрикосовое дерево",emoji:"🌳",cat:"Природа"},
     ]},
     {id:"s1u2",title:"Ακούω και λέω — Φωνήεντα",titleRu:"Гласные звуки",emoji:"🔤",words:[
       {id:101,greek:"ντομάτα",ru:"томат",emoji:"🍅",cat:"Еда"},
@@ -271,6 +399,14 @@ const SECTIONS=[{
       {id:217,greek:"Παρασκευή",ru:"пятница",emoji:"📆",cat:"Время"},
       {id:218,greek:"Σάββατο",ru:"суббота",emoji:"📆",cat:"Время"},
       {id:219,greek:"Κυριακή",ru:"воскресенье",emoji:"📆",cat:"Время"},
+      {id:220,greek:"Αυστραλία",ru:"Австралия",emoji:"🦘",cat:"Страны"},
+      {id:221,greek:"Βέλγιο",ru:"Бельгия",emoji:"🇧🇪",cat:"Страны"},
+      {id:222,greek:"Τουρκία",ru:"Турция",emoji:"🇹🇷",cat:"Страны"},
+      {id:223,greek:"Ρουμανία",ru:"Румыния",emoji:"🇷🇴",cat:"Страны"},
+      {id:224,greek:"Βουλγαρία",ru:"Болгария",emoji:"🇧🇬",cat:"Страны"},
+      {id:225,greek:"Αίγυπτος",ru:"Египет",emoji:"🇪🇬",cat:"Страны"},
+      {id:226,greek:"Ολλανδία",ru:"Нидерланды",emoji:"🇳🇱",cat:"Страны"},
+      {id:227,greek:"Βενεζουέλα",ru:"Венесуэла",emoji:"🇻🇪",cat:"Страны"},
     ]},
     {id:"s1u4",title:"Ρούχα και Αντικείμενα",titleRu:"Одежда и предметы",emoji:"👗",words:[
       {id:301,greek:"παλτό",ru:"пальто",emoji:"🧥",cat:"Одежда"},
@@ -342,7 +478,7 @@ const SECTIONS=[{
       {id:507,greek:"μολύβι",ru:"карандаш",emoji:"✏️",cat:"Школа"},
       {id:508,greek:"χάρτης",ru:"карта/атлас",emoji:"🗺️",cat:"Школа"},
       {id:509,greek:"χαρτί",ru:"бумага",emoji:"📄",cat:"Школа"},
-      {id:510,greek:"ξύστρα",ru:"точилка",emoji:"✂️",cat:"Школа"},
+      {id:510,greek:"ξύστρα",ru:"точилка",emoji:"🖊️",cat:"Школа"},
       {id:511,greek:"ταξιδεύει",ru:"путешествует",emoji:"✈️",cat:"Глаголы"},
       {id:512,greek:"τρώει",ru:"ест",emoji:"🍽️",cat:"Глаголы"},
       {id:513,greek:"δουλεύει",ru:"работает",emoji:"💼",cat:"Глаголы"},
@@ -388,11 +524,18 @@ let S={
   activeUnit:null,
   queue:[],qi:0,ex:null,
   score:LS.get('score',{c:0,w:0,st:0}),
+  c4checked:false,
+  fillChosen:null,
+  fillChecked:false,
+  listenChosen:null,
+  listenChecked:false,
+  listenQIdx:0,
   errs:[],
   fcRev:false,chosen:null,wv:'',ws:null,
   mSelGr:null,mSelRu:null,mDone:[],mWrong:[],mDoneAll:false,
   wlPage:LS.get('wlPage',0),
   wlSearch:'',
+  wlSection:'all',
   lwSearch:'',
   practiceTab:LS.get('practiceTab','practice'),
   pEx:null,pFcRev:false,pChosen:null,
@@ -412,7 +555,8 @@ function save(){
   LS.set('unitScores',S.unitScores);
   LS.set('practiceTab',S.practiceTab);
   if(S.mode==='unit'&&S.activeUnit){
-    LS.set('session',{unitId:S.activeUnit.id,queue:S.queue.map(w=>w.id),qi:S.qi,score:S.score,errs:S.errs.map(w=>w.id),answers:S.answers||[]});
+    const queueSave=S.queue.map(item=>item&&item.type==='FILL_SLOT'?item:item?.id);
+    LS.set('session',{unitId:S.activeUnit.id,queue:queueSave,qi:S.qi,score:S.score,errs:S.errs.map(w=>w.id),answers:S.answers||[]});
   } else {
     LS.set('session',null);
   }
@@ -578,13 +722,32 @@ function startUnit(unit){
   const sess=LS.get('session',null);
   if(sess&&sess.unitId===unit.id&&sess.qi<sess.queue.length){
     S.activeUnit=unit;
-    S.queue=sess.queue.map(id=>ALL_WORDS.find(w=>w.id===id)).filter(Boolean);
+    // Restore mixed queue (words + fill slots)
+    S.queue=sess.queue.map(item=>{
+      if(item.type==='FILL_SLOT')return item;
+      return ALL_WORDS.find(w=>w.id===item);
+    }).filter(Boolean);
     S.qi=sess.qi;
     S.score=sess.score||{c:0,w:0,st:0};
     S.errs=sess.errs.map(id=>ALL_WORDS.find(w=>w.id===id)).filter(Boolean);
     S.answers=sess.answers||[];
   } else {
-    S.activeUnit=unit;S.queue=shuffle(unit.words);S.qi=0;
+    S.activeUnit=unit;
+    // Build mixed queue: words + fill exercise slots
+    const wordQueue=shuffle(unit.words);
+    const fills=FILL_EXERCISES.filter(f=>f.unitId===unit.id);
+    // Insert fill exercises at intervals
+    const mixed=[...wordQueue];
+    fills.forEach((f,i)=>{
+      const pos=Math.min(Math.floor((i+1)*wordQueue.length/(fills.length+1)),mixed.length);
+      mixed.splice(pos+i,0,{type:'FILL_SLOT',fillId:f.id});
+    });
+    // Add listen exercises
+    const listens=LISTEN_EXERCISES.filter(l=>l.unitId===unit.id);
+    listens.forEach((l,i)=>{
+      mixed.push({type:'LISTEN_SLOT',listenId:l.id,qIdx:0});
+    });
+    S.queue=mixed;S.qi=0;
     S.score={c:0,w:0,st:0};S.errs=[];S.answers=[];
   }
   S.mode='unit';nextEx();render();
@@ -592,9 +755,25 @@ function startUnit(unit){
 
 function nextEx(){
   if(S.qi>=S.queue.length)return;
-  const word=S.queue[S.qi%S.queue.length];
-  S.ex=buildEx(word,S.queue);
-  S.fcRev=false;S.chosen=null;S.wv='';S.ws=null;
+  const item=S.queue[S.qi];
+  if(item&&item.type==='FILL_SLOT'){
+    const f=FILL_EXERCISES.find(x=>x.id===item.fillId);
+    if(f){
+      S.ex={type:'FILL',fillId:f.id,sentence:f.sentence,hint:f.hint,
+        answer:f.answer,options:shuffle(f.options),translation:f.translation,emoji:f.emoji};
+    } else { S.qi++; nextEx(); return; }
+  } else if(item&&item.type==='LISTEN_SLOT'){
+    const l=LISTEN_EXERCISES.find(x=>x.id===item.listenId);
+    if(l){
+      S.listenQIdx=item.qIdx||0;
+      S.ex={type:'LISTEN',listenId:l.id,listen:l,qIdx:S.listenQIdx};
+    } else { S.qi++; nextEx(); return; }
+  } else {
+    const word=item;
+    S.ex=buildEx(word,S.queue.filter(x=>x&&!x.type));
+  }
+  S.fcRev=false;S.chosen=null;S.c4checked=false;S.fillChosen=null;S.fillChecked=false;S.listenChosen=null;S.listenChecked=false;
+  S.wv='';S.ws=null;
   S.mSelGr=null;S.mSelRu=null;S.mDone=[];S.mWrong=[];S.mDoneAll=false;S.mWrongCount=0;
 }
 
@@ -702,7 +881,7 @@ function renderEx(){
       card.appendChild(ans);
       const fcr=el('div','fcr');
       const nb=el('button','btn ber');nb.textContent='Не знал 😬';nb.onclick=()=>advance(false);
-      const yb=el('button','btn bok');yb.textContent='Знал! ✅';yb.onclick=()=>advance(true);
+      const yb=el('button','btn bok');yb.textContent='Знаю / вроде помню';yb.onclick=()=>advance(true);
       fcr.appendChild(nb);fcr.appendChild(yb);card.appendChild(fcr);
     }
     ew.appendChild(card);
@@ -721,14 +900,34 @@ function renderEx(){
     ew.appendChild(card);
     const chs=el('div','chs');
     S.ex.opts.forEach(o=>{
-      let cls='cb2';if(S.chosen){if(o.id===word.id)cls+=' ck';else if(o.id===S.chosen)cls+=' cw';}
+      let cls='cb2';
+      if(S.c4checked){if(o.id===word.id)cls+=' ck';else if(o.id===S.chosen)cls+=' cw';}
+      else if(S.chosen===o.id)cls+=' ms';
       const b=el('button',cls);
       b.textContent=ruToGr?o.greek:o.ru;
-      if(S.chosen)b.disabled=true;
-      b.onclick=()=>{if(ruToGr)speak(o.greek);S.chosen=o.id;render();setTimeout(()=>advance(o.id===word.id),1000);};
+      if(S.c4checked)b.disabled=true;
+      b.onclick=()=>{
+        if(!S.c4checked){if(ruToGr)speak(o.greek);S.chosen=o.id;render();}
+      };
       chs.appendChild(b);
     });
     ew.appendChild(chs);
+    if(!S.c4checked){
+      // Show "Проверить" only after selection
+      if(S.chosen){
+        const chk=el('button','btn bpr bfw');chk.textContent='Проверить';
+        chk.onclick=()=>{S.c4checked=true;render();};
+        ew.appendChild(chk);
+      }
+    } else {
+      const isOk=S.chosen===word.id;
+      const fb=el('div','fb '+(isOk?'fbok':'fber'));
+      fb.textContent=isOk?`✅ Верно!`:`❌ Правильно: ${ruToGr?word.greek:word.ru}`;
+      ew.appendChild(fb);
+      const nb=el('button','btn bpr bfw');nb.textContent='Дальше →';
+      nb.onclick=()=>{S.c4checked=false;advance(isOk);};
+      ew.appendChild(nb);
+    }
   }
   else if(type==='WRITE'){
     const wDir=S.ex.dir||'ruToGr';
@@ -777,6 +976,145 @@ function renderEx(){
     mg.appendChild(mcL);mg.appendChild(mcR);ew.appendChild(mg);
     if(S.mDoneAll){const nb=el('button','btn bpr bfw');nb.textContent='Далее →';nb.onclick=()=>advance(S.mWrongCount===0);ew.appendChild(nb);}
   }
+  else if(type==='LISTEN'){
+    const l=S.ex.listen;
+    const qIdx=S.ex.qIdx||0;
+    const q=l.questions[qIdx];
+    const isLast=qIdx>=l.questions.length-1;
+
+    const lbl=el('div','ex');lbl.textContent='Слушай и отвечай';ew.appendChild(lbl);
+
+    // Text card with play button
+    const card=el('div','card');
+    // Title
+    const title=el('div');title.style.cssText='font-size:16px;font-weight:900;color:var(--acc);margin-bottom:6px';
+    title.textContent=l.title+' — '+l.titleRu;card.appendChild(title);
+
+    // Play button
+    const playRow=el('div');playRow.style.cssText='display:flex;gap:10px;margin-bottom:12px;align-items:center';
+    const playBtn=el('button','btn bpr');playBtn.style.cssText='flex:unset;padding:12px 20px;font-size:18px';
+    playBtn.textContent='▶ Слушать';
+    playBtn.onclick=()=>speak(l.text);
+    const stopBtn=el('button','btn bot');stopBtn.style.cssText='flex:unset;padding:12px 16px;font-size:18px';
+    stopBtn.textContent='⏹';stopBtn.onclick=()=>speechSynthesis.cancel();
+    playRow.appendChild(playBtn);playRow.appendChild(stopBtn);card.appendChild(playRow);
+
+    // Show text (collapsible)
+    const showTxt=el('div');showTxt.style.cssText='font-size:12px;color:var(--acc);cursor:pointer;font-weight:700;text-decoration:underline;margin-bottom:8px';
+    showTxt.textContent='Показать текст';
+    const txtBlock=el('div');txtBlock.style.cssText='font-size:14px;line-height:1.8;color:var(--txt);display:none;background:#f0f4ff;border-radius:10px;padding:12px;margin-bottom:8px';
+    txtBlock.textContent=l.text;
+    showTxt.onclick=()=>{
+      if(txtBlock.style.display==='none'){txtBlock.style.display='block';showTxt.textContent='Скрыть текст';}
+      else{txtBlock.style.display='none';showTxt.textContent='Показать текст';}
+    };
+    card.appendChild(showTxt);card.appendChild(txtBlock);
+
+    // Translation toggle
+    const showRu=el('div');showRu.style.cssText='font-size:12px;color:var(--mu);cursor:pointer;font-weight:700;text-decoration:underline';
+    showRu.textContent='Показать перевод';
+    const ruBlock=el('div');ruBlock.style.cssText='font-size:13px;line-height:1.7;color:var(--mu);display:none;margin-top:6px';
+    ruBlock.textContent=l.textRu;
+    showRu.onclick=()=>{
+      if(ruBlock.style.display==='none'){ruBlock.style.display='block';showRu.textContent='Скрыть перевод';}
+      else{ruBlock.style.display='none';showRu.textContent='Показать перевод';}
+    };
+    card.appendChild(showRu);card.appendChild(ruBlock);
+    ew.appendChild(card);
+
+    // Question
+    const qCard=el('div','card');qCard.style.marginTop='4px';
+    const qNum=el('div');qNum.style.cssText='font-size:11px;color:var(--mu);font-weight:800;margin-bottom:6px';
+    qNum.textContent='Вопрос '+(qIdx+1)+' из '+l.questions.length;qCard.appendChild(qNum);
+    const qText=el('div');qText.style.cssText='font-size:16px;font-weight:800;margin-bottom:4px';
+    qText.textContent=q.q;qCard.appendChild(qText);
+    const qRu=el('div');qRu.style.cssText='font-size:13px;color:var(--mu);font-weight:600';
+    qRu.textContent=q.qRu;qCard.appendChild(qRu);
+    ew.appendChild(qCard);
+
+    // Options
+    const chs=el('div','chs');
+    q.options.forEach(opt=>{
+      let cls='cb2';
+      if(S.listenChecked){if(opt===q.answer)cls+=' ck';else if(opt===S.listenChosen)cls+=' cw';}
+      else if(S.listenChosen===opt)cls+=' ms';
+      const b=el('button',cls);b.textContent=opt;
+      if(S.listenChecked)b.disabled=true;
+      b.onclick=()=>{if(!S.listenChecked){S.listenChosen=opt;render();}};
+      chs.appendChild(b);
+    });
+    ew.appendChild(chs);
+
+    if(!S.listenChecked){
+      if(S.listenChosen){
+        const chk=el('button','btn bpr bfw');chk.textContent='Проверить';
+        chk.onclick=()=>{S.listenChecked=true;render();};ew.appendChild(chk);
+      }
+    } else {
+      const isOk=S.listenChosen===q.answer;
+      const fb=el('div','fb '+(isOk?'fbok':'fber'));
+      fb.textContent=isOk?'✅ Верно!':'❌ Правильно: '+q.answer;ew.appendChild(fb);
+      const nb=el('button','btn bpr bfw');
+      if(!isLast){
+        nb.textContent='Следующий вопрос →';
+        nb.onclick=()=>{
+          // Next question in same listen exercise - replace queue slot
+          S.queue[S.qi]={type:'LISTEN_SLOT',listenId:l.id,qIdx:qIdx+1};
+          S.listenChecked=false;S.listenChosen=null;
+          nextEx();render();
+        };
+      } else {
+        nb.textContent='Дальше →';
+        nb.onclick=()=>{S.listenChecked=false;S.listenChosen=null;advance(isOk);};
+      }
+      ew.appendChild(nb);
+    }
+  }
+
+  else if(type==='FILL'){
+    const lbl=el('div','ex');lbl.textContent='Заполни пропуск';ew.appendChild(lbl);
+    const card=el('div','card');
+    // Show sentence
+    const sent=el('div');sent.style.cssText='font-size:18px;font-weight:800;line-height:1.6;margin-bottom:10px;color:var(--txt)';
+    sent.textContent=S.ex.sentence;card.appendChild(sent);
+    // Translation hint
+    const tr=el('div');tr.style.cssText='font-size:13px;color:var(--mu);font-weight:600;margin-bottom:8px';
+    tr.textContent=S.ex.translation;card.appendChild(tr);
+    if(S.ex.hint){
+      const h=el('div');h.style.cssText='font-size:12px;color:var(--acc);font-weight:700;background:#ede9fe;border-radius:8px;padding:6px 10px;display:inline-block';
+      h.textContent='💡 '+S.ex.hint;card.appendChild(h);
+    }
+    ew.appendChild(card);
+    // Options
+    const chs=el('div','chs');
+    S.ex.options.forEach(opt=>{
+      let cls='cb2';
+      if(S.fillChecked){
+        if(opt===S.ex.answer)cls+=' ck';
+        else if(opt===S.fillChosen&&opt!==S.ex.answer)cls+=' cw';
+      } else if(S.fillChosen===opt) cls+=' ms';
+      const b=el('button',cls);b.textContent=opt;
+      if(S.fillChecked)b.disabled=true;
+      b.onclick=()=>{if(!S.fillChecked){S.fillChosen=opt;render();}};
+      chs.appendChild(b);
+    });
+    ew.appendChild(chs);
+    if(!S.fillChecked){
+      if(S.fillChosen){
+        const chk=el('button','btn bpr bfw');chk.textContent='Проверить';
+        chk.onclick=()=>{S.fillChecked=true;render();};ew.appendChild(chk);
+      }
+    } else {
+      const isOk=S.fillChosen===S.ex.answer;
+      const fb=el('div','fb '+(isOk?'fbok':'fber'));
+      fb.textContent=isOk?'✅ Верно!':'❌ Правильно: '+S.ex.answer;
+      ew.appendChild(fb);
+      const nb=el('button','btn bpr bfw');nb.textContent='Дальше →';
+      nb.onclick=()=>{S.fillChecked=false;S.fillChosen=null;advance(isOk);};
+      ew.appendChild(nb);
+    }
+  }
+
   return ew;
 }
 
@@ -787,6 +1125,8 @@ function doWrite(){
 
 function handleMGr(gr){
   speak(gr);if(S.mDone.includes(gr))return;
+  // Deselect if already selected
+  if(S.mSelGr===gr){S.mSelGr=null;render();return;}
   if(S.mSelRu){
     const pair=S.ex.pairs.find(p=>p.greek===gr);
     if(pair&&pair.ru===S.mSelRu){S.mDone=[...S.mDone,gr];S.mSelGr=null;S.mSelRu=null;if(S.mDone.length===S.ex.pairs.length)S.mDoneAll=true;}
@@ -795,6 +1135,8 @@ function handleMGr(gr){
 }
 function handleMRu(ru){
   const pGr=S.ex.pairs.find(p=>p.ru===ru)?.greek;if(S.mDone.includes(pGr))return;
+  // Deselect if already selected
+  if(S.mSelRu===ru){S.mSelRu=null;render();return;}
   if(S.mSelGr){
     const pair=S.ex.pairs.find(p=>p.greek===S.mSelGr);
     if(pair&&pair.ru===ru){S.mDone=[...S.mDone,S.mSelGr];S.mSelGr=null;S.mSelRu=null;if(S.mDone.length===S.ex.pairs.length)S.mDoneAll=true;}
@@ -805,8 +1147,23 @@ function handleMRu(ru){
 // ─── WORDS ────────────────────────────────────────────────
 function renderWords(){
   const sc=el('div','sc');
+  // Section tabs
+  const stabs=el('div');stabs.style.cssText='display:flex;gap:6px;margin-bottom:12px;overflow-x:auto;padding-bottom:4px';
+  const secIds=['all',...SECTIONS.map(s=>s.id)];
+  const secLabels=['Все',...SECTIONS.map(s=>s.subtitle||s.title)];
+  secIds.forEach((sid,i)=>{
+    const tb=el('button','ptab'+(S.wlSection===sid||(!S.wlSection&&sid==='all')?' on':''));
+    tb.textContent=secLabels[i];tb.style.whiteSpace='nowrap';
+    tb.onclick=()=>{S.wlSection=sid;S.wlPage=0;render();};
+    stabs.appendChild(tb);
+  });
+  sc.appendChild(stabs);
+  const secWords=(!S.wlSection||S.wlSection==='all')?ALL_WORDS:ALL_WORDS.filter(w=>{
+    const sec=SECTIONS.find(s=>s.units.some(u=>u.words.some(uw=>uw.id===w.id)));
+    return sec&&sec.id===S.wlSection;
+  });
   const q=S.wlSearch.toLowerCase();
-  const filtered=ALL_WORDS.filter(w=>!q||w.greek.toLowerCase().includes(q)||w.ru.toLowerCase().includes(q));
+  const filtered=secWords.filter(w=>!q||w.greek.toLowerCase().includes(q)||w.ru.toLowerCase().includes(q));
   const totalPages=Math.ceil(filtered.length/PER_PAGE);
   if(S.wlPage>=totalPages)S.wlPage=0;
   const pageWords=filtered.slice(S.wlPage*PER_PAGE,(S.wlPage+1)*PER_PAGE);
@@ -927,9 +1284,9 @@ function renderPractice(){
       card.appendChild(ans);
       const fcr=el('div');fcr.style.cssText='display:flex;flex-direction:column;gap:8px;margin-top:14px';
       const nb=el('button','btn ber');nb.textContent='❌ Не знал';nb.onclick=()=>{buildPEx();render();};
-      const kb=el('button','btn bot');kb.textContent='✅ Знал — оставить в практике';
+      const kb=el('button','btn bot');kb.textContent='✅ Знаю / вроде помню';
       kb.onclick=()=>{buildPEx();render();};
-      const lb=el('button','btn bok');lb.textContent='⭐ Знал — в выученные';
+      const lb=el('button','btn bok');lb.textContent='⭐ Знаю точно — в выученные';
       lb.onclick=()=>{
         const w=S.pEx.word;
         S.learned.add(w.id);S.checked.delete(w.id);
@@ -971,6 +1328,7 @@ function renderPractice(){
 
 function handlePL(gr){
   speak(gr);if(S.pMDone.includes(gr))return;
+  if(S.pMSelL===gr){S.pMSelL=null;render();return;}
   if(S.pMSelR){
     const pair=S.pEx.pairs.find(p=>p.greek===gr);
     if(pair&&pair.ru===S.pMSelR){
@@ -981,6 +1339,7 @@ function handlePL(gr){
 }
 function handlePR(ru){
   const pGr=S.pEx.pairs.find(p=>p.ru===ru)?.greek;if(S.pMDone.includes(pGr))return;
+  if(S.pMSelR===ru){S.pMSelR=null;render();return;}
   if(S.pMSelL){
     const pair=S.pEx.pairs.find(p=>p.greek===S.pMSelL);
     if(pair&&pair.ru===ru){
