@@ -467,15 +467,14 @@ function buildPEx(){
   if(!pw.length){S.pEx=null;return;}
   const word=pw[Math.floor(Math.random()*pw.length)];
   const others=pw.filter(w=>w.id!==word.id);
-  const fb=ALL_WORDS.filter(w=>w.id!==word.id&&!S.learned.has(w.id));
-  // Only use checked words for options too
-  const src=others.length>=3?others:fb;
+  // MATCH only if 4+ checked words available
+  const canMatch=pw.length>=4;
   const r=Math.random();
-  if(r<0.5){
+  if(!canMatch||r<0.5){
     S.pEx={t:'FC',word,dir:Math.random()>.5?'grToRu':'ruToGr'};S.pFcRev=false;
   } else {
-    // MATCH only with checked words
-    const pairs=shuffle([word,...pick(src,3)]).slice(0,4);
+    // MATCH only with checked (practice) words
+    const pairs=shuffle([word,...pick(others,3)]).slice(0,4);
     S.pEx={t:'MA',word,pairs,ll:shuffle(pairs.map(p=>p.greek)),rl:shuffle(pairs.map(p=>p.ru))};
     S.pMSelL=null;S.pMSelR=null;S.pMDone=[];S.pMWrong=[];
   }
@@ -486,7 +485,7 @@ function render(){
   const app=document.getElementById('app');
   app.innerHTML='';
   const nav=el('div','nav');
-  [['learn','🎓','Учить'],['words','📖','Слова'],['practice','⚡','Практика'],['phonics','🔤','Фонетика']].forEach(([id,icon,label])=>{
+  [['learn','🎓','Учиться'],['words','📖','Слова'],['practice','⚡','Практика'],['phonics','🔤','Фонетика']].forEach(([id,icon,label])=>{
     const btn=el('button','nt'+(S.tab===id?' on':''));
     btn.innerHTML=`<span class="ni">${icon}</span>${label}`;
     btn.onclick=()=>{S.tab=id;save();if(id==='practice'&&!S.pEx)buildPEx();render();};
@@ -743,7 +742,7 @@ function renderEx(){
       ew.appendChild(fb);
     }else{
       const cb=el('button','btn bpr bfw');cb.textContent='Проверить';cb.onclick=doWrite;ew.appendChild(cb);
-      const sw=el('div','swl');sw.textContent='Не могу писать — выбрать из 4 →';
+      const sw=el('div','swl');sw.textContent='Не хочу писать — выбрать из 4';
       sw.onclick=()=>{
         const src=ALL_WORDS.filter(w=>w.id!==word.id);
         // Card stays with Russian word, 4 options in Greek
@@ -876,6 +875,11 @@ function renderPractice(){
     pe.innerHTML=`<div style="font-size:52px;margin-bottom:14px">📋</div><div style="font-size:18px;font-weight:800;margin-bottom:8px">Нет слов для практики</div><div style="font-size:14px;font-weight:600">Отметь галочкой в разделе «Слова»</div>`;
     wrap.appendChild(pe);return wrap;
   }
+  // Long-press hint
+  const hint=el('div');
+  hint.style.cssText='display:flex;align-items:center;gap:8px;background:#ede9fe;border-radius:12px;padding:10px 14px;margin-bottom:14px;font-size:13px;font-weight:700;color:var(--acc)';
+  hint.innerHTML='👆 Удержи карточку — отметить как выученное';
+  wrap.appendChild(hint);
   if(!S.pEx)buildPEx();
   if(!S.pEx)return wrap;
 
@@ -913,18 +917,24 @@ function renderPractice(){
         row.appendChild(w);row.appendChild(sb);ans.appendChild(row);
       }
       card.appendChild(ans);
-      const fcr=el('div','fcr');
-      const nb=el('button','btn ber');nb.textContent='Не знал';nb.onclick=()=>{buildPEx();render();};
-      const yb=el('button','btn bok');yb.textContent='Знал! ✅';yb.onclick=()=>{buildPEx();render();};
-      fcr.appendChild(nb);fcr.appendChild(yb);card.appendChild(fcr);
+      const fcr=el('div');fcr.style.cssText='display:flex;flex-direction:column;gap:8px;margin-top:14px';
+      const nb=el('button','btn ber');nb.textContent='❌ Не знал';nb.onclick=()=>{buildPEx();render();};
+      const kb=el('button','btn bot');kb.textContent='✅ Знал — оставить в практике';
+      kb.onclick=()=>{buildPEx();render();};
+      const lb=el('button','btn bok');lb.textContent='⭐ Знал — в выученные';
+      lb.onclick=()=>{
+        const w=S.pEx.word;
+        S.learned.add(w.id);S.checked.delete(w.id);
+        save();buildPEx();showToast('⭐ Добавлено в выученные!');render();
+      };
+      fcr.appendChild(nb);fcr.appendChild(kb);fcr.appendChild(lb);card.appendChild(fcr);
     }
     wrap.appendChild(card);
   }
 
   // MATCH exercise — only checked words
   else if(S.pEx.t==='MA'){
-    const lbl=el('div');lbl.style.cssText='font-size:12px;color:var(--mu);font-weight:800;letter-spacing:1px;text-transform:uppercase;margin-bottom:12px';
-    lbl.textContent='Соедини · 🔊 = озвучка · удержи = убрать';wrap.appendChild(lbl);
+
     const mg=el('div','mg');
     const mcL=el('div','mc'),mcR=el('div','mc');
     S.pEx.ll.forEach(gr=>{
@@ -1038,13 +1048,13 @@ function renderPopup(){
   const pu=el('div','popu');pu.textContent='Отметить как выученное?';pb.appendChild(pu);
   const br=el('div','br');
   const nb=el('button','btn bot');nb.textContent='Нет';nb.onclick=()=>{S.popup=null;render();};
-  const yb=el('button','btn bok');yb.textContent='Да, выучил! ✅';
+  const yb=el('button','btn bok');yb.textContent='⭐ Да, выучил!';
   yb.onclick=()=>{
     const word=S.popup.word;
     const fromMatch=S.popup.fromMatch;
     if(word){
       S.learned.add(word.id);
-      S.checked.delete(word.id);
+      S.checked.delete(word.id); // remove from practice, remove checkbox in words
       // If from match, remove pair from current exercise
       if(fromMatch&&S.pEx&&S.pEx.t==='MA'){
         S.pEx.pairs=S.pEx.pairs.filter(p=>p.greek!==fromMatch);
