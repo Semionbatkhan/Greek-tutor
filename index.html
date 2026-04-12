@@ -498,22 +498,22 @@ const LISTEN_EXERCISES = [
     textRu:"Привет! Я Элени. Я из Афин. А тебя как зовут? Привет! Я Мария. Я из Салоников. Элени и Мария хорошие подруги. Они не из одного города, но разговаривают каждый день!",
     questions:[
       {
-        q:"Ποια είναι η κοπέλα;",
-        qRu:"Как зовут девушку?",
-        answer:"Ελένη",
-        options:["Ελένη","Μαρία","Άννα","Σοφία"]
-      },
-      {
         q:"Από πού είναι η Ελένη;",
         qRu:"Откуда Элени?",
         answer:"Από την Αθήνα",
         options:["Από την Αθήνα","Από τη Θεσσαλονίκη","Από τη Σαντορίνη","Από την Κρήτη"]
       },
       {
-        q:"Ποιος είναι ο Γιάννης για την Ελένη;",
-        qRu:"Кто Янис для Элени?",
-        answer:"Φίλος",
-        options:["Φίλος","Αδερφός","Συνάδελφος","Δάσκαλος"]
+        q:"Από πού είναι η Μαρία;",
+        qRu:"Откуда Мария?",
+        answer:"Από τη Θεσσαλονίκη",
+        options:["Από τη Θεσσαλονίκη","Από την Αθήνα","Από τη Σαντορίνη","Από την Κρήτη"]
+      },
+      {
+        q:"Η Ελένη και η Μαρία είναι φίλες;",
+        qRu:"Элени и Мария подруги?",
+        answer:"Ναι, είναι καλές φίλες",
+        options:["Ναι, είναι καλές φίλες","Όχι, δεν είναι φίλες","Είναι αδερφές","Δεν ξέρουμε"]
       },
     ]
   },
@@ -1693,23 +1693,19 @@ function renderEx(){
     // Show text (collapsible)
     const showTxt=el('div');showTxt.style.cssText='font-size:12px;color:var(--acc);cursor:pointer;font-weight:700;text-decoration:underline;margin-bottom:8px';
     showTxt.textContent='Показать текст';
-    const txtBlock=el('div');txtBlock.style.cssText='font-size:14px;line-height:1.8;color:var(--txt);display:none;background:#f0f4ff;border-radius:10px;padding:12px;margin-bottom:8px';
-    if(l.dialogue){
-      l.dialogue.forEach(seg=>{
-        const p=document.createElement('p');p.style.cssText='margin-bottom:10px';
-        if(seg.speaker){
-          const name=document.createElement('span');
-          name.style.cssText='font-weight:900;color:var(--acc);margin-right:6px';
-          name.textContent=seg.speaker+':';
-          p.appendChild(name);
-        }
-        const txt=document.createElement('span');txt.textContent=seg.text;
-        p.appendChild(txt);
-        txtBlock.appendChild(p);
-      });
-    } else {
-      txtBlock.textContent=l.text;
-    }
+    const txtBlock=el('div');txtBlock.style.cssText='font-size:14px;line-height:1.9;color:var(--txt);display:none;background:#f0f4ff;border-radius:10px;padding:14px;margin-bottom:8px';
+    (l.dialogue||[{speaker:'',text:l.text}]).forEach(seg=>{
+      const p=el('div');p.style.cssText='margin-bottom:10px';
+      if(seg.speaker){
+        const name=el('span');
+        name.style.cssText='font-weight:900;color:var(--acc);margin-right:6px';
+        name.textContent=seg.speaker+':';
+        p.appendChild(name);
+      }
+      const txt=el('span');txt.textContent=seg.text;
+      p.appendChild(txt);
+      txtBlock.appendChild(p);
+    });
     showTxt.onclick=()=>{
       if(txtBlock.style.display==='none'){txtBlock.style.display='block';showTxt.textContent='Скрыть текст';}
       else{txtBlock.style.display='none';showTxt.textContent='Показать текст';}
@@ -1732,8 +1728,13 @@ function renderEx(){
     const qCard=el('div','card');qCard.style.marginTop='4px';
     const qNum=el('div');qNum.style.cssText='font-size:11px;color:var(--mu);font-weight:800;margin-bottom:6px';
     qNum.textContent='Вопрос '+(qIdx+1)+' из '+l.questions.length;qCard.appendChild(qNum);
-    const qText=el('div');qText.style.cssText='font-size:16px;font-weight:800;margin-bottom:4px';
-    qText.textContent=q.q;qCard.appendChild(qText);
+    const qRow=el('div');qRow.style.cssText='display:flex;align-items:flex-start;gap:8px';
+    const qText=el('div');qText.style.cssText='font-size:16px;font-weight:800;margin-bottom:4px;flex:1';
+    qText.textContent=q.q;qRow.appendChild(qText);
+    const qSpk=el('button','spk');qSpk.textContent='🔊';qSpk.style.flexShrink='0';
+    qSpk.onclick=e=>{e.stopPropagation();speak(q.q);};
+    qRow.appendChild(qSpk);
+    qCard.appendChild(qRow);
     const qRu=el('div');qRu.style.cssText='font-size:13px;color:var(--mu);font-weight:600';
     qRu.textContent=q.qRu;qCard.appendChild(qRu);
     ew.appendChild(qCard);
