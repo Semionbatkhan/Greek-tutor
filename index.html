@@ -1261,25 +1261,41 @@ function renderUnitEx(){
   }
 
   const ps=el('div','ps');
-  const back=el('button');back.textContent='⬅';back.style.cssText='background:none;border:none;color:var(--mu);cursor:pointer;font-size:22px;font-weight:900';
+  ps.style.cssText='background:var(--sur);padding:6px 12px;border-bottom:1px solid #e0e7ff;display:flex;align-items:center;gap:4px;flex-shrink:0';
+
+  // Back to home
+  const back=el('button');back.innerHTML='&#8592;';
+  back.style.cssText='background:none;border:none;color:var(--mu);cursor:pointer;font-size:36px;line-height:1;flex-shrink:0;padding:0 4px 2px';
   back.onclick=()=>{S.mode='home';render();};
   ps.appendChild(back);
-  // Prev button
-  const prev=el('button');prev.textContent='◀';
-  prev.style.cssText='background:none;border:none;cursor:pointer;font-size:18px;font-weight:900;padding:0 4px';
+
+  // Prev exercise
+  const prev=el('button');prev.innerHTML='&#9664;';
+  prev.style.cssText='background:none;border:none;cursor:pointer;font-size:30px;line-height:1;padding:0 4px 2px;flex-shrink:0';
   if(S.qi>0){prev.style.color='var(--acc)';prev.onclick=()=>prevEx();}
   else{prev.style.color='#e0e7ff';prev.style.cursor='default';}
   ps.appendChild(prev);
-  // Next button - only clickable if already answered (in answers array)
-  const fwd=el('button');fwd.textContent='▶';
-  fwd.style.cssText='background:none;border:none;cursor:pointer;font-size:18px;font-weight:900;padding:0 4px';
+
+  // Fwd exercise
+  const fwd=el('button');fwd.innerHTML='&#9654;';
+  fwd.style.cssText='background:none;border:none;cursor:pointer;font-size:30px;line-height:1;padding:0 4px 2px;flex-shrink:0';
   const canFwd=S.qi<(S.answers||[]).length;
   if(canFwd){fwd.style.color='var(--acc)';fwd.onclick=()=>{S.qi++;nextEx();render();};}
   else{fwd.style.color='#e0e7ff';fwd.style.cursor='default';}
   ps.appendChild(fwd);
-  const pname=el('span');pname.style.cssText='font-size:12px;color:var(--mu);font-weight:800;max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap';
-  pname.textContent=S.activeUnit?.titleRu||'';ps.appendChild(pname);
-  const pnum=el('div','pt2');pnum.textContent=`${S.qi+1}/${unitTotalItems(S.activeUnit?.id)||S.queue.length}`;ps.appendChild(pnum);
+
+  // Unit name - flex:1 takes all available space
+  const pname=el('div');
+  pname.style.cssText='flex:1;font-size:15px;font-weight:900;color:var(--txt);overflow:hidden;white-space:nowrap;text-overflow:ellipsis;padding:0 6px';
+  pname.textContent=S.activeUnit?.titleRu||'';
+  ps.appendChild(pname);
+
+  // Counter - pushed to right
+  const pnum=el('div');
+  pnum.style.cssText='font-size:13px;font-weight:800;color:var(--mu);flex-shrink:0;white-space:nowrap';
+  pnum.textContent=`${S.qi+1}/${unitTotalItems(S.activeUnit?.id)||S.queue.length}`;
+  ps.appendChild(pnum);
+
   wrap.appendChild(ps);
 
   // Progress bar on own strip below navigation
