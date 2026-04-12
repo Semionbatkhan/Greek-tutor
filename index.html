@@ -1279,11 +1279,11 @@ function renderUnitEx(){
   ps.appendChild(fwd);
   const pname=el('span');pname.style.cssText='font-size:12px;color:var(--mu);font-weight:800;max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap';
   pname.textContent=S.activeUnit?.titleRu||'';ps.appendChild(pname);
-  const pnum=el('div','pt2');pnum.textContent=`${S.qi+1}/${S.queue.length}`;ps.appendChild(pnum);
+  const pnum=el('div','pt2');pnum.textContent=`${S.qi+1}/${unitTotalItems(S.activeUnit?.id)||S.queue.length}`;ps.appendChild(pnum);
   wrap.appendChild(ps);
 
   // Progress bar on own strip below navigation
-  const total2=S.queue&&S.queue.length?S.queue.length:1;
+  const total2=unitTotalItems(S.activeUnit?.id)||S.queue.length||1;
   const answers2=S.answers||[];
   const segGap2=total2>40?1:2;
   const progStrip=el('div');progStrip.style.cssText='background:var(--sur);padding:5px 12px 7px;border-bottom:1px solid #e0e7ff;flex-shrink:0';
