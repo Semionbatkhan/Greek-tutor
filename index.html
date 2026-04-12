@@ -1,4 +1,4 @@
-<!DOCTYPE html><!-- build:1775989612 -->
+<!DOCTYPE html><!-- v:1775997512 -->1775989612 -->
 <html lang="el">
 <head>
 <meta charset="UTF-8"/>
@@ -187,6 +187,33 @@ function hasRealEmoji(emoji){
   return emoji && !SKIP_EMOJI_SET.has(emoji);
 }
 
+// Pronunciation fixes - short grammar words read naturally
+const PRONUNCIATION_MAP = {
+  'η': 'и',   // article - read as "и" not "ита"
+  'ο': 'о',   // article - read as "о" not "омикрон"
+  'οι': 'и',  // article plural
+  'τα': 'та', // article plural
+  'τον': 'тон',
+  'την': 'тин',
+  'το': 'то',
+  'ο': 'о',
+  'και': 'ке',
+  'ή': 'и',   // or
+  'ότι': 'оти',
+  'αν': 'ан',
+};
+
+function applyPronunciation(text){
+  // Replace standalone grammar words with their pronunciation
+  let result = text;
+  Object.entries(PRONUNCIATION_MAP).forEach(([word, pron])=>{
+    // Match whole word only (surrounded by spaces or start/end)
+    const re = new RegExp('(?<![\\w])' + word + '(?![\\w])', 'g');
+    result = result.replace(re, pron);
+  });
+  return result;
+}
+
 function stripNonGreek(text){
   return text
     .replace(/[а-яёА-ЯЁ]+/g,'') // remove Cyrillic
@@ -198,9 +225,21 @@ function stripNonGreek(text){
     .trim();
 }
 
+// Pronunciation map for single letters/short words that TTS reads wrong
+
+
+function prepareForTTS(text){
+  const clean=stripNonGreek(text);
+  if(!clean)return '';
+  // If it's a single word/letter, check pronunciation map
+  const trimmed=clean.trim();
+  if(PRONUNCIATION_MAP[trimmed]) return PRONUNCIATION_MAP[trimmed];
+  return clean;
+}
+
 function speak(text){
   if(!window.speechSynthesis)return;
-  const clean=stripNonGreek(text);
+  const clean=prepareForTTS(text);
   if(!clean)return;
   speechSynthesis.cancel();
   const u=new SpeechSynthesisUtterance(clean);
@@ -215,7 +254,8 @@ function speakList(texts){
   texts.forEach((text,i)=>{
     const clean=stripNonGreek(text);
     if(!clean)return;
-    const u=new SpeechSynthesisUtterance(clean);
+    const pronounced=applyPronunciation(clean);
+    const u=new SpeechSynthesisUtterance(pronounced);
     u.lang='el-GR';u.rate=0.75;u.pitch=1;
     if(greekVoice)u.voice=greekVoice;
     speechSynthesis.speak(u);
@@ -1268,6 +1308,28 @@ function renderUnitEx(){
   ps.appendChild(segWrap);
   const pnum=el('div','pt2');pnum.textContent=`${S.qi+1}/${S.queue.length}`;ps.appendChild(pnum);
   wrap.appendChild(ps);
+
+  // Progress bar on own strip below navigation
+  const total2=S.queue&&S.queue.length?S.queue.length:1;
+  const answers2=S.answers||[];
+  const segGap2=total2>40?1:2;
+  const progStrip=el('div');progStrip.style.cssText='background:var(--sur);padding:5px 12px 7px;border-bottom:1px solid #e0e7ff;flex-shrink:0';
+  const segWrap2=el('div');segWrap2.style.cssText=`display:flex;gap:${segGap2}px;height:8px;border-radius:99px;overflow:hidden;background:#e0e7ff;width:100%`;
+  for(let i=0;i<total2;i++){
+    const seg=el('div');seg.style.cssText='flex:1;height:100%;border-radius:2px;';
+    if(i<answers2.length){
+      if(answers2[i]==='theory')seg.style.background='#a5b4fc';
+      else if(answers2[i]==='ok')seg.style.background='#10b981';
+      else seg.style.background='#ef4444';
+    } else if(i===S.qi){
+      seg.style.background='#818cf8';
+    } else {
+      seg.style.background='#e0e7ff';
+    }
+    segWrap.appendChild(seg);
+  }
+  progStrip.appendChild(segWrap2);
+  wrap.appendChild(progStrip);
 
   const sc=el('div','sc');sc.appendChild(renderEx());wrap.appendChild(sc);
   return wrap;
