@@ -1269,7 +1269,17 @@ function renderEx(){
         const spkRow=el('div');spkRow.style.cssText='display:flex;align-items:flex-start;gap:8px';
         spkRow.appendChild(ex);
         const sb=el('button','spk');sb.textContent='🔊';sb.style.flexShrink='0';sb.style.marginTop='4px';
-        sb.onclick=()=>speak(block.example.split(' || ').map(l=>l.split(' — ')[0]).join(', '));
+        sb.onclick=()=>{
+          // Extract only Greek words - text before " — " and remove bracketed hints
+          const greekOnly = block.example.split(' || ')
+            .map(l => l.split(' — ')[0]  // take part before translation
+                       .replace(/\(.*?\)/g,'') // remove (муж.р.) etc
+                       .replace(/→/g,'')        // remove arrows
+                       .trim())
+            .filter(l => l.length > 0)
+            .join(', ');
+          speak(greekOnly);
+        };
         spkRow.appendChild(sb);
         wrap.appendChild(spkRow);
       }
