@@ -208,13 +208,11 @@ function stripNonGreek(text){
 // Pronunciation map for single letters/short words that TTS reads wrong
 
 
+// No pronunciation map needed - Greek TTS handles it natively
 function prepareForTTS(text){
+  if(!text)return '';
   const clean=stripNonGreek(text);
-  if(!clean)return '';
-  // If it's a single word/letter, check pronunciation map
-  const trimmed=clean.trim();
-  if(PRONUNCIATION_MAP[trimmed]) return PRONUNCIATION_MAP[trimmed];
-  return clean;
+  return clean||'';
 }
 
 function speak(text){
