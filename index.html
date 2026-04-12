@@ -1250,7 +1250,7 @@ function renderUnitEx(){
   const segGap = total > 30 ? 1 : 2;
   const segWrap=el('div');segWrap.style.cssText=`flex:1;display:flex;gap:${segGap}px;height:10px;border-radius:99px;overflow:hidden;background:#e0e7ff`;
   for(let i=0;i<total;i++){
-    const seg=el('div');seg.style.cssText=`flex:1;height:100%;transition:background .3s;border-radius:2px;`;
+    const seg=el('div');seg.style.cssText=`flex:1;min-width:3px;height:100%;transition:background .3s;border-radius:2px;`;
     if(i<answers.length){
       // Theory = light purple, correct = green, wrong = red
       if(answers[i]==='theory') seg.style.background='#a5b4fc';
@@ -1356,7 +1356,7 @@ function renderEx(){
     const isGrWrite=wDir==='grToRu'; // show greek, type russian - not typical, so ruToGr = show ru, type greek
     const lbl=el('div','ex');lbl.textContent='Напиши по-гречески';ew.appendChild(lbl);
     const card=el('div','card cc');
-    const em=el('div','be');em.textContent=word.emoji;card.appendChild(em);
+    if(hasRealEmoji(word.emoji)){const em=el('div','be');em.textContent=word.emoji;card.appendChild(em);}
     // Always show Russian, type Greek (most useful for learner)
     const w=el('div','bw bwr');w.textContent=word.ru;card.appendChild(w);
     ew.appendChild(card);
@@ -1491,18 +1491,58 @@ function renderEx(){
 
     // Text card with play button
     const card=el('div','card');
-    // Title
-    const title=el('div');title.style.cssText='font-size:16px;font-weight:900;color:var(--acc);margin-bottom:6px';
-    title.textContent=l.title+' — '+l.titleRu;card.appendChild(title);
 
-    // Play button
-    const playRow=el('div');playRow.style.cssText='display:flex;gap:10px;margin-bottom:12px;align-items:center';
-    const playBtn=el('button','btn bpr');playBtn.style.cssText='flex:unset;padding:12px 20px;font-size:18px';
-    playBtn.textContent='▶ Слушать';
-    playBtn.onclick=()=>speak(l.text);
-    const stopBtn=el('button','btn bot');stopBtn.style.cssText='flex:unset;padding:12px 16px;font-size:18px';
-    stopBtn.textContent='⏹';stopBtn.onclick=()=>speechSynthesis.cancel();
-    playRow.appendChild(playBtn);playRow.appendChild(stopBtn);card.appendChild(playRow);
+
+    // Audio player button with progress bar
+    const playerWrap=el('div');playerWrap.style.cssText='margin-bottom:14px;position:relative;border-radius:14px;overflow:hidden;background:#4f46e5;cursor:pointer;user-select:none';
+    const playerProgress=el('div');playerProgress.style.cssText='position:absolute;top:0;left:0;height:100%;background:rgba(255,255,255,0.25);width:0%;transition:none;pointer-events:none;border-radius:14px';
+    const playerInner=el('div');playerInner.style.cssText='position:relative;z-index:1;display:flex;align-items:center;gap:12px;padding:14px 18px';
+    const playIcon=el('div');playIcon.style.cssText='font-size:22px;flex-shrink:0';playIcon.textContent='▶';
+    const playerLabel=el('div');playerLabel.style.cssText='font-size:15px;font-weight:800;color:#fff';playerLabel.textContent='Слушать';
+    playerInner.appendChild(playIcon);playerInner.appendChild(playerLabel);
+    playerWrap.appendChild(playerProgress);playerWrap.appendChild(playerInner);
+
+    let isPlaying=false;
+    let progressInterval=null;
+    let estimatedDuration=l.text.length*60; // ~60ms per char
+    let startTime=null;
+    let elapsed=0;
+
+    function startProgress(){
+      startTime=Date.now()-elapsed;
+      progressInterval=setInterval(()=>{
+        elapsed=Date.now()-startTime;
+        const pct=Math.min(100,(elapsed/estimatedDuration)*100);
+        playerProgress.style.width=pct+'%';
+        if(pct>=100){clearInterval(progressInterval);onEnd();}
+      },50);
+    }
+    function stopProgress(){clearInterval(progressInterval);}
+    function onEnd(){
+      isPlaying=false;elapsed=0;
+      playerProgress.style.width='0%';
+      playIcon.textContent='▶';playerLabel.textContent='Слушать снова';
+    }
+
+    playerWrap.onclick=(e)=>{
+      const rect=playerWrap.getBoundingClientRect();
+      const clickX=e.clientX-rect.left;
+      const pct=clickX/rect.width;
+      // Scrub
+      if(isPlaying||elapsed>0){
+        elapsed=pct*estimatedDuration;
+        playerProgress.style.width=(pct*100)+'%';
+        if(isPlaying){stopProgress();startProgress();}
+      }
+      if(!isPlaying){
+        isPlaying=true;playIcon.textContent='⏸';playerLabel.textContent='Пауза';
+        speak(l.text);startProgress();
+      } else {
+        isPlaying=false;playIcon.textContent='▶';playerLabel.textContent='Продолжить';
+        speechSynthesis.pause();stopProgress();
+      }
+    };
+    card.appendChild(playerWrap);
 
     // Show text (collapsible)
     const showTxt=el('div');showTxt.style.cssText='font-size:12px;color:var(--acc);cursor:pointer;font-weight:700;text-decoration:underline;margin-bottom:8px';
@@ -1563,10 +1603,13 @@ function renderEx(){
       if(!isLast){
         nb.textContent='Следующий вопрос →';
         nb.onclick=()=>{
-          // Next question in same listen exercise - replace queue slot
+          // Track answer for progress bar
+          if(!S.answers)S.answers=[];
+          S.answers.push(isOk?'ok':'err');
+          // Next question in same listen exercise
           S.queue[S.qi]={type:'LISTEN_SLOT',listenId:l.id,qIdx:qIdx+1};
           S.listenChecked=false;S.listenChosen=null;
-          nextEx();render();
+          save();nextEx();render();
         };
       } else {
         nb.textContent='Дальше →';
