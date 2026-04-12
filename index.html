@@ -181,6 +181,12 @@ let greekVoice=null;
 function loadVoice(){const v=speechSynthesis.getVoices();greekVoice=v.find(x=>x.lang==='el-GR')||v.find(x=>x.lang==='el')||v.find(x=>x.lang.startsWith('el'))||null;}
 if(window.speechSynthesis){loadVoice();speechSynthesis.onvoiceschanged=loadVoice;}
 // Remove all Cyrillic characters and cleanup for Greek TTS
+const SKIP_EMOJI_SET=new Set(['🔵','📍','❌','✅','➕','↔️','❓','📗','📘','📙','🔤','👤','👥','💬','🚶']);
+
+function hasRealEmoji(emoji){
+  return emoji && !SKIP_EMOJI_SET.has(emoji);
+}
+
 function stripNonGreek(text){
   return text
     .replace(/[а-яёА-ЯЁ]+/g,'') // remove Cyrillic
@@ -1275,7 +1281,7 @@ function renderEx(){
   if(type==='FC'){
     const isGR=S.ex.dir==='grToRu';
     const card=el('div','card cc');
-    const em=el('div','be');em.textContent=word.emoji;card.appendChild(em);
+    if(hasRealEmoji(word.emoji)){const em=el('div','be');em.textContent=word.emoji;card.appendChild(em);}
     if(isGR){
       const row=el('div');row.style.cssText='display:flex;align-items:center;justify-content:center;gap:10px';
       const fontSize=word.greek.length<=2?'48px':word.greek.length<=4?'36px':'28px';
@@ -1304,7 +1310,7 @@ function renderEx(){
     const ruToGr=!!S.ex.ruToGr;
     const lbl=el('div','ex');lbl.textContent=ruToGr?'Выбери по-гречески':'Выбери перевод';ew.appendChild(lbl);
     const card=el('div','card cc');
-    const em=el('div','be');em.textContent=word.emoji;card.appendChild(em);
+    if(hasRealEmoji(word.emoji)){const em=el('div','be');em.textContent=word.emoji;card.appendChild(em);}
     if(ruToGr){
       const w=el('div','bw bwr');w.textContent=word.ru;card.appendChild(w);
     } else {
@@ -1379,17 +1385,24 @@ function renderEx(){
     const lbl=el('div','ex');lbl.textContent='Соедини пары';ew.appendChild(lbl);
     if(S.mDoneAll){const done=el('div','card cc pop');done.style.color='var(--ok)';done.style.fontSize='20px';done.textContent='🎉 Все пары найдены!';ew.appendChild(done);}
     const mg=el('div','mg');
-    const mcL=el('div','mc'),mcR=el('div','mc');
-    S.ex.ll.forEach(gr=>{
-      let cls='mi';if(S.mDone.includes(gr))cls+=' mm';else if(S.mSelGr===gr)cls+=' ms';else if(S.mWrong.includes(gr))cls+=' mw';
-      const d=el('div',cls);d.textContent=gr;d.onclick=()=>handleMGr(gr);mcL.appendChild(d);
-    });
-    S.ex.rl.forEach(ru=>{
-      const pair=S.ex.pairs.find(p=>p.ru===ru);let cls='mi';
-      if(S.mDone.includes(pair?.greek))cls+=' mm';else if(S.mSelRu===ru)cls+=' ms';else if(S.mWrong.includes(ru))cls+=' mw';
-      const d=el('div',cls);d.textContent=ru;d.onclick=()=>handleMRu(ru);mcR.appendChild(d);
-    });
-    mg.appendChild(mcL);mg.appendChild(mcR);ew.appendChild(mg);
+    // Interleave left and right items so CSS grid makes equal row heights
+    const maxLen=Math.max(S.ex.ll.length,S.ex.rl.length);
+    for(let idx=0;idx<maxLen;idx++){
+      // Left item
+      if(idx<S.ex.ll.length){
+        const gr=S.ex.ll[idx];
+        let cls='mi';if(S.mDone.includes(gr))cls+=' mm';else if(S.mSelGr===gr)cls+=' ms';else if(S.mWrong.includes(gr))cls+=' mw';
+        const d=el('div',cls);d.textContent=gr;d.onclick=()=>handleMGr(gr);mg.appendChild(d);
+      }
+      // Right item
+      if(idx<S.ex.rl.length){
+        const ru=S.ex.rl[idx];
+        const pair=S.ex.pairs.find(p=>p.ru===ru);let cls='mi';
+        if(S.mDone.includes(pair?.greek))cls+=' mm';else if(S.mSelRu===ru)cls+=' ms';else if(S.mWrong.includes(ru))cls+=' mw';
+        const d=el('div',cls);d.textContent=ru;d.onclick=()=>handleMRu(ru);mg.appendChild(d);
+      }
+    }
+    ew.appendChild(mg);
     if(S.mDoneAll){const nb=el('button','btn bpr bfw');nb.textContent='Далее →';nb.onclick=()=>advance(S.mWrongCount===0);ew.appendChild(nb);}
   }
   else if(type==='THEORY'){
@@ -1763,7 +1776,7 @@ function renderPractice(){
     card.ontouchstart=e=>{lpTimer=setTimeout(()=>{S.popup={word,fromPractice:true};render();},650);};
     card.ontouchend=()=>clearTimeout(lpTimer);
 
-    const em=el('div','be');em.textContent=word.emoji;card.appendChild(em);
+    if(hasRealEmoji(word.emoji)){const em=el('div','be');em.textContent=word.emoji;card.appendChild(em);}
     if(isGR){
       const row=el('div');row.style.cssText='display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:4px';
       const w=el('div','bw');w.textContent=word.greek;
