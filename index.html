@@ -188,31 +188,10 @@ function hasRealEmoji(emoji){
   return emoji && !SKIP_EMOJI_SET.has(emoji);
 }
 
-// Pronunciation fixes - short grammar words read naturally
-const PRONUNCIATION_MAP = {
-  'η': 'и',   // article - read as "и" not "ита"
-  'ο': 'о',   // article - read as "о" not "омикрон"
-  'οι': 'и',  // article plural
-  'τα': 'та', // article plural
-  'τον': 'тон',
-  'την': 'тин',
-  'το': 'то',
-  'ο': 'о',
-  'και': 'ке',
-  'ή': 'и',   // or
-  'ότι': 'оти',
-  'αν': 'ан',
-};
-
+// No pronunciation map - let Greek TTS handle it natively
+// Single letter articles (η, ο) are spoken naturally by el-GR voice
 function applyPronunciation(text){
-  // Replace standalone grammar words with their pronunciation
-  let result = text;
-  Object.entries(PRONUNCIATION_MAP).forEach(([word, pron])=>{
-    // Match whole word only (surrounded by spaces or start/end)
-    const re = new RegExp('(?<![\\w])' + word + '(?![\\w])', 'g');
-    result = result.replace(re, pron);
-  });
-  return result;
+  return text; // pass through unchanged
 }
 
 function stripNonGreek(text){
@@ -1300,7 +1279,7 @@ function renderUnitEx(){
   for(let i=0;i<total2;i++){
     const seg=el('div');seg.style.cssText='flex:1;height:100%;border-radius:2px;';
     if(i<answers2.length){
-      if(answers2[i]==='theory')seg.style.background='#a5b4fc';
+      if(answers2[i]==='theory')seg.style.background='#10b981';
       else if(answers2[i]==='ok')seg.style.background='#10b981';
       else seg.style.background='#ef4444';
     } else if(i===S.qi){
