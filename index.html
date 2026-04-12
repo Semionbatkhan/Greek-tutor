@@ -974,6 +974,37 @@ function startUnit(unit){
   S.mode='unit';nextEx();render();
 }
 
+function prevEx(){
+  if(S.qi<=0)return;
+  S.qi--;
+  const item=S.queue[S.qi];
+  if(item&&item.type==='THEORY_SLOT'){
+    const t=THEORY_CARDS.find(x=>x.id===item.theoryId);
+    if(t){S.ex={type:'THEORY',theory:t};}
+    else{S.qi--;prevEx();return;}
+  } else if(item&&item.type==='FILL_SLOT'){
+    const f=FILL_EXERCISES.find(x=>x.id===item.fillId);
+    if(f){S.ex={type:'FILL',fillId:f.id,sentence:f.sentence,hint:f.hint,answer:f.answer,options:shuffle(f.options),translation:f.translation,emoji:f.emoji};}
+    else{S.qi--;prevEx();return;}
+  } else if(item&&item.type==='LISTEN_SLOT'){
+    const l=LISTEN_EXERCISES.find(x=>x.id===item.listenId);
+    if(l){S.ex={type:'LISTEN',listenId:l.id,listen:l,qIdx:0};}
+    else{S.qi--;prevEx();return;}
+  } else {
+    S.ex=buildEx(item,S.queue.filter(x=>x&&!x.type));
+  }
+  S.fcRev=false;S.chosen=null;S.c4checked=false;S.fillChosen=null;S.fillChecked=false;
+  S.listenChosen=null;S.listenChecked=false;
+  S.mSelGr=null;S.mSelRu=null;S.mDone=[];S.mWrong=[];S.mDoneAll=false;S.mWrongCount=0;
+  // Undo last score change
+  if(S.answers&&S.answers.length>0){
+    const last=S.answers.pop();
+    if(last==='ok')S.score.c=Math.max(0,S.score.c-1);
+    else S.score.w=Math.max(0,S.score.w-1);
+  }
+  save();render();
+}
+
 function nextEx(){
   if(S.qi>=S.queue.length)return;
   const item=S.queue[S.qi];
@@ -1058,9 +1089,16 @@ function renderUnitEx(){
   }
 
   const ps=el('div','ps');
-  const back=el('button');back.textContent='←';back.style.cssText='background:none;border:none;color:var(--mu);cursor:pointer;font-size:22px;font-weight:900';
+  const back=el('button');back.textContent='⬅';back.style.cssText='background:none;border:none;color:var(--mu);cursor:pointer;font-size:22px;font-weight:900';
   back.onclick=()=>{S.mode='home';render();};
   ps.appendChild(back);
+  // Prev exercise button
+  if(S.qi>0){
+    const prev=el('button');prev.textContent='◀';prev.style.cssText='background:none;border:none;color:var(--acc);cursor:pointer;font-size:18px;font-weight:900;padding:0 4px';
+    prev.title='Предыдущее упражнение';
+    prev.onclick=()=>prevEx();
+    ps.appendChild(prev);
+  }
   const pname=el('span');pname.style.cssText='font-size:12px;color:var(--mu);font-weight:800;max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap';
   pname.textContent=S.activeUnit?.titleRu||'';ps.appendChild(pname);
   // Colored segments progress bar
@@ -1354,8 +1392,12 @@ function renderEx(){
     const lbl=el('div','ex');lbl.textContent='Заполни пропуск';ew.appendChild(lbl);
     const card=el('div','card');
     // Show sentence
-    const sent=el('div');sent.style.cssText='font-size:18px;font-weight:800;line-height:1.6;margin-bottom:10px;color:var(--txt)';
-    sent.textContent=S.ex.sentence;card.appendChild(sent);
+    const sentRow=el('div');sentRow.style.cssText='display:flex;align-items:flex-start;gap:10px;margin-bottom:10px';
+    const sent=el('div');sent.style.cssText='font-size:18px;font-weight:800;line-height:1.6;color:var(--txt);flex:1';
+    sent.textContent=S.ex.sentence;
+    const sentSpk=el('button','spk');sentSpk.textContent='🔊';sentSpk.style.flexShrink='0';sentSpk.style.marginTop='4px';
+    sentSpk.onclick=()=>speak(S.ex.sentence);
+    sentRow.appendChild(sent);sentRow.appendChild(sentSpk);card.appendChild(sentRow);
     // Translation hint
     const tr=el('div');tr.style.cssText='font-size:13px;color:var(--mu);font-weight:600;margin-bottom:8px';
     tr.textContent=S.ex.translation;card.appendChild(tr);
