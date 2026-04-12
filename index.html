@@ -576,6 +576,14 @@ const SECTIONS=[{
       {id:646,greek:"εδώ",ru:"здесь",emoji:"📍",cat:"Другое"},
       {id:647,greek:"εκεί",ru:"там",emoji:"📍",cat:"Другое"},
       {id:648,greek:"κοπέλα",ru:"девушка",emoji:"👩",cat:"Люди"},
+      {id:649,greek:"φίλη",ru:"подруга",emoji:"👩‍❤️‍👩",cat:"Люди"},
+      {id:650,greek:"φίλες",ru:"подруги (мн.ч.)",emoji:"👯",cat:"Люди"},
+      {id:651,greek:"αδερφή",ru:"сестра",emoji:"👧",cat:"Люди"},
+      {id:652,greek:"αδερφές",ru:"сёстры",emoji:"👯",cat:"Люди"},
+      {id:653,greek:"ξέρω",ru:"я знаю",emoji:"🧠",cat:"Глаголы"},
+      {id:654,greek:"ξέρουμε",ru:"мы знаем",emoji:"🧠",cat:"Глаголы"},
+      {id:655,greek:"ίδια",ru:"одинаковый/та же",emoji:"🟰",cat:"Прилагательные"},
+      {id:656,greek:"μέρα",ru:"день",emoji:"☀️",cat:"Время"},
     ]},
     {id:"s1u1",title:"Γνωρίζω τις λέξεις",titleRu:"Знакомство со словами",emoji:"🃏",words:[
       {id:1,greek:"αεροπλάνο",ru:"самолёт",emoji:"✈️",cat:"Транспорт"},
@@ -1752,7 +1760,7 @@ function renderEx(){
       else if(S.listenChosen===opt)cls+=' ms';
       const b=el('button',cls);b.textContent=opt;
       if(S.listenChecked)b.disabled=true;
-      b.onclick=()=>{if(S.listenChecked)return;S.listenChosen=opt;render();};
+      b.onclick=()=>{if(S.listenChecked)return;S.listenChosen=opt;speak(opt);render();};
       chs.appendChild(b);
     });
     ew.appendChild(chs);
