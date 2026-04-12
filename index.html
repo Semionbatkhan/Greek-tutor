@@ -1238,7 +1238,9 @@ function renderUnitEx(){
   const pname=el('span');pname.style.cssText='font-size:12px;color:var(--mu);font-weight:800;max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap';
   pname.textContent=S.activeUnit?.titleRu||'';ps.appendChild(pname);
   // Colored segments progress bar
-  const segWrap=el('div');segWrap.style.cssText='flex:1;display:flex;gap:2px;height:10px;border-radius:99px;overflow:hidden;background:#e0e7ff';
+  // Adaptive segment size based on total count
+  const segGap = total > 30 ? 1 : 2;
+  const segWrap=el('div');segWrap.style.cssText=`flex:1;display:flex;gap:${segGap}px;height:10px;border-radius:99px;overflow:hidden;background:#e0e7ff`;
   const total=S.queue.length;
   const answers=S.answers||[];
   for(let i=0;i<total;i++){
@@ -1440,7 +1442,9 @@ function renderEx(){
     });
     ew.appendChild(card);
 
-    const nb=el('button','btn bpr bfw');nb.textContent='Понятно, дальше →';nb.onclick=()=>{
+    const nb=el('button','btn bpr bfw');nb.textContent='Понятно, дальше →';
+    nb.onclick=()=>{
+      // Theory counts as correct but doesn't affect score
       if(!S.answers)S.answers=[];
       S.answers.push('ok');
       S.qi++;
@@ -1449,7 +1453,9 @@ function renderEx(){
       else{
         const pct=Math.round((S.score.c/(S.score.c+S.score.w||1))*100);
         S.unitScores[S.activeUnit.id]=pct;
-        LS.set('unitErrs_'+S.activeUnit.id,S.errs.map(w=>w.id));
+        LS.set('unitTotalItems_'+S.activeUnit.id,unitTotalItems(S.activeUnit.id));
+        if(S.errs.length>0){LS.set('unitErrs_'+S.activeUnit.id,S.errs.map(w=>w.id));}
+        else{LS.set('unitErrs_'+S.activeUnit.id,[]);}
         LS.set('session',null);save();render();
       }
     };
