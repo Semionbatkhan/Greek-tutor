@@ -1246,8 +1246,10 @@ function renderUnitEx(){
   for(let i=0;i<total;i++){
     const seg=el('div');seg.style.cssText=`flex:1;height:100%;transition:background .3s;border-radius:2px;`;
     if(i<answers.length){
-      // Already answered - show green or red
-      seg.style.background=answers[i]==='ok'?'#10b981':'#ef4444';
+      // Theory = light purple, correct = green, wrong = red
+      if(answers[i]==='theory') seg.style.background='#a5b4fc';
+      else if(answers[i]==='ok') seg.style.background='#10b981';
+      else seg.style.background='#ef4444';
     } else if(i===S.qi){
       // Current exercise - light blue pulse
       seg.style.background='#818cf8';
@@ -1276,7 +1278,9 @@ function renderEx(){
     const em=el('div','be');em.textContent=word.emoji;card.appendChild(em);
     if(isGR){
       const row=el('div');row.style.cssText='display:flex;align-items:center;justify-content:center;gap:10px';
-      const w=el('div','bw');w.textContent=word.greek;row.appendChild(w);row.appendChild(spkBtn());card.appendChild(row);
+      const fontSize=word.greek.length<=2?'48px':word.greek.length<=4?'36px':'28px';
+      const w=el('div','bw');w.style.fontSize=fontSize;w.textContent=word.greek;
+      row.appendChild(w);row.appendChild(spkBtn());card.appendChild(row);
     }else{
       const w=el('div','bw bwr');w.textContent=word.ru;card.appendChild(w);
     }
@@ -1305,7 +1309,9 @@ function renderEx(){
       const w=el('div','bw bwr');w.textContent=word.ru;card.appendChild(w);
     } else {
       const row=el('div');row.style.cssText='display:flex;align-items:center;justify-content:center;gap:10px';
-      const w=el('div','bw');w.textContent=word.greek;row.appendChild(w);row.appendChild(spkBtn());card.appendChild(row);
+      const fontSize=word.greek.length<=2?'48px':word.greek.length<=4?'36px':'28px';
+      const w=el('div','bw');w.style.fontSize=fontSize;w.textContent=word.greek;
+      row.appendChild(w);row.appendChild(spkBtn());card.appendChild(row);
     }
     ew.appendChild(card);
     const chs=el('div','chs');
@@ -1446,7 +1452,7 @@ function renderEx(){
     nb.onclick=()=>{
       // Theory counts as correct but doesn't affect score
       if(!S.answers)S.answers=[];
-      S.answers.push('ok');
+      S.answers.push('theory');
       S.qi++;
       save();
       if(S.qi<S.queue.length){nextEx();render();}
