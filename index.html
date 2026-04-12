@@ -802,8 +802,9 @@ function unitTotalItems(uid) {
   // Use fixed formula: words + second_pass_estimate + fills + listens + theories
   // words*2 (first pass + second pass) + fills + listen_slots + theories
   // listens here = number of listen SLOTS (texts), not questions
-  const listenSlots = LISTEN_EXERCISES.filter(l=>l.unitId===uid).length;
-  return words * 2 + fills + listenSlots + theories;
+  const listenQs = LISTEN_EXERCISES.filter(l=>l.unitId===uid)
+    .reduce((a,l)=>a+l.questions.length, 0);
+  return words * 2 + fills + listenQs + theories;
 }
 
 // Increment this number every time you add new exercises to existing units
@@ -1140,8 +1141,12 @@ function startUnit(unit){
       mixed.splice(pos,0,{type:'FILL_SLOT',fillId:f.id});
     });
 
-    // Listen at end
-    listens.forEach(l=>mixed.push({type:'LISTEN_SLOT',listenId:l.id,qIdx:0}));
+    // Listen at end - one slot per question
+    listens.forEach(l=>{
+      l.questions.forEach((_,qIdx)=>{
+        mixed.push({type:'LISTEN_SLOT',listenId:l.id,qIdx});
+      });
+    });
     S.queue=mixed;S.qi=0;
     S.score={c:0,w:0,st:0};S.errs=[];S.answers=[];
     // Save actual queue length so home screen shows same number
@@ -1296,9 +1301,17 @@ function renderUnitEx(){
   // Fwd exercise
   const fwd=el('button');fwd.innerHTML='&#9654;';
   fwd.style.cssText='background:none;border:none;cursor:pointer;font-size:30px;line-height:1;padding:0 4px 2px;flex-shrink:0';
-  const canFwd=S.qi<(S.answers||[]).length;
-  if(canFwd){fwd.style.color='var(--acc)';fwd.onclick=()=>{S.c4checked=false;S.fillChecked=false;S.listenChecked=false;S.chosen=null;S.fillChosen=null;S.listenChosen=null;S.qi++;nextEx();render();};}
-  else{fwd.style.color='#e0e7ff';fwd.style.cursor='default';}
+  // TEMP: forward always active for quick navigation
+  fwd.style.color='var(--acc)';
+  fwd.onclick=()=>{
+    if(S.qi<S.queue.length-1){
+      S.c4checked=false;S.fillChecked=false;S.listenChecked=false;
+      S.chosen=null;S.fillChosen=null;S.listenChosen=null;
+      S.qi++;nextEx();render();
+    }
+  };
+  // RESTORE LATER: const canFwd=S.qi<(S.answers||[]).length;
+  // if(canFwd){...} else{fwd.style.color='#e0e7ff';fwd.style.cursor='default';}
   ps.appendChild(fwd);
 
   // Unit name - flex:1 takes all available space
@@ -1778,13 +1791,8 @@ function renderEx(){
       if(!isLast){
         nb.textContent='Следующий вопрос →';
         nb.onclick=()=>{
-          // Track answer for progress bar
-          if(!S.answers)S.answers=[];
-          S.answers.push(isOk?'ok':'err');
-          // Next question in same listen exercise
-          S.queue[S.qi]={type:'LISTEN_SLOT',listenId:l.id,qIdx:qIdx+1};
           S.listenChecked=false;S.listenChosen=null;
-          save();nextEx();render();
+          advance(isOk);
         };
       } else {
         nb.textContent='Дальше →';
