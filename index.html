@@ -783,8 +783,10 @@ function unitTotalItems(uid) {
   const theories = THEORY_CARDS.filter(t=>t.unitId===uid).length;
   // words appear once + ~50% get second pass from MATCH = words*1.5 on average
   // Use fixed formula: words + second_pass_estimate + fills + listens + theories
-  // words*2 (first pass + second pass) + fills + listens + theories
-  return words * 2 + fills + listens + theories;
+  // words*2 (first pass + second pass) + fills + listen_slots + theories
+  // listens here = number of listen SLOTS (texts), not questions
+  const listenSlots = LISTEN_EXERCISES.filter(l=>l.unitId===uid).length;
+  return words * 2 + fills + listenSlots + theories;
 }
 
 // Increment this number every time you add new exercises to existing units
