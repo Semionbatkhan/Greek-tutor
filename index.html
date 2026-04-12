@@ -1385,7 +1385,11 @@ function renderEx(){
       b.textContent=ruToGr?o.greek:o.ru;
       if(S.c4checked)b.disabled=true;
       b.onclick=()=>{
-        if(!S.c4checked){if(ruToGr)speak(o.greek);S.chosen=o.id;render();}
+        if(S.c4checked)return;
+        S.chosen=o.id;
+        render();
+        // Speak AFTER render to avoid blocking click in Chrome
+        if(ruToGr) setTimeout(()=>speak(o.greek),50);
       };
       chs.appendChild(b);
     });
@@ -1706,7 +1710,7 @@ function renderEx(){
       else if(S.listenChosen===opt)cls+=' ms';
       const b=el('button',cls);b.textContent=opt;
       if(S.listenChecked)b.disabled=true;
-      b.onclick=()=>{if(!S.listenChecked){S.listenChosen=opt;render();}};
+      b.onclick=()=>{if(S.listenChecked)return;S.listenChosen=opt;render();};
       chs.appendChild(b);
     });
     ew.appendChild(chs);
@@ -1771,11 +1775,10 @@ function renderEx(){
       const b=el('button',cls);b.textContent=opt;
       if(S.fillChecked)b.disabled=true;
       b.onclick=()=>{
-        if(!S.fillChecked){
-          S.fillChosen=opt;
-          speak(opt); // speak the Greek option
-          render();
-        }
+        if(S.fillChecked)return;
+        S.fillChosen=opt;
+        render();
+        setTimeout(()=>speak(opt),50);
       };
       chs.appendChild(b);
     });
