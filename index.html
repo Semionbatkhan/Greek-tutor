@@ -1583,15 +1583,31 @@ function renderEx(){
     const totalDur=totalWords*wordDur;
 
     function speakFrom(pct){
-      speechSynthesis.cancel();
+      try{speechSynthesis.cancel();}catch(e){}
+      if(l.dialogue&&pct<0.05){
+        // Speak dialogue with different pitch per speaker
+        function speakSegments(segments){
+          if(!segments.length)return onEnd();
+          const seg=segments[0];
+          const rest=segments.slice(1);
+          const u=new SpeechSynthesisUtterance(seg.text);
+          u.lang='el-GR';u.rate=seg.rate||0.82;u.pitch=seg.pitch||1;
+          if(greekVoice)u.voice=greekVoice;
+          u.onend=()=>speakSegments(rest);
+          try{speechSynthesis.speak(u);}catch(e){}
+        }
+        speakSegments(l.dialogue);
+        return;
+      }
+      // Fallback: speak from position
       const wordIdx=Math.floor(pct*totalWords);
       const partial=textWords.slice(wordIdx).join(' ');
-      if(!partial)return;
+      if(!partial)return onEnd();
       const u=new SpeechSynthesisUtterance(partial);
       u.lang='el-GR';u.rate=0.82;u.pitch=1;
       if(greekVoice)u.voice=greekVoice;
       u.onend=()=>onEnd();
-      speechSynthesis.speak(u);
+      try{speechSynthesis.speak(u);}catch(e){}
     }
 
     function refreshIcon(){
@@ -1678,7 +1694,22 @@ function renderEx(){
     const showTxt=el('div');showTxt.style.cssText='font-size:12px;color:var(--acc);cursor:pointer;font-weight:700;text-decoration:underline;margin-bottom:8px';
     showTxt.textContent='Показать текст';
     const txtBlock=el('div');txtBlock.style.cssText='font-size:14px;line-height:1.8;color:var(--txt);display:none;background:#f0f4ff;border-radius:10px;padding:12px;margin-bottom:8px';
-    txtBlock.textContent=l.text;
+    if(l.dialogue){
+      l.dialogue.forEach(seg=>{
+        const p=document.createElement('p');p.style.cssText='margin-bottom:10px';
+        if(seg.speaker){
+          const name=document.createElement('span');
+          name.style.cssText='font-weight:900;color:var(--acc);margin-right:6px';
+          name.textContent=seg.speaker+':';
+          p.appendChild(name);
+        }
+        const txt=document.createElement('span');txt.textContent=seg.text;
+        p.appendChild(txt);
+        txtBlock.appendChild(p);
+      });
+    } else {
+      txtBlock.textContent=l.text;
+    }
     showTxt.onclick=()=>{
       if(txtBlock.style.display==='none'){txtBlock.style.display='block';showTxt.textContent='Скрыть текст';}
       else{txtBlock.style.display='none';showTxt.textContent='Показать текст';}
