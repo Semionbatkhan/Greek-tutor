@@ -1242,10 +1242,17 @@ function renderUnitEx(){
   const total=S.queue.length;
   const answers=S.answers||[];
   for(let i=0;i<total;i++){
-    const seg=el('div');seg.style.cssText=`flex:1;height:100%;transition:background .3s;`;
-    if(i<answers.length){seg.style.background=answers[i]==='ok'?'#10b981':'#ef4444';}
-    else if(i===answers.length){seg.style.background='#c7d2fe';}
-    else{seg.style.background='#e0e7ff';}
+    const seg=el('div');seg.style.cssText=`flex:1;height:100%;transition:background .3s;border-radius:2px;`;
+    if(i<answers.length){
+      // Already answered - show green or red
+      seg.style.background=answers[i]==='ok'?'#10b981':'#ef4444';
+    } else if(i===S.qi){
+      // Current exercise - light blue pulse
+      seg.style.background='#818cf8';
+    } else {
+      // Not yet reached
+      seg.style.background='#e0e7ff';
+    }
     segWrap.appendChild(seg);
   }
   ps.appendChild(segWrap);
