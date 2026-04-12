@@ -186,7 +186,78 @@ const LS={
 };
 
 // ─── DATA ─────────────────────────────────────────────────
-// ─── FILL-IN EXERCISES ────────────────────────────────────
+// ─── THEORY CARDS ─────────────────────────────────────────
+const THEORY_CARDS = [
+  {
+    id:"t1", unitId:"s1u0",
+    title:"Артикли — ο, η, το",
+    titleEn:"Определённый артикль",
+    emoji:"🔤",
+    content:[
+      {label:"В греческом у каждого существительного есть артикль — он показывает род слова.", example:""},
+      {label:"Мужской род (он):", example:"ο καναπές — диван || ο φίλος — друг || ο Γιάννης — Янис"},
+      {label:"Женский род (она):", example:"η τσάντα — сумка || η θάλασσα — море || η Μαρία — Мария"},
+      {label:"Средний род (оно):", example:"το βάζο — ваза || το αεροπλάνο — самолёт || το σπίτι — дом"},
+      {label:"Во множественном числе:", example:"οι (муж./жен.) → οι φίλοι — друзья || τα (ср.р.) → τα σπίτια — дома"},
+    ]
+  },
+  {
+    id:"t2", unitId:"s1u0",
+    title:"Местоимения",
+    titleEn:"Личные местоимения",
+    emoji:"👤",
+    content:[
+      {label:"Личные местоимения в греческом:", example:"εγώ — я || εσύ — ты || αυτός — он || αυτή — она || αυτό — оно"},
+      {label:"Множественное число:", example:"εμείς — мы || εσείς — вы || αυτοί — они (муж.) || αυτές — они (жен.)"},
+      {label:"💡 В греческом местоимение часто опускают — глагол сам показывает лицо:", example:"Είμαι η Μαρία. (Я Мария.) || Πού μένεις; (Где ты живёшь?)"},
+    ]
+  },
+  {
+    id:"t3", unitId:"s1u0",
+    title:"Глагол είμαι — быть",
+    titleEn:"Спряжение глагола",
+    emoji:"🔵",
+    content:[
+      {label:"Глагол είμαι (быть) спрягается так:", example:"εγώ είμαι — я есть / я || εσύ είσαι — ты есть / ты || αυτός/ή/ό είναι — он/она/оно"},
+      {label:"Множественное число:", example:"εμείς είμαστε — мы || εσείς είστε — вы || αυτοί/ές/ά είναι — они"},
+      {label:"Примеры:", example:"Εγώ είμαι η Ελένη. — Я Элени. || Εσύ είσαι φίλος μου. — Ты мой друг. || Αυτός είναι δάσκαλος. — Он учитель."},
+    ]
+  },
+  {
+    id:"t4", unitId:"s1u0",
+    title:"Предлоги — στον, στην, στο",
+    titleEn:"Куда? Где?",
+    emoji:"📍",
+    content:[
+      {label:"Предлог σε (в/на) меняется в зависимости от рода:", example:"στον (муж.р.) → στον Γιάννη — Янису || στην (жен.р.) → στην Αθήνα — в Афины || στο (ср.р.) → στο σπίτι — домой/дома"},
+      {label:"Другие важные предлоги:", example:"από — из/от → από την Αθήνα (из Афин) || με — с → με τον φίλο (с другом) || για — для/за → για σένα (для тебя)"},
+      {label:"Примеры:", example:"Πάω στην Αθήνα. — Я еду в Афины. || Είμαι από την Ελλάδα. — Я из Греции."},
+    ]
+  },
+  {
+    id:"t5", unitId:"s1u0",
+    title:"Отрицание δεν и вопросы",
+    titleEn:"Нет и вопросительные слова",
+    emoji:"❓",
+    content:[
+      {label:"Отрицание δεν ставится перед глаголом:", example:"Δεν είμαι από εδώ. — Я не отсюда. || Δεν μιλώ ελληνικά. — Я не говорю по-гречески."},
+      {label:"Вопросительные слова:", example:"τι — что/какой || πού — где/куда || πότε — когда || ποιος/ποια — кто || πόσο — сколько || γιατί — почему"},
+      {label:"Да и нет:", example:"ναι — да || όχι — нет || Ναι, είμαι. — Да, я. || Όχι, δεν είμαι. — Нет, я не."},
+    ]
+  },
+  {
+    id:"t6", unitId:"s1u0",
+    title:"Союзы — και, αλλά, ή",
+    titleEn:"Как связывать слова",
+    emoji:"➕",
+    content:[
+      {label:"Основные союзы:", example:"και — и → Εγώ και εσύ. (Я и ты.) || αλλά — но → Καλό, αλλά δύσκολο. (Хорошо, но трудно.) || ή — или → Τσάντα ή βαλίτσα; (Сумка или чемодан?)"},
+      {label:"💡 Запомни эти слова — они встречаются в каждом предложении!", example:""},
+    ]
+  },
+];
+
+// ─── FILL-IN EXERCISES ────────────────────────────────────// ─── FILL-IN EXERCISES ────────────────────────────────────
 // type: FILL — sentence with blank, choose correct word
 const FILL_EXERCISES = [
   // s1u1 — from textbook exercises, listening-style
@@ -648,7 +719,11 @@ function save(){
   LS.set('unitScores',S.unitScores);
   LS.set('practiceTab',S.practiceTab);
   if(S.mode==='unit'&&S.activeUnit){
-    const queueSave=S.queue.map(item=>item&&item.type==='FILL_SLOT'?item:item?.id);
+    const queueSave=S.queue.map(item=>{
+      if(!item)return null;
+      if(item.type==='FILL_SLOT'||item.type==='LISTEN_SLOT'||item.type==='THEORY_SLOT')return item;
+      return item.id;
+    });
     LS.set('session',{unitId:S.activeUnit.id,queue:queueSave,qi:S.qi,score:S.score,errs:S.errs.map(w=>w.id),answers:S.answers||[]});
   } else {
     LS.set('session',null);
@@ -817,7 +892,8 @@ function startUnit(unit){
     S.activeUnit=unit;
     // Restore mixed queue (words + fill slots)
     S.queue=sess.queue.map(item=>{
-      if(item.type==='FILL_SLOT')return item;
+      if(!item)return null;
+      if(item.type==='FILL_SLOT'||item.type==='LISTEN_SLOT'||item.type==='THEORY_SLOT')return item;
       return ALL_WORDS.find(w=>w.id===item);
     }).filter(Boolean);
     S.qi=sess.qi;
@@ -826,20 +902,26 @@ function startUnit(unit){
     S.answers=sess.answers||[];
   } else {
     S.activeUnit=unit;
-    // Build mixed queue: words + fill exercise slots
+    // Build mixed queue: theory first (for grammar unit), then words + fill + listen
     const wordQueue=shuffle(unit.words);
     const fills=FILL_EXERCISES.filter(f=>f.unitId===unit.id);
-    // Insert fill exercises at intervals
-    const mixed=[...wordQueue];
-    fills.forEach((f,i)=>{
-      const pos=Math.min(Math.floor((i+1)*wordQueue.length/(fills.length+1)),mixed.length);
-      mixed.splice(pos+i,0,{type:'FILL_SLOT',fillId:f.id});
-    });
-    // Add listen exercises
     const listens=LISTEN_EXERCISES.filter(l=>l.unitId===unit.id);
-    listens.forEach((l,i)=>{
-      mixed.push({type:'LISTEN_SLOT',listenId:l.id,qIdx:0});
+    const theories=THEORY_CARDS.filter(t=>t.unitId===unit.id);
+
+    let mixed=[];
+    // Theory cards always go first
+    theories.forEach(t=>mixed.push({type:'THEORY_SLOT',theoryId:t.id}));
+    // Then words
+    mixed=[...mixed,...wordQueue];
+    // Insert fill exercises at intervals after theory
+    const theoryCount=theories.length;
+    fills.forEach((f,i)=>{
+      const base=theoryCount;
+      const pos=Math.min(base+Math.floor((i+1)*(wordQueue.length)/(fills.length+1)),mixed.length);
+      mixed.splice(pos,0,{type:'FILL_SLOT',fillId:f.id});
     });
+    // Listen at end
+    listens.forEach(l=>mixed.push({type:'LISTEN_SLOT',listenId:l.id,qIdx:0}));
     S.queue=mixed;S.qi=0;
     S.score={c:0,w:0,st:0};S.errs=[];S.answers=[];
   }
@@ -849,7 +931,11 @@ function startUnit(unit){
 function nextEx(){
   if(S.qi>=S.queue.length)return;
   const item=S.queue[S.qi];
-  if(item&&item.type==='FILL_SLOT'){
+  if(item&&item.type==='THEORY_SLOT'){
+    const t=THEORY_CARDS.find(x=>x.id===item.theoryId);
+    if(t){S.ex={type:'THEORY',theory:t};}
+    else{S.qi++;nextEx();return;}
+  } else if(item&&item.type==='FILL_SLOT'){
     const f=FILL_EXERCISES.find(x=>x.id===item.fillId);
     if(f){
       S.ex={type:'FILL',fillId:f.id,sentence:f.sentence,hint:f.hint,
@@ -1069,6 +1155,58 @@ function renderEx(){
     mg.appendChild(mcL);mg.appendChild(mcR);ew.appendChild(mg);
     if(S.mDoneAll){const nb=el('button','btn bpr bfw');nb.textContent='Далее →';nb.onclick=()=>advance(S.mWrongCount===0);ew.appendChild(nb);}
   }
+  else if(type==='THEORY'){
+    const t=S.ex.theory;
+    const lbl=el('div','ex');lbl.textContent='Теория';ew.appendChild(lbl);
+
+    const card=el('div','card');
+    // Header
+    const hdr=el('div');hdr.style.cssText='display:flex;align-items:center;gap:12px;margin-bottom:16px;padding-bottom:14px;border-bottom:2px solid #e0e7ff';
+    const em=el('div');em.style.fontSize='40px';em.textContent=t.emoji;
+    const titles=el('div');
+    const tit=el('div');tit.style.cssText='font-size:18px;font-weight:900;color:var(--acc)';tit.textContent=t.title;
+    const sub=el('div');sub.style.cssText='font-size:12px;color:var(--mu);font-weight:700;margin-top:2px';sub.textContent=t.titleEn;
+    titles.appendChild(tit);titles.appendChild(sub);
+    hdr.appendChild(em);hdr.appendChild(titles);card.appendChild(hdr);
+
+    // Content blocks
+    t.content.forEach(block=>{
+      const wrap=el('div');wrap.style.cssText='margin-bottom:14px';
+      if(block.label){
+        const lbl2=el('div');lbl2.style.cssText='font-size:14px;font-weight:700;color:var(--txt);margin-bottom:6px';
+        lbl2.textContent=block.label;wrap.appendChild(lbl2);
+      }
+      if(block.example){
+        const ex=el('div');ex.style.cssText='background:#f0f4ff;border-radius:10px;padding:10px 14px;font-size:14px;font-weight:700;color:var(--acc);line-height:1.9;white-space:pre-line';
+        ex.innerHTML=block.example.split(' || ').map(l=>'<div>'+l+'</div>').join('');
+        // Add speak button for greek text
+        const spkRow=el('div');spkRow.style.cssText='display:flex;align-items:flex-start;gap:8px';
+        spkRow.appendChild(ex);
+        const sb=el('button','spk');sb.textContent='🔊';sb.style.flexShrink='0';sb.style.marginTop='4px';
+        sb.onclick=()=>speak(block.example.split(' || ').map(l=>l.split(' — ')[0]).join(', '));
+        spkRow.appendChild(sb);
+        wrap.appendChild(spkRow);
+      }
+      card.appendChild(wrap);
+    });
+    ew.appendChild(card);
+
+    const nb=el('button','btn bpr bfw');nb.textContent='Понятно, дальше →';nb.onclick=()=>{
+      if(!S.answers)S.answers=[];
+      S.answers.push('ok');
+      S.qi++;
+      save();
+      if(S.qi<S.queue.length){nextEx();render();}
+      else{
+        const pct=Math.round((S.score.c/(S.score.c+S.score.w||1))*100);
+        S.unitScores[S.activeUnit.id]=pct;
+        LS.set('unitErrs_'+S.activeUnit.id,S.errs.map(w=>w.id));
+        LS.set('session',null);save();render();
+      }
+    };
+    ew.appendChild(nb);
+  }
+
   else if(type==='LISTEN'){
     const l=S.ex.listen;
     const qIdx=S.ex.qIdx||0;
