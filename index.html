@@ -1493,14 +1493,26 @@ function renderEx(){
     const card=el('div','card');
 
 
-    // Audio player button with progress bar
-    const playerWrap=el('div');playerWrap.style.cssText='margin-bottom:14px;position:relative;border-radius:14px;overflow:hidden;background:#4f46e5;cursor:pointer;user-select:none';
-    const playerProgress=el('div');playerProgress.style.cssText='position:absolute;top:0;left:0;height:100%;background:rgba(255,255,255,0.25);width:0%;transition:none;pointer-events:none;border-radius:14px';
-    const playerInner=el('div');playerInner.style.cssText='position:relative;z-index:1;display:flex;align-items:center;gap:12px;padding:14px 18px';
-    const playIcon=el('div');playIcon.style.cssText='font-size:22px;flex-shrink:0';playIcon.textContent='▶';
-    const playerLabel=el('div');playerLabel.style.cssText='font-size:15px;font-weight:800;color:#fff';playerLabel.textContent='Слушать';
+    // Audio player button - white bg, purple fill, centered play icon
+    const playerWrap=el('div');
+    playerWrap.style.cssText='margin-bottom:14px;position:relative;border-radius:14px;overflow:hidden;background:#fff;border:2px solid #4f46e5;cursor:pointer;user-select:none;height:60px';
+    const playerProgress=el('div');
+    playerProgress.style.cssText='position:absolute;top:0;left:0;height:100%;background:#4f46e5;width:0%;transition:none;pointer-events:none';
+    const playerInner=el('div');
+    playerInner.style.cssText='position:absolute;inset:0;z-index:1;display:flex;align-items:center;justify-content:center;gap:10px';
+    const playIcon=el('div');
+    playIcon.style.cssText='font-size:24px;flex-shrink:0;color:#4f46e5;mix-blend-mode:difference;filter:invert(0)';
+    playIcon.textContent='▶';
+    const playerLabel=el('div');
+    playerLabel.style.cssText='font-size:15px;font-weight:800;color:#4f46e5;mix-blend-mode:difference';
+    playerLabel.textContent='Слушать';
     playerInner.appendChild(playIcon);playerInner.appendChild(playerLabel);
     playerWrap.appendChild(playerProgress);playerWrap.appendChild(playerInner);
+    
+    // Update icon colors based on progress fill
+    function updatePlayerColors(pct){
+      // When fill covers the center, icon/text switch to white automatically via mix-blend-mode
+    }
 
     let isPlaying=false;
     let progressInterval=null;
@@ -1508,12 +1520,29 @@ function renderEx(){
     let startTime=null;
     let elapsed=0;
 
+    // Use white text/icon always, purple fill creates contrast
+    playIcon.style.color='#4f46e5';
+    playerLabel.style.color='#4f46e5';
+
+    function updateIcons(){
+      const pct=parseFloat(playerProgress.style.width)||0;
+      // After fill passes center (~50%), switch text to white
+      if(pct>50){
+        playIcon.style.color='#fff';
+        playerLabel.style.color='#fff';
+      } else {
+        playIcon.style.color='#4f46e5';
+        playerLabel.style.color='#4f46e5';
+      }
+    }
+
     function startProgress(){
       startTime=Date.now()-elapsed;
       progressInterval=setInterval(()=>{
         elapsed=Date.now()-startTime;
         const pct=Math.min(100,(elapsed/estimatedDuration)*100);
         playerProgress.style.width=pct+'%';
+        updateIcons();
         if(pct>=100){clearInterval(progressInterval);onEnd();}
       },50);
     }
@@ -1522,24 +1551,32 @@ function renderEx(){
       isPlaying=false;elapsed=0;
       playerProgress.style.width='0%';
       playIcon.textContent='▶';playerLabel.textContent='Слушать снова';
+      playIcon.style.color='#4f46e5';playerLabel.style.color='#4f46e5';
     }
 
-    playerWrap.onclick=(e)=>{
+    // Handle scrubbing separately from play/pause
+    let isDragging=false;
+    playerWrap.addEventListener('touchstart',e=>{isDragging=false;},{ passive:true});
+    playerWrap.addEventListener('touchmove',e=>{
+      isDragging=true;
       const rect=playerWrap.getBoundingClientRect();
-      const clickX=e.clientX-rect.left;
-      const pct=clickX/rect.width;
-      // Scrub
-      if(isPlaying||elapsed>0){
-        elapsed=pct*estimatedDuration;
-        playerProgress.style.width=(pct*100)+'%';
-        if(isPlaying){stopProgress();startProgress();}
-      }
+      const pct=Math.max(0,Math.min(1,(e.touches[0].clientX-rect.left)/rect.width));
+      elapsed=pct*estimatedDuration;
+      playerProgress.style.width=(pct*100)+'%';
+      updateIcons();
+    },{ passive:true});
+    playerWrap.addEventListener('touchend',e=>{
+      if(isDragging&&isPlaying){stopProgress();startProgress();}
+    });
+
+    playerWrap.onclick=(e)=>{
+      if(isDragging)return;
       if(!isPlaying){
         isPlaying=true;playIcon.textContent='⏸';playerLabel.textContent='Пауза';
         speak(l.text);startProgress();
       } else {
         isPlaying=false;playIcon.textContent='▶';playerLabel.textContent='Продолжить';
-        speechSynthesis.pause();stopProgress();
+        speechSynthesis.cancel();stopProgress();
       }
     };
     card.appendChild(playerWrap);
