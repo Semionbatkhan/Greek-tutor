@@ -77,7 +77,7 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--txt);min-h
 .swl{font-size:13px;color:var(--acc);cursor:pointer;text-decoration:underline;text-align:right;margin-top:8px;font-weight:700}
 
 /* MATCH */
-.mg{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.mg{display:grid;grid-template-columns:1fr 1fr;gap:10px;align-items:stretch}
 .mc{display:flex;flex-direction:column;gap:8px}
 .mi{padding:13px;background:var(--sur);border:2px solid #e0e7ff;border-radius:12px;
   font-size:14px;font-weight:700;cursor:pointer;text-align:center;transition:all .2s;user-select:none;box-shadow:var(--shadow)}
@@ -265,6 +265,19 @@ const THEORY_CARDS = [
     ]
   },
   {
+    id:"t5b", unitId:"s1u0",
+    title:"Артикли — падежи",
+    titleEn:"Именительный и винительный",
+    emoji:"📐",
+    content:[
+      {label:"В греческом артикль меняется в зависимости от роли слова в предложении.", example:""},
+      {label:"Именительный падеж (кто? что?) — субъект:", example:"ο φίλος — друг (он) || η τσάντα — сумка (она) || το σπίτι — дом (оно)"},
+      {label:"Винительный падеж (кого? что?) — объект:", example:"τον φίλο — друга || την τσάντα — сумку || το σπίτι — дом"},
+      {label:"Предлог από + винительный:", example:"από τον Γιάννη — от Яниса || από την Αθήνα — из Афин || από το σπίτι — из дома"},
+      {label:"💡 Запомни: после предлогов από, με, για, στον/στην/στο всегда используется винительный падеж!", example:""},
+    ]
+  },
+  {
     id:"t4", unitId:"s1u0",
     title:"Предлоги — στον, στην, στο",
     titleEn:"Куда? Где?",
@@ -287,19 +300,6 @@ const THEORY_CARDS = [
     ]
   },
   {
-    id:"t5b", unitId:"s1u0",
-    title:"Артикли — падежи",
-    titleEn:"Именительный и винительный",
-    emoji:"📐",
-    content:[
-      {label:"В греческом артикль меняется в зависимости от роли слова в предложении.", example:""},
-      {label:"Именительный падеж (кто? что?) — субъект:", example:"ο φίλος — друг (он) || η τσάντα — сумка (она) || το σπίτι — дом (оно)"},
-      {label:"Винительный падеж (кого? что?) — объект:", example:"τον φίλο — друга || την τσάντα — сумку || το σπίτι — дом"},
-      {label:"Предлог από + винительный:", example:"από τον Γιάννη — от Яниса || από την Αθήνα — из Афин || από το σπίτι — из дома"},
-      {label:"💡 Запомни: после предлогов από, με, για, στον/στην/στο всегда используется винительный падеж!", example:""},
-    ]
-  },
-  {
     id:"t6", unitId:"s1u0",
     title:"Союзы — και, αλλά, ή",
     titleEn:"Как связывать слова",
@@ -308,10 +308,10 @@ const THEORY_CARDS = [
       {label:"Основные союзы:", example:"και — и → Εγώ και εσύ. (Я и ты.) || αλλά — но → Καλό αλλά δύσκολο. (Хорошо, но трудно.) || ή — или → Τσάντα ή βαλίτσα; (Сумка или чемодан?)"},
       {label:"💡 Запомни эти слова — они встречаются в каждом предложении!", example:""},
     ]
-  },
+  }
 ];
 
-// ─── FILL-IN EXERCISES ────────────────────────────────────// ─── FILL-IN EXERCISES ────────────────────────────────────
+// ─── FILL-IN EXERCISES ──────────────────────────────────────
 // type: FILL — sentence with blank, choose correct word
 const FILL_EXERCISES = [
   // s1u1 — from textbook exercises, listening-style
