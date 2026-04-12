@@ -60,7 +60,7 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--txt);min-h
 /* CHOICES */
 .chs{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px}
 .cb2{padding:16px 10px;background:var(--sur);border:2px solid #e0e7ff;border-radius:14px;
-  font-family:'Nunito',sans-serif;font-size:15px;font-weight:700;color:var(--txt);cursor:pointer;transition:all .2s;text-align:center;box-shadow:var(--shadow)}
+  font-family:'Nunito',sans-serif;font-size:15px;font-weight:700;color:var(--txt);cursor:pointer;transition:all .2s;text-align:center;box-shadow:var(--shadow);touch-action:manipulation}
 .cb2:disabled{cursor:default}
 .cb2.ck{border-color:var(--ok);background:#d1fae5;color:#065f46}
 .cb2.cw{border-color:var(--er);background:#fee2e2;color:#991b1b}
@@ -221,11 +221,16 @@ function speak(text){
   if(!window.speechSynthesis)return;
   const clean=prepareForTTS(text);
   if(!clean)return;
-  speechSynthesis.cancel();
-  const u=new SpeechSynthesisUtterance(clean);
-  u.lang='el-GR';u.rate=0.82;u.pitch=1;
-  if(greekVoice)u.voice=greekVoice;
-  speechSynthesis.speak(u);
+  // Cancel safely then speak with small delay to avoid Chrome TTS lock
+  try{speechSynthesis.cancel();}catch(e){}
+  setTimeout(()=>{
+    try{
+      const u=new SpeechSynthesisUtterance(clean);
+      u.lang='el-GR';u.rate=0.82;u.pitch=1;
+      if(greekVoice)u.voice=greekVoice;
+      speechSynthesis.speak(u);
+    }catch(e){console.warn('TTS:',e);}
+  },50);
 }
 
 function speakList(texts){
@@ -1452,14 +1457,14 @@ function renderEx(){
       if(idx<S.ex.ll.length){
         const gr=S.ex.ll[idx];
         let cls='mi';if(S.mDone.includes(gr))cls+=' mm';else if(S.mSelGr===gr)cls+=' ms';else if(S.mWrong.includes(gr))cls+=' mw';
-        const d=el('div',cls);d.textContent=gr;d.onclick=()=>handleMGr(gr);mg.appendChild(d);
+        const d=el('button',cls);d.style.fontFamily='inherit';d.textContent=gr;d.onclick=()=>handleMGr(gr);mg.appendChild(d);
       }
       // Right item
       if(idx<S.ex.rl.length){
         const ru=S.ex.rl[idx];
         const pair=S.ex.pairs.find(p=>p.ru===ru);let cls='mi';
         if(S.mDone.includes(pair?.greek))cls+=' mm';else if(S.mSelRu===ru)cls+=' ms';else if(S.mWrong.includes(ru))cls+=' mw';
-        const d=el('div',cls);d.textContent=ru;d.onclick=()=>handleMRu(ru);mg.appendChild(d);
+        const d=el('button',cls);d.style.fontFamily='inherit';d.textContent=ru;d.onclick=()=>handleMRu(ru);mg.appendChild(d);
       }
     }
     ew.appendChild(mg);
