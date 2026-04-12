@@ -184,6 +184,7 @@ if(window.speechSynthesis){loadVoice();speechSynthesis.onvoiceschanged=loadVoice
 function stripNonGreek(text){
   return text
     .replace(/[а-яёА-ЯЁ]+/g,'') // remove Cyrillic
+    .replace(/_+/g,'')            // remove underscores
     .replace(/\([^)]*\)/g,'')   // remove parentheses content
     .replace(/→/g,'')             // remove arrows
     .replace(/—/g,'')             // remove dashes
@@ -831,10 +832,13 @@ function save(){
   LS.set('wlPage',S.wlPage);
   LS.set('unitScores',S.unitScores);
   LS.set('practiceTab',S.practiceTab);
+  LS.set('lastMode',S.mode);
+  LS.set('lastUnitId',S.activeUnit?S.activeUnit.id:null);
   if(S.mode==='unit'&&S.activeUnit){
     const queueSave=S.queue.map(item=>{
       if(!item)return null;
       if(item.type==='FILL_SLOT'||item.type==='LISTEN_SLOT'||item.type==='THEORY_SLOT')return item;
+      if(item.type&&['FC','C4','WRITE','MATCH'].includes(item.type))return item;
       return item.id;
     });
     LS.set('session',{unitId:S.activeUnit.id,queue:queueSave,qi:S.qi,score:S.score,errs:S.errs.map(w=>w.id),answers:S.answers||[]});
@@ -1008,6 +1012,7 @@ function startUnit(unit){
     S.queue=sess.queue.map(item=>{
       if(!item)return null;
       if(item.type==='FILL_SLOT'||item.type==='LISTEN_SLOT'||item.type==='THEORY_SLOT')return item;
+      if(item.type&&['FC','C4','WRITE','MATCH'].includes(item.type))return item;
       return ALL_WORDS.find(w=>w.id===item);
     }).filter(Boolean);
     S.qi=sess.qi;
@@ -1016,7 +1021,7 @@ function startUnit(unit){
     S.answers=sess.answers||[];
   } else {
     S.activeUnit=unit;
-    // Build mixed queue: theory first (for grammar unit), then words + fill + listen
+    // Build mixed queue: theory first, then words + fill + listen
     const wordQueue=shuffle(unit.words);
     const fills=FILL_EXERCISES.filter(f=>f.unitId===unit.id);
     const listens=LISTEN_EXERCISES.filter(l=>l.unitId===unit.id);
@@ -1025,15 +1030,67 @@ function startUnit(unit){
     let mixed=[];
     // Theory cards always go first
     theories.forEach(t=>mixed.push({type:'THEORY_SLOT',theoryId:t.id}));
-    // Then words
-    mixed=[...mixed,...wordQueue];
-    // Insert fill exercises at intervals after theory
+
+    // Build word exercises ensuring all MATCH words get a second exercise
+    const usedInMatch=new Set();
+    const wordExercises=[];
+
+    // First pass: assign exercise types
+    wordQueue.forEach(word=>{
+      const others=wordQueue.filter(w=>w.id!==word.id);
+      const fb=ALL_WORDS.filter(w=>w.id!==word.id);
+      const src=others.length>=3?others:fb;
+      const types=['FC','C4','WRITE','MATCH'];
+      const type=types[Math.floor(Math.random()*types.length)];
+      if(type==='MATCH'){
+        const pairs=shuffle([word,...pick(src,3)]).slice(0,4);
+        wordExercises.push({type,word,pairs,ll:shuffle(pairs.map(p=>p.greek)),rl:shuffle(pairs.map(p=>p.ru))});
+        pairs.forEach(p=>usedInMatch.add(p.id));
+      } else if(type==='FC'){
+        wordExercises.push({type,word,dir:Math.random()>.5?'grToRu':'ruToGr'});
+      } else if(type==='WRITE'){
+        wordExercises.push({type,word,dir:Math.random()>.5?'grToRu':'ruToGr'});
+      } else {
+        wordExercises.push({type,word,opts:shuffle([word,...pick(src,3)])});
+      }
+    });
+
+    // Second pass: add extra exercise for all words that appeared in MATCH
+    const extraTypes=['FC','C4','WRITE'];
+    const extraExercises=[];
+    wordQueue.forEach(word=>{
+      if(usedInMatch.has(word.id)){
+        const others=wordQueue.filter(w=>w.id!==word.id);
+        const fb=ALL_WORDS.filter(w=>w.id!==word.id);
+        const src=others.length>=3?others:fb;
+        const type=extraTypes[Math.floor(Math.random()*extraTypes.length)];
+        if(type==='FC'){
+          extraExercises.push({type,word,dir:Math.random()>.5?'grToRu':'ruToGr'});
+        } else if(type==='WRITE'){
+          extraExercises.push({type,word,dir:Math.random()>.5?'grToRu':'ruToGr'});
+        } else {
+          extraExercises.push({type,word,opts:shuffle([word,...pick(src,3)])});
+        }
+      }
+    });
+
+    // Shuffle extra exercises and spread them after halfway point
+    const shuffledExtra=shuffle(extraExercises);
+    mixed=[...mixed,...wordExercises];
+    // Insert extras in second half
+    const halfway=mixed.length;
+    shuffledExtra.forEach((ex,i)=>{
+      const pos=halfway+Math.floor(i*shuffledExtra.length/(shuffledExtra.length+1));
+      mixed.splice(Math.min(pos,mixed.length),0,ex);
+    });
+
+    // Insert fill exercises at intervals
     const theoryCount=theories.length;
     fills.forEach((f,i)=>{
-      const base=theoryCount;
-      const pos=Math.min(base+Math.floor((i+1)*(wordQueue.length)/(fills.length+1)),mixed.length);
+      const pos=Math.min(theoryCount+Math.floor((i+1)*(wordQueue.length)/(fills.length+1)),mixed.length);
       mixed.splice(pos,0,{type:'FILL_SLOT',fillId:f.id});
     });
+
     // Listen at end
     listens.forEach(l=>mixed.push({type:'LISTEN_SLOT',listenId:l.id,qIdx:0}));
     S.queue=mixed;S.qi=0;
@@ -1092,9 +1149,14 @@ function nextEx(){
       S.listenQIdx=item.qIdx||0;
       S.ex={type:'LISTEN',listenId:l.id,listen:l,qIdx:S.listenQIdx};
     } else { S.qi++; nextEx(); return; }
+  } else if(item&&item.type&&['FC','C4','WRITE','MATCH'].includes(item.type)){
+    // Pre-built exercise
+    S.ex=item;
   } else {
     const word=item;
-    S.ex=buildEx(word,S.queue.filter(x=>x&&!x.type));
+    if(word&&word.id){
+      S.ex=buildEx(word,S.queue.filter(x=>x&&x.id&&!['FILL_SLOT','LISTEN_SLOT','THEORY_SLOT'].includes(x.type)));
+    }
   }
   S.fcRev=false;S.chosen=null;S.c4checked=false;S.fillChosen=null;S.fillChecked=false;S.listenChosen=null;S.listenChecked=false;
   S.wv='';S.ws=null;
@@ -1160,13 +1222,19 @@ function renderUnitEx(){
   const back=el('button');back.textContent='⬅';back.style.cssText='background:none;border:none;color:var(--mu);cursor:pointer;font-size:22px;font-weight:900';
   back.onclick=()=>{S.mode='home';render();};
   ps.appendChild(back);
-  // Prev exercise button
-  if(S.qi>0){
-    const prev=el('button');prev.textContent='◀';prev.style.cssText='background:none;border:none;color:var(--acc);cursor:pointer;font-size:18px;font-weight:900;padding:0 4px';
-    prev.title='Предыдущее упражнение';
-    prev.onclick=()=>prevEx();
-    ps.appendChild(prev);
-  }
+  // Prev button
+  const prev=el('button');prev.textContent='◀';
+  prev.style.cssText='background:none;border:none;cursor:pointer;font-size:18px;font-weight:900;padding:0 4px';
+  if(S.qi>0){prev.style.color='var(--acc)';prev.onclick=()=>prevEx();}
+  else{prev.style.color='#e0e7ff';prev.style.cursor='default';}
+  ps.appendChild(prev);
+  // Next button - only clickable if already answered (in answers array)
+  const fwd=el('button');fwd.textContent='▶';
+  fwd.style.cssText='background:none;border:none;cursor:pointer;font-size:18px;font-weight:900;padding:0 4px';
+  const canFwd=S.qi<(S.answers||[]).length;
+  if(canFwd){fwd.style.color='var(--acc)';fwd.onclick=()=>{S.qi++;nextEx();render();};}
+  else{fwd.style.color='#e0e7ff';fwd.style.cursor='default';}
+  ps.appendChild(fwd);
   const pname=el('span');pname.style.cssText='font-size:12px;color:var(--mu);font-weight:800;max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap';
   pname.textContent=S.activeUnit?.titleRu||'';ps.appendChild(pname);
   // Colored segments progress bar
@@ -1488,7 +1556,7 @@ function renderEx(){
     sentRow.appendChild(sent);sentRow.appendChild(sentSpk);card.appendChild(sentRow);
     // Translation hint
     const tr=el('div');tr.style.cssText='font-size:13px;color:var(--mu);font-weight:600;margin-bottom:8px';
-    tr.textContent=S.ex.translation;card.appendChild(tr);
+    tr.textContent=S.ex.translation.replace(/___/g,'…');card.appendChild(tr);
     if(S.ex.hint){
       const h=el('div');h.style.cssText='font-size:12px;color:var(--acc);font-weight:700;background:#ede9fe;border-radius:8px;padding:6px 10px;display:inline-block';
       h.textContent='💡 '+S.ex.hint;card.appendChild(h);
@@ -1504,7 +1572,13 @@ function renderEx(){
       } else if(S.fillChosen===opt) cls+=' ms';
       const b=el('button',cls);b.textContent=opt;
       if(S.fillChecked)b.disabled=true;
-      b.onclick=()=>{if(!S.fillChecked){S.fillChosen=opt;render();}};
+      b.onclick=()=>{
+        if(!S.fillChecked){
+          S.fillChosen=opt;
+          speak(opt); // speak the Greek option
+          render();
+        }
+      };
       chs.appendChild(b);
     });
     ew.appendChild(chs);
