@@ -674,6 +674,35 @@ const PHONICS=[
 
 // ─── UTILS ────────────────────────────────────────────────
 const shuffle=a=>[...a].sort(()=>Math.random()-.5);
+
+function unitTotalItems(uid) {
+  const unit = SECTIONS.flatMap(s=>s.units).find(u=>u.id===uid);
+  if(!unit) return 0;
+  const words = unit.words.length;
+  const fills = FILL_EXERCISES.filter(f=>f.unitId===uid).length;
+  const listens = LISTEN_EXERCISES.filter(l=>l.unitId===uid).reduce((a,l)=>a+l.questions.length,0);
+  const theories = THEORY_CARDS.filter(t=>t.unitId===uid).length;
+  return words + fills + listens + theories;
+}
+
+function recalcUnitScore(uid, oldScore) {
+  // If new exercises were added, scale down the score proportionally
+  const saved = LS.get('unitTotalItems_'+uid, null);
+  const current = unitTotalItems(uid);
+  if(saved === null) {
+    // First time - save current count
+    LS.set('unitTotalItems_'+uid, current);
+    return oldScore;
+  }
+  if(current > saved && oldScore > 0) {
+    // New exercises added - scale down score
+    const newScore = Math.round(oldScore * saved / current);
+    LS.set('unitTotalItems_'+uid, current);
+    return newScore;
+  }
+  LS.set('unitTotalItems_'+uid, current);
+  return oldScore;
+}
 const pick=(a,n)=>shuffle(a).slice(0,n);
 const findWord=id=>ALL_WORDS.find(w=>w.id===id);
 
@@ -705,7 +734,16 @@ let S={
   pEx:null,pFcRev:false,pChosen:null,
   pMSelL:null,pMSelR:null,pMDone:[],pMWrong:[],
   popup:null,
-  unitScores:LS.get('unitScores',{}),
+  unitScores:(()=>{
+    const scores = LS.get('unitScores',{});
+    // Recalculate scores if new exercises were added
+    SECTIONS.flatMap(s=>s.units).forEach(u=>{
+      if(scores[u.id]!==undefined) {
+        scores[u.id] = recalcUnitScore(u.id, scores[u.id]);
+      }
+    });
+    return scores;
+  })(),
   toast:null,
 };
 let lpTimer=null;
@@ -851,6 +889,7 @@ function renderHome(){
     sec.units.forEach(u=>{
       const upct=unitProgress(u.id);
       const ur=el('div','ur');
+      const totalEx=unitTotalItems(u.id);
       ur.innerHTML=`
         <div class="ue">${u.emoji}</div>
         <div class="ui">
@@ -858,7 +897,7 @@ function renderHome(){
           <div class="us">${u.titleRu} · ${u.words.length} слов</div>
         </div>
         ${upct>0?`<div class="upct">${upct}%</div>`:''}
-        <div class="ub">${u.words.length}</div>
+        <div class="ub" title="Упражнений в юните">${totalEx} упр.</div>
         <button class="sb2">▶</button>
       `;
       ur.onclick=()=>startUnit(u);
@@ -972,6 +1011,8 @@ function advance(ok){
   else{
     const pct=Math.round((S.score.c/(S.score.c+S.score.w||1))*100);
     S.unitScores[S.activeUnit.id]=pct;
+    // Save current total items count for future recalc
+    LS.set('unitTotalItems_'+S.activeUnit.id, unitTotalItems(S.activeUnit.id));
     // Save errors for retry button on home screen
     if(S.errs.length>0){
       LS.set('unitErrs_'+S.activeUnit.id, S.errs.map(w=>w.id));
