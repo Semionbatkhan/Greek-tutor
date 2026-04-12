@@ -208,11 +208,15 @@ function stripNonGreek(text){
 // Pronunciation map for single letters/short words that TTS reads wrong
 
 
-// No pronunciation map needed - Greek TTS handles it natively
 function prepareForTTS(text){
   if(!text)return '';
   const clean=stripNonGreek(text);
-  return clean||'';
+  if(!clean)return '';
+  // Greek TTS reads single letters by name (η=ита, ο=омикрон)
+  // Add a period after short words to force word-reading mode
+  const trimmed=clean.trim();
+  if(trimmed.length<=2){return trimmed+'.';}
+  return clean;
 }
 
 function speak(text){
@@ -490,8 +494,8 @@ const LISTEN_EXERCISES = [
     id:"l0", unitId:"s1u0",
     title:"Εγώ είμαι η Ελένη",
     titleRu:"Я — Элени",
-    text:"Εγώ είμαι η Ελένη. Είμαι από την Αθήνα. Εσύ ποια είσαι; Αυτός είναι ο Γιάννης και αυτή είναι η Μαρία. Εμείς είμαστε φίλοι. Δεν είμαστε από την ίδια πόλη, αλλά είμαστε καλοί φίλοι!",
-    textRu:"Я Элени. Я из Афин. А ты кто? Это Янис, а это Мария. Мы друзья. Мы не из одного города, но мы хорошие друзья!",
+    text:"Γεια! Εγώ είμαι η Ελένη. Είμαι από την Αθήνα. Εσύ πώς λέγεσαι; Γεια! Εγώ είμαι η Μαρία. Είμαι από τη Θεσσαλονίκη. Η Ελένη και η Μαρία είναι καλές φίλες. Δεν είναι από την ίδια πόλη, αλλά μιλάνε κάθε μέρα!",
+    textRu:"Привет! Я Элени. Я из Афин. А тебя как зовут? Привет! Я Мария. Я из Салоников. Элени и Мария хорошие подруги. Они не из одного города, но разговаривают каждый день!",
     questions:[
       {
         q:"Ποια είναι η κοπέλα;",
@@ -1575,7 +1579,7 @@ function renderEx(){
     let startTime=null;
 
     // Duration estimate per word
-    const wordDur=800; // ~800ms per word at rate 0.82
+    const wordDur=500; // ~500ms per word at rate 0.82
     const totalDur=totalWords*wordDur;
 
     function speakFrom(pct){
