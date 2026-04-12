@@ -685,30 +685,25 @@ function unitTotalItems(uid) {
   return words + fills + listens + theories;
 }
 
-// App version - increment when adding new exercises to existing units
-const APP_VERSION = 3;
+// Increment this number every time you add new exercises to existing units
+const APP_VERSION = 4;
 
 function recalcUnitScore(uid, oldScore) {
+  if(oldScore === 0) return 0;
   const current = unitTotalItems(uid);
-  const saved = LS.get('unitTotalItems_'+uid, null);
-  const lastVer = LS.get('appVersion', 0);
-
-  // If app was updated (new version) OR new exercises added
-  if(lastVer < APP_VERSION || saved === null || current > saved) {
-    if(saved !== null && current > saved && oldScore > 0) {
-      // Scale down proportionally
-      const newScore = Math.round(oldScore * saved / current);
-      LS.set('unitTotalItems_'+uid, current);
-      return newScore;
-    }
-    // First time seeing this unit with this version
+  // Get what was saved when user last completed this unit
+  const savedCount = LS.get('unitTotalItems_'+uid, null);
+  if(savedCount === null) {
+    // Never saved - just store current count, don't change score
     LS.set('unitTotalItems_'+uid, current);
-    // If version changed and score was 100%, assume new exercises not done
-    if(lastVer < APP_VERSION && oldScore === 100 && current > (saved||0)) {
-      const prevCount = saved || Math.max(1, current - 3);
-      return Math.round(100 * prevCount / current);
-    }
     return oldScore;
+  }
+  if(current > savedCount) {
+    // New exercises added since user last did this unit
+    // Scale score down proportionally
+    const newScore = Math.round(oldScore * savedCount / current);
+    LS.set('unitTotalItems_'+uid, current);
+    return newScore;
   }
   return oldScore;
 }
