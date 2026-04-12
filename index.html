@@ -790,7 +790,7 @@ function unitTotalItems(uid) {
 }
 
 // Increment this number every time you add new exercises to existing units
-const APP_VERSION = 4;
+const APP_VERSION = 5;
 
 function recalcUnitScore(uid, oldScore) {
   if(oldScore === 0) return 0;
@@ -1127,8 +1127,10 @@ function startUnit(unit){
     listens.forEach(l=>mixed.push({type:'LISTEN_SLOT',listenId:l.id,qIdx:0}));
     S.queue=mixed;S.qi=0;
     S.score={c:0,w:0,st:0};S.errs=[];S.answers=[];
-    // Save actual queue length for home screen display
+    // Save actual queue length so home screen shows same number
     LS.set('unitQueueLen_'+unit.id, mixed.length);
+    S.unitQueueLens=S.unitQueueLens||{};
+    S.unitQueueLens[unit.id]=mixed.length;
   }
   S.mode='unit';nextEx();render();
 }
