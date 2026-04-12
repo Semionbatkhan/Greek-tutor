@@ -1,7 +1,8 @@
-<!DOCTYPE html><!-- v:1775997512 -->1775989612 -->
+<!DOCTYPE html>
 <html lang="el">
 <head>
 <meta charset="UTF-8"/>
+<meta name="version" content="1775997680"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
 <meta http-equiv="Pragma" content="no-cache"/>
@@ -1555,92 +1556,78 @@ function renderEx(){
     const card=el('div','card');
 
 
-    // Audio player button - white bg, purple fill, centered play icon
+    // Audio player - icon only, no text
     const playerWrap=el('div');
-    playerWrap.style.cssText='margin-bottom:14px;position:relative;border-radius:14px;overflow:hidden;background:#fff;border:2px solid #4f46e5;cursor:pointer;user-select:none;height:60px';
-    const playerProgress=el('div');
-    playerProgress.style.cssText='position:absolute;top:0;left:0;height:100%;background:#4f46e5;width:0%;transition:none;pointer-events:none';
-    const playerInner=el('div');
-    playerInner.style.cssText='position:absolute;inset:0;z-index:1;display:flex;align-items:center;justify-content:center;gap:10px';
-    const playIcon=el('div');
-    playIcon.style.cssText='font-size:24px;flex-shrink:0;color:#4f46e5;mix-blend-mode:difference;filter:invert(0)';
-    playIcon.textContent='▶';
-    const playerLabel=el('div');
-    playerLabel.style.cssText='font-size:15px;font-weight:800;color:#4f46e5;mix-blend-mode:difference';
-    playerLabel.textContent='Слушать';
-    playerInner.appendChild(playIcon);playerInner.appendChild(playerLabel);
-    playerWrap.appendChild(playerProgress);playerWrap.appendChild(playerInner);
-    
-    // Update icon colors based on progress fill
-    function updatePlayerColors(pct){
-      // When fill covers the center, icon/text switch to white automatically via mix-blend-mode
-    }
+    playerWrap.style.cssText='margin-bottom:14px;position:relative;border-radius:14px;overflow:hidden;background:#fff;border:2px solid #4f46e5;cursor:pointer;user-select:none;height:64px;touch-action:none';
+    const playerFill=el('div');
+    playerFill.style.cssText='position:absolute;top:0;left:0;height:100%;background:#4f46e5;width:0%;pointer-events:none';
+    const playerIcon=el('div');
+    playerIcon.style.cssText='position:absolute;inset:0;z-index:2;display:flex;align-items:center;justify-content:center;font-size:28px';
+    playerIcon.textContent='▶';
+    playerWrap.appendChild(playerFill);
+    playerWrap.appendChild(playerIcon);
 
     let isPlaying=false;
     let progressInterval=null;
-    let estimatedDuration=l.text.length*60; // ~60ms per char
+    let estimatedDuration=l.text.length*60;
     let startTime=null;
     let elapsed=0;
 
-    // Use white text/icon always, purple fill creates contrast
-    playIcon.style.color='#4f46e5';
-    playerLabel.style.color='#4f46e5';
-
-    function updateIcons(){
-      const pct=parseFloat(playerProgress.style.width)||0;
-      // After fill passes center (~50%), switch text to white
-      if(pct>50){
-        playIcon.style.color='#fff';
-        playerLabel.style.color='#fff';
-      } else {
-        playIcon.style.color='#4f46e5';
-        playerLabel.style.color='#4f46e5';
-      }
+    function refreshIcon(){
+      const pct=parseFloat(playerFill.style.width)||0;
+      playerIcon.style.color=pct>50?'#fff':'#4f46e5';
     }
-
     function startProgress(){
       startTime=Date.now()-elapsed;
       progressInterval=setInterval(()=>{
         elapsed=Date.now()-startTime;
         const pct=Math.min(100,(elapsed/estimatedDuration)*100);
-        playerProgress.style.width=pct+'%';
-        updateIcons();
+        playerFill.style.width=pct+'%';
+        refreshIcon();
         if(pct>=100){clearInterval(progressInterval);onEnd();}
       },50);
     }
     function stopProgress(){clearInterval(progressInterval);}
     function onEnd(){
       isPlaying=false;elapsed=0;
-      playerProgress.style.width='0%';
-      playIcon.textContent='▶';playerLabel.textContent='Слушать снова';
-      playIcon.style.color='#4f46e5';playerLabel.style.color='#4f46e5';
+      playerFill.style.width='0%';
+      playerIcon.style.opacity='1';
+      playerIcon.textContent='▶';refreshIcon();
     }
 
-    // Handle scrubbing separately from play/pause
     let isDragging=false;
-    playerWrap.addEventListener('touchstart',e=>{isDragging=false;},{ passive:true});
+    let dragStartX=0;
+    playerWrap.addEventListener('touchstart',e=>{dragStartX=e.touches[0].clientX;isDragging=false;},{passive:true});
     playerWrap.addEventListener('touchmove',e=>{
-      isDragging=true;
-      const rect=playerWrap.getBoundingClientRect();
-      const pct=Math.max(0,Math.min(1,(e.touches[0].clientX-rect.left)/rect.width));
-      elapsed=pct*estimatedDuration;
-      playerProgress.style.width=(pct*100)+'%';
-      updateIcons();
-    },{ passive:true});
+      if(Math.abs(e.touches[0].clientX-dragStartX)>5){
+        isDragging=true;
+        playerIcon.style.opacity='0';
+        stopProgress();speechSynthesis.cancel();
+        const rect=playerWrap.getBoundingClientRect();
+        const pct=Math.max(0,Math.min(1,(e.touches[0].clientX-rect.left)/rect.width));
+        elapsed=pct*estimatedDuration;
+        playerFill.style.width=(pct*100)+'%';
+      }
+    },{passive:true});
     playerWrap.addEventListener('touchend',e=>{
-      if(isDragging&&isPlaying){stopProgress();startProgress();}
-    });
-
-    playerWrap.onclick=(e)=>{
+      if(isDragging){
+        isDragging=false;
+        playerIcon.style.opacity='1';
+        playerIcon.textContent='⏸';refreshIcon();
+        isPlaying=true;speak(l.text);startProgress();
+      }
+    },{passive:true});
+    playerWrap.addEventListener('click',e=>{
       if(isDragging)return;
       if(!isPlaying){
-        isPlaying=true;playIcon.textContent='⏸';playerLabel.textContent='Пауза';
+        isPlaying=true;playerIcon.textContent='⏸';refreshIcon();
         speak(l.text);startProgress();
       } else {
-        isPlaying=false;playIcon.textContent='▶';playerLabel.textContent='Продолжить';
+        isPlaying=false;playerIcon.textContent='▶';refreshIcon();
         speechSynthesis.cancel();stopProgress();
       }
-    };
+    });
+    refreshIcon();
     card.appendChild(playerWrap);
 
     // Show text (collapsible)
