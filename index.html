@@ -587,6 +587,7 @@ const SECTIONS=[{
       {id:645,greek:"σένα",ru:"тебя (вин.пад. от εσύ)",emoji:"👤",cat:"Местоимения"},
       {id:646,greek:"εδώ",ru:"здесь",emoji:"📍",cat:"Другое"},
       {id:647,greek:"εκεί",ru:"там",emoji:"📍",cat:"Другое"},
+      {id:648,greek:"κοπέλα",ru:"девушка",emoji:"👩",cat:"Люди"},
     ]},
     {id:"s1u1",title:"Γνωρίζω τις λέξεις",titleRu:"Знакомство со словами",emoji:"🃏",words:[
       {id:1,greek:"αεροπλάνο",ru:"самолёт",emoji:"✈️",cat:"Транспорт"},
@@ -1284,29 +1285,6 @@ function renderUnitEx(){
   ps.appendChild(fwd);
   const pname=el('span');pname.style.cssText='font-size:12px;color:var(--mu);font-weight:800;max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap';
   pname.textContent=S.activeUnit?.titleRu||'';ps.appendChild(pname);
-  // Colored segments progress bar
-  const total=S.queue&&S.queue.length?S.queue.length:1;
-  const answers=S.answers||[];
-  // Adaptive segment size based on total count
-  const segGap = total > 30 ? 1 : 2;
-  const segWrap=el('div');segWrap.style.cssText=`flex:1;display:flex;gap:${segGap}px;height:10px;border-radius:99px;overflow:hidden;background:#e0e7ff`;
-  for(let i=0;i<total;i++){
-    const seg=el('div');seg.style.cssText=`flex:1;min-width:3px;height:100%;transition:background .3s;border-radius:2px;`;
-    if(i<answers.length){
-      // Theory = light purple, correct = green, wrong = red
-      if(answers[i]==='theory') seg.style.background='#a5b4fc';
-      else if(answers[i]==='ok') seg.style.background='#10b981';
-      else seg.style.background='#ef4444';
-    } else if(i===S.qi){
-      // Current exercise - light blue pulse
-      seg.style.background='#818cf8';
-    } else {
-      // Not yet reached
-      seg.style.background='#e0e7ff';
-    }
-    segWrap.appendChild(seg);
-  }
-  ps.appendChild(segWrap);
   const pnum=el('div','pt2');pnum.textContent=`${S.qi+1}/${S.queue.length}`;ps.appendChild(pnum);
   wrap.appendChild(ps);
 
@@ -1327,7 +1305,7 @@ function renderUnitEx(){
     } else {
       seg.style.background='#e0e7ff';
     }
-    segWrap.appendChild(seg);
+    segWrap2.appendChild(seg);
   }
   progStrip.appendChild(segWrap2);
   wrap.appendChild(progStrip);
@@ -1567,29 +1545,53 @@ function renderEx(){
     playerWrap.appendChild(playerFill);
     playerWrap.appendChild(playerIcon);
 
+    // Split text into words for scrubbing
+    const textWords=l.text.split(/\s+/).filter(w=>w.length>0);
+    const totalWords=textWords.length;
+
     let isPlaying=false;
     let progressInterval=null;
-    let estimatedDuration=l.text.length*60;
+    let scrubPct=0; // 0-1, current position
     let startTime=null;
-    let elapsed=0;
+
+    // Duration estimate per word
+    const wordDur=800; // ~800ms per word at rate 0.82
+    const totalDur=totalWords*wordDur;
+
+    function speakFrom(pct){
+      speechSynthesis.cancel();
+      const wordIdx=Math.floor(pct*totalWords);
+      const partial=textWords.slice(wordIdx).join(' ');
+      if(!partial)return;
+      const u=new SpeechSynthesisUtterance(partial);
+      u.lang='el-GR';u.rate=0.82;u.pitch=1;
+      if(greekVoice)u.voice=greekVoice;
+      u.onend=()=>onEnd();
+      speechSynthesis.speak(u);
+    }
 
     function refreshIcon(){
       const pct=parseFloat(playerFill.style.width)||0;
       playerIcon.style.color=pct>50?'#fff':'#4f46e5';
     }
+
     function startProgress(){
-      startTime=Date.now()-elapsed;
+      // Time remaining = (1 - scrubPct) * totalDur
+      const remaining=(1-scrubPct)*totalDur;
+      startTime=Date.now();
       progressInterval=setInterval(()=>{
-        elapsed=Date.now()-startTime;
-        const pct=Math.min(100,(elapsed/estimatedDuration)*100);
-        playerFill.style.width=pct+'%';
+        const elapsed=Date.now()-startTime;
+        const newPct=Math.min(1, scrubPct + elapsed/totalDur);
+        playerFill.style.width=(newPct*100)+'%';
         refreshIcon();
-        if(pct>=100){clearInterval(progressInterval);onEnd();}
+        if(newPct>=1){clearInterval(progressInterval);onEnd();}
       },50);
     }
+
     function stopProgress(){clearInterval(progressInterval);}
+
     function onEnd(){
-      isPlaying=false;elapsed=0;
+      isPlaying=false;scrubPct=0;
       playerFill.style.width='0%';
       playerIcon.style.opacity='1';
       playerIcon.textContent='▶';refreshIcon();
@@ -1597,36 +1599,54 @@ function renderEx(){
 
     let isDragging=false;
     let dragStartX=0;
-    playerWrap.addEventListener('touchstart',e=>{dragStartX=e.touches[0].clientX;isDragging=false;},{passive:true});
+
+    playerWrap.addEventListener('touchstart',e=>{
+      dragStartX=e.touches[0].clientX;
+      isDragging=false;
+    },{passive:true});
+
     playerWrap.addEventListener('touchmove',e=>{
       if(Math.abs(e.touches[0].clientX-dragStartX)>5){
-        isDragging=true;
-        playerIcon.style.opacity='0';
-        stopProgress();speechSynthesis.cancel();
+        if(!isDragging){
+          isDragging=true;
+          playerIcon.style.opacity='0'; // hide icon while scrubbing
+          stopProgress();
+          speechSynthesis.cancel();
+        }
         const rect=playerWrap.getBoundingClientRect();
-        const pct=Math.max(0,Math.min(1,(e.touches[0].clientX-rect.left)/rect.width));
-        elapsed=pct*estimatedDuration;
-        playerFill.style.width=(pct*100)+'%';
+        scrubPct=Math.max(0,Math.min(1,(e.touches[0].clientX-rect.left)/rect.width));
+        playerFill.style.width=(scrubPct*100)+'%';
       }
     },{passive:true});
+
     playerWrap.addEventListener('touchend',e=>{
       if(isDragging){
         isDragging=false;
         playerIcon.style.opacity='1';
+        // Resume from scrubbed position
         playerIcon.textContent='⏸';refreshIcon();
-        isPlaying=true;speak(l.text);startProgress();
+        isPlaying=true;
+        speakFrom(scrubPct);
+        startProgress();
       }
     },{passive:true});
+
     playerWrap.addEventListener('click',e=>{
       if(isDragging)return;
       if(!isPlaying){
-        isPlaying=true;playerIcon.textContent='⏸';refreshIcon();
-        speak(l.text);startProgress();
+        isPlaying=true;
+        playerIcon.textContent='⏸';refreshIcon();
+        speakFrom(scrubPct);
+        startProgress();
       } else {
-        isPlaying=false;playerIcon.textContent='▶';refreshIcon();
-        speechSynthesis.cancel();stopProgress();
+        isPlaying=false;
+        scrubPct=parseFloat(playerFill.style.width)/100||0;
+        playerIcon.textContent='▶';refreshIcon();
+        speechSynthesis.cancel();
+        stopProgress();
       }
     });
+
     refreshIcon();
     card.appendChild(playerWrap);
 
