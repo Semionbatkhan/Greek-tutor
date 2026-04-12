@@ -221,21 +221,18 @@ function speak(text){
   if(!window.speechSynthesis)return;
   const clean=prepareForTTS(text);
   if(!clean)return;
-  // Cancel safely then speak with small delay to avoid Chrome TTS lock
   try{speechSynthesis.cancel();}catch(e){}
-  setTimeout(()=>{
-    try{
-      const u=new SpeechSynthesisUtterance(clean);
-      u.lang='el-GR';u.rate=0.82;u.pitch=1;
-      if(greekVoice)u.voice=greekVoice;
-      speechSynthesis.speak(u);
-    }catch(e){console.warn('TTS:',e);}
-  },50);
+  try{
+    const u=new SpeechSynthesisUtterance(clean);
+    u.lang='el-GR';u.rate=0.82;u.pitch=1;
+    if(greekVoice)u.voice=greekVoice;
+    speechSynthesis.speak(u);
+  }catch(e){console.warn('TTS:',e);}
 }
 
 function speakList(texts){
   if(!window.speechSynthesis)return;
-  speechSynthesis.cancel();
+  try{speechSynthesis.cancel();}catch(e){}
   texts.forEach((text,i)=>{
     const clean=stripNonGreek(text);
     if(!clean)return;
@@ -1457,7 +1454,8 @@ function renderEx(){
       if(idx<S.ex.ll.length){
         const gr=S.ex.ll[idx];
         let cls='mi';if(S.mDone.includes(gr))cls+=' mm';else if(S.mSelGr===gr)cls+=' ms';else if(S.mWrong.includes(gr))cls+=' mw';
-        const d=el('button',cls);d.style.fontFamily='inherit';d.textContent=gr;d.onclick=()=>handleMGr(gr);mg.appendChild(d);
+        const d=el('button',cls);d.style.cssText='font-family:inherit;touch-action:manipulation';d.textContent=gr;
+        d.onclick=()=>{speak(gr);handleMGr(gr);};mg.appendChild(d);
       }
       // Right item
       if(idx<S.ex.rl.length){
@@ -1813,7 +1811,7 @@ function doWrite(){
 }
 
 function handleMGr(gr){
-  speak(gr);if(S.mDone.includes(gr))return;
+  if(S.mDone.includes(gr))return;
   // Deselect if already selected
   if(S.mSelGr===gr){S.mSelGr=null;render();return;}
   if(S.mSelRu){
@@ -2016,7 +2014,7 @@ function renderPractice(){
 }
 
 function handlePL(gr){
-  speak(gr);if(S.pMDone.includes(gr))return;
+  if(S.pMDone.includes(gr))return;
   if(S.pMSelL===gr){S.pMSelL=null;render();return;}
   if(S.pMSelR){
     const pair=S.pEx.pairs.find(p=>p.greek===gr);
