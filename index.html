@@ -1280,7 +1280,7 @@ function renderUnitEx(){
   const fwd=el('button');fwd.innerHTML='&#9654;';
   fwd.style.cssText='background:none;border:none;cursor:pointer;font-size:30px;line-height:1;padding:0 4px 2px;flex-shrink:0';
   const canFwd=S.qi<(S.answers||[]).length;
-  if(canFwd){fwd.style.color='var(--acc)';fwd.onclick=()=>{S.qi++;nextEx();render();};}
+  if(canFwd){fwd.style.color='var(--acc)';fwd.onclick=()=>{S.c4checked=false;S.fillChecked=false;S.listenChecked=false;S.chosen=null;S.fillChosen=null;S.listenChosen=null;S.qi++;nextEx();render();};}
   else{fwd.style.color='#e0e7ff';fwd.style.cursor='default';}
   ps.appendChild(fwd);
 
@@ -1371,6 +1371,11 @@ function renderEx(){
       row.appendChild(w);row.appendChild(spkBtn());card.appendChild(row);
     }
     ew.appendChild(card);
+    // Ensure opts exist
+    if(!S.ex.opts||!S.ex.opts.length){
+      const src=ALL_WORDS.filter(w=>w.id!==word.id);
+      S.ex.opts=shuffle([word,...pick(src,3)]);
+    }
     const chs=el('div','chs');
     S.ex.opts.forEach(o=>{
       let cls='cb2';
