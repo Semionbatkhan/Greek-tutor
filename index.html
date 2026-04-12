@@ -1127,6 +1127,8 @@ function startUnit(unit){
     listens.forEach(l=>mixed.push({type:'LISTEN_SLOT',listenId:l.id,qIdx:0}));
     S.queue=mixed;S.qi=0;
     S.score={c:0,w:0,st:0};S.errs=[];S.answers=[];
+    // Save actual queue length for home screen display
+    LS.set('unitQueueLen_'+unit.id, mixed.length);
   }
   S.mode='unit';nextEx();render();
 }
@@ -1147,8 +1149,14 @@ function prevEx(){
     const l=LISTEN_EXERCISES.find(x=>x.id===item.listenId);
     if(l){S.ex={type:'LISTEN',listenId:l.id,listen:l,qIdx:0};}
     else{S.qi--;prevEx();return;}
+  } else if(item&&item.type&&['FC','C4','WRITE','MATCH'].includes(item.type)){
+    S.ex=item; // pre-built exercise
+  } else if(item&&item.id){
+    S.ex=buildEx(item,S.queue.filter(x=>x&&!x.type&&x.id));
   } else {
-    S.ex=buildEx(item,S.queue.filter(x=>x&&!x.type));
+    // unknown item - skip
+    if(S.qi>0){S.qi--;prevEx();}
+    return;
   }
   S.fcRev=false;S.chosen=null;S.c4checked=false;S.fillChosen=null;S.fillChecked=false;
   S.listenChosen=null;S.listenChecked=false;
@@ -1156,7 +1164,7 @@ function prevEx(){
   // Undo last score change
   if(S.answers&&S.answers.length>0){
     const last=S.answers.pop();
-    if(last==='ok')S.score.c=Math.max(0,S.score.c-1);
+    if(last==='ok'||last==='theory')S.score.c=Math.max(0,S.score.c-1);
     else S.score.w=Math.max(0,S.score.w-1);
   }
   save();render();
