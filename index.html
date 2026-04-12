@@ -271,7 +271,7 @@ const THEORY_CARDS = [
     titleEn:"Как связывать слова",
     emoji:"➕",
     content:[
-      {label:"Основные союзы:", example:"και — и → Εγώ και εσύ. (Я и ты.) || αλλά — но → Καλό, αλλά δύσκολο. (Хорошо, но трудно.) || ή — или → Τσάντα ή βαλίτσα; (Сумка или чемодан?)"},
+      {label:"Основные союзы:", example:"και — и → Εγώ και εσύ. (Я и ты.) || αλλά — но → Καλό αλλά δύσκολο. (Хорошо, но трудно.) || ή — или → Τσάντα ή βαλίτσα; (Сумка или чемодан?)"},
       {label:"💡 Запомни эти слова — они встречаются в каждом предложении!", example:""},
     ]
   },
@@ -497,6 +497,9 @@ const SECTIONS=[{
       {id:637,greek:"μένεις",ru:"ты живёшь/остаёшься",emoji:"📍",cat:"Глаголы"},
       {id:638,greek:"μιλώ",ru:"говорю",emoji:"💬",cat:"Глаголы"},
       {id:639,greek:"πάω",ru:"иду/еду",emoji:"🚶",cat:"Глаголы"},
+      {id:640,greek:"βαλίτσα",ru:"чемодан",emoji:"🧳",cat:"Другое"},
+      {id:641,greek:"καλό",ru:"хорошо/хороший",emoji:"👍",cat:"Прилагательные"},
+      {id:642,greek:"δύσκολο",ru:"трудно/трудный",emoji:"😓",cat:"Прилагательные"},
     ]},
     {id:"s1u1",title:"Γνωρίζω τις λέξεις",titleRu:"Знакомство со словами",emoji:"🃏",words:[
       {id:1,greek:"αεροπλάνο",ru:"самолёт",emoji:"✈️",cat:"Транспорт"},
@@ -1296,32 +1299,23 @@ function renderEx(){
         spkRow.appendChild(ex);
         const sb=el('button','spk');sb.textContent='🔊';sb.style.flexShrink='0';sb.style.marginTop='4px';
         sb.onclick=()=>{
-          // Build list of Greek phrases to speak one by one
+          // For each line: if has → read the part after →
+          // Otherwise read the part before —
           const items = [];
-          block.example.split(' || ').forEach(l=>{
-            const greek = l.split(' — ')[0]
-                           .replace(/\(.*?\)/g,'')
-                           .replace(/→/g,'')
-                           .trim();
-            if(!greek) return;
-            // Expand slash variants: αυτός/ή/ό → ['αυτός','ή','ό']
-            if(greek.includes('/')){
-              // Split the whole phrase on slash-words
-              // e.g. "αυτός/ή/ό είναι" → speak "αυτός είναι", "αυτή είναι", "αυτό είναι"
-              const parts = greek.split('/');
-              // Find the non-slash words (rest of sentence)
-              const firstWord = parts[0].split(' ');
-              const rest = firstWord.slice(1).join(' ');
-              const base = firstWord[0];
-              items.push(base + (rest?' '+rest:''));
-              parts.slice(1).forEach(p=>{
-                const pword = p.trim().split(' ')[0];
-                const prest = p.trim().split(' ').slice(1).join(' ');
-                items.push(pword + (prest?' '+prest:'') + (rest?' '+rest:''));
-              });
+          block.example.split(' || ').forEach(line=>{
+            let toRead = '';
+            if(line.includes('→')){
+              // e.g. "και — и → Εγώ και εσύ. (Я и ты.)"
+              // Read: "και. Εγώ και εσύ"
+              const parts = line.split('→');
+              const keyword = parts[0].split('—')[0].trim();
+              const example = parts[1].replace(/\(.*?\)/g,'').trim().replace(/\.$/,'');
+              toRead = keyword + '. ' + example;
             } else {
-              items.push(greek);
+              // e.g. "εγώ — я" → read just "εγώ"
+              toRead = line.split('—')[0].split('(')[0].trim();
             }
+            if(toRead) items.push(toRead);
           });
           speakList(items);
         };
