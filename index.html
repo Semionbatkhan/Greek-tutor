@@ -182,6 +182,23 @@ function loadVoice(){const v=speechSynthesis.getVoices();greekVoice=v.find(x=>x.
 if(window.speechSynthesis){loadVoice();speechSynthesis.onvoiceschanged=loadVoice;}
 function speak(text){if(!window.speechSynthesis)return;speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);u.lang='el-GR';u.rate=0.82;u.pitch=1;if(greekVoice)u.voice=greekVoice;speechSynthesis.speak(u);}
 
+function speakList(texts){
+  if(!window.speechSynthesis)return;
+  speechSynthesis.cancel();
+  texts.forEach((text,i)=>{
+    const u=new SpeechSynthesisUtterance(text);
+    u.lang='el-GR';u.rate=0.75;u.pitch=1;
+    if(greekVoice)u.voice=greekVoice;
+    speechSynthesis.speak(u);
+    // Add pause between items
+    if(i<texts.length-1){
+      const pause=new SpeechSynthesisUtterance(' ');
+      pause.lang='el-GR';pause.volume=0;pause.rate=0.1;
+      speechSynthesis.speak(pause);
+    }
+  });
+}
+
 // ─── LOCALSTORAGE ─────────────────────────────────────────
 const LS={
   get(k,d){try{const v=localStorage.getItem(k);return v!=null?JSON.parse(v):d;}catch(e){return d;}},
@@ -1270,14 +1287,34 @@ function renderEx(){
         spkRow.appendChild(ex);
         const sb=el('button','spk');sb.textContent='🔊';sb.style.flexShrink='0';sb.style.marginTop='4px';
         sb.onclick=()=>{
-          const phrases = block.example.split(' || ')
-            .map(l => l.split(' — ')[0]
-                       .replace(/\(.*?\)/g,'')
-                       .replace(/→/g,'')
-                       .replace(/\//g,', ')
-                       .trim())
-            .filter(l => l.length > 0);
-          speak(phrases.join('. '));
+          // Build list of Greek phrases to speak one by one
+          const items = [];
+          block.example.split(' || ').forEach(l=>{
+            const greek = l.split(' — ')[0]
+                           .replace(/\(.*?\)/g,'')
+                           .replace(/→/g,'')
+                           .trim();
+            if(!greek) return;
+            // Expand slash variants: αυτός/ή/ό → ['αυτός','ή','ό']
+            if(greek.includes('/')){
+              // Split the whole phrase on slash-words
+              // e.g. "αυτός/ή/ό είναι" → speak "αυτός είναι", "αυτή είναι", "αυτό είναι"
+              const parts = greek.split('/');
+              // Find the non-slash words (rest of sentence)
+              const firstWord = parts[0].split(' ');
+              const rest = firstWord.slice(1).join(' ');
+              const base = firstWord[0];
+              items.push(base + (rest?' '+rest:''));
+              parts.slice(1).forEach(p=>{
+                const pword = p.trim().split(' ')[0];
+                const prest = p.trim().split(' ').slice(1).join(' ');
+                items.push(pword + (prest?' '+prest:'') + (rest?' '+rest:''));
+              });
+            } else {
+              items.push(greek);
+            }
+          });
+          speakList(items);
         };
         spkRow.appendChild(sb);
         wrap.appendChild(spkRow);
