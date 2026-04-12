@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!DOCTYPE html><!-- build:1775989612 -->
 <html lang="el">
 <head>
 <meta charset="UTF-8"/>
@@ -1238,11 +1238,11 @@ function renderUnitEx(){
   const pname=el('span');pname.style.cssText='font-size:12px;color:var(--mu);font-weight:800;max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap';
   pname.textContent=S.activeUnit?.titleRu||'';ps.appendChild(pname);
   // Colored segments progress bar
+  const total=S.queue&&S.queue.length?S.queue.length:1;
+  const answers=S.answers||[];
   // Adaptive segment size based on total count
   const segGap = total > 30 ? 1 : 2;
   const segWrap=el('div');segWrap.style.cssText=`flex:1;display:flex;gap:${segGap}px;height:10px;border-radius:99px;overflow:hidden;background:#e0e7ff`;
-  const total=S.queue.length;
-  const answers=S.answers||[];
   for(let i=0;i<total;i++){
     const seg=el('div');seg.style.cssText=`flex:1;height:100%;transition:background .3s;border-radius:2px;`;
     if(i<answers.length){
