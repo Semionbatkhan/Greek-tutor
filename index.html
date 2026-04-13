@@ -1304,11 +1304,11 @@ function renderUnitEx(){
   // TEMP: forward always active for quick navigation
   fwd.style.color='var(--acc)';
   fwd.onclick=()=>{
-    if(S.qi<S.queue.length-1){
-      S.c4checked=false;S.fillChecked=false;S.listenChecked=false;
-      S.chosen=null;S.fillChosen=null;S.listenChosen=null;
-      S.qi++;nextEx();render();
-    }
+    S.c4checked=false;S.fillChecked=false;S.listenChecked=false;
+    S.chosen=null;S.fillChosen=null;S.listenChosen=null;
+    S.mSelGr=null;S.mSelRu=null;S.mDone=[];S.mWrong=[];S.mDoneAll=false;
+    if(S.qi<S.queue.length-1){S.qi++;nextEx();render();}
+    else{S.qi=S.queue.length;render();}
   };
   // RESTORE LATER: const canFwd=S.qi<(S.answers||[]).length;
   // if(canFwd){...} else{fwd.style.color='#e0e7ff';fwd.style.cursor='default';}
@@ -1817,10 +1817,7 @@ function renderEx(){
     // Show full translation - replace ___ with underline placeholder
     const translationFull = S.ex.translation.replace(/___/g,'_____');
     tr.textContent=translationFull;card.appendChild(tr);
-    if(S.ex.hint){
-      const h=el('div');h.style.cssText='font-size:12px;color:var(--acc);font-weight:700;background:#ede9fe;border-radius:8px;padding:6px 10px;display:inline-block';
-      h.textContent='💡 '+S.ex.hint;card.appendChild(h);
-    }
+
     ew.appendChild(card);
     // Options
     const chs=el('div','chs');
