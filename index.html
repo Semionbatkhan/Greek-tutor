@@ -907,7 +907,7 @@ function save(){
       if(item.type&&['FC','C4','WRITE','MATCH'].includes(item.type))return item;
       return item.id;
     });
-    LS.set('session',{unitId:S.activeUnit.id,queue:queueSave,qi:S.qi,score:S.score,errs:S.errs.map(w=>w.id),answers:S.answers||[]});
+    LS.set('session',{unitId:S.activeUnit.id,queue:queueSave,qi:S.qi,score:S.score,errs:S.errs,answers:S.answers||[]});
   } else {
     LS.set('session',null);
   }
@@ -1083,7 +1083,7 @@ function startUnit(unit){
     }).filter(Boolean);
     S.qi=sess.qi;
     S.score=sess.score||{c:0,w:0,st:0};
-    S.errs=sess.errs.map(id=>ALL_WORDS.find(w=>w.id===id)).filter(Boolean);
+    S.errs=sess.errs||[];
     S.answers=sess.answers||[];
   } else {
     S.activeUnit=unit;
@@ -1214,6 +1214,15 @@ function prevEx(){
 function nextEx(){
   if(S.qi>=S.queue.length)return;
   const item=S.queue[S.qi];
+  // If item is a pre-built exercise (from retry), use it directly
+  if(item&&item.type&&['FC','C4','WRITE','MATCH','FILL','LISTEN'].includes(item.type)){
+    S.ex=item;
+    S.fcRev=false;S.chosen=null;S.c4checked=false;
+    S.fillChosen=null;S.fillChecked=false;
+    S.listenChosen=null;S.listenChecked=false;
+    S.mSelGr=null;S.mSelRu=null;S.mDone=[];S.mWrong=[];S.mDoneAll=false;S.mWrongCount=0;
+    return;
+  }
   if(item&&item.type==='THEORY_SLOT'){
     const t=THEORY_CARDS.find(x=>x.id===item.theoryId);
     if(t){S.ex={type:'THEORY',theory:t};}
@@ -1248,9 +1257,11 @@ function advance(ok){
   S.score.c+=ok?1:0;S.score.w+=ok?0:1;S.score.st=ok?S.score.st+1:0;
   if(!S.answers)S.answers=[];
   S.answers.push(ok?'ok':'err');
-  if(!ok&&S.ex?.word){
-    S.errs.push(S.ex.word);
-    if(!S.checked.has(S.ex.word.id)){
+  if(!ok){
+    // Save the full exercise object so we can replay it exactly
+    if(S.ex) S.errs.push({...S.ex});
+    // Also add word to checked for practice
+    if(S.ex?.word && !S.checked.has(S.ex.word.id)){
       S.checked.add(S.ex.word.id);
     }
   }
@@ -1285,12 +1296,15 @@ function renderUnitEx(){
       <div style="font-size:60px">🏆</div>
       <div style="font-size:20px;font-weight:900;margin:14px 0 8px">Юнит пройден!</div>
       <div style="font-size:36px;color:var(--acc);font-weight:900;margin-bottom:8px">${pct}%</div>
-      <div style="font-size:14px;color:var(--mu);margin-bottom:18px;font-weight:700">✅ ${S.score.c} верно · ❌ ${S.errs.length} ошибок</div>
+      <div style="font-size:14px;color:var(--mu);margin-bottom:18px;font-weight:700">✅ ${S.score.c} верно · ❌ ${S.score.w} ошибок</div>
     `;
     if(S.errs.length){
       const rb=el('button','btn ber bfw');rb.style.marginBottom='10px';
       rb.textContent=`🔁 Повторить ошибки (${S.errs.length})`;
-      rb.onclick=()=>{S.queue=shuffle(S.errs);S.qi=0;S.errs=[];S.score={c:0,w:0,st:0};nextEx();render();};
+      rb.onclick=()=>{
+        // Replay exact failed exercises in order
+        S.queue=S.errs.map((ex,i)=>ex);
+        S.qi=0;S.errs=[];S.score={c:0,w:0,st:0};nextEx();render();};
       card.appendChild(rb);
     }
     const hb=el('button','btn bpr bfw');hb.textContent='← К юнитам';
