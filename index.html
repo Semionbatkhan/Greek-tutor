@@ -774,7 +774,7 @@ const SECTIONS=[{
       {id:507,greek:"μολύβι",ru:"карандаш",emoji:"✏️",cat:"Школа"},
       {id:508,greek:"χάρτης",ru:"карта/атлас",emoji:"🗺️",cat:"Школа"},
       {id:509,greek:"χαρτί",ru:"бумага",emoji:"📄",cat:"Школа"},
-      {id:510,greek:"ξύστρα",ru:"точилка",emoji:"🖊️",cat:"Школа"},
+      {id:510,greek:"ξύστρα",ru:"точилка",emoji:"🪚",cat:"Школа"},
       {id:511,greek:"ταξιδεύει",ru:"путешествует",emoji:"✈️",cat:"Глаголы"},
       {id:512,greek:"τρώει",ru:"ест",emoji:"🍽️",cat:"Глаголы"},
       {id:513,greek:"δουλεύει",ru:"работает",emoji:"💼",cat:"Глаголы"},
@@ -1287,7 +1287,7 @@ function advance(ok){
 function renderUnitEx(){
   const wrap=el('div');
   wrap.style.cssText='display:flex;flex-direction:column;flex:1';
-  if(S.qi>=S.queue.length){
+  if(S.queue.length>0&&S.qi>=S.queue.length){
     const pct=Math.round((S.score.c/(S.score.c+S.score.w||1))*100);
     const sc=el('div','sc');
     const card=el('div','card cc');card.style.marginTop='20px';
@@ -1302,8 +1302,10 @@ function renderUnitEx(){
       rb.textContent=`🔁 Повторить ошибки (${S.errs.length})`;
       rb.onclick=()=>{
         // Replay exact failed exercises in order
-        S.queue=S.errs.map((ex,i)=>ex);
-        S.qi=0;S.errs=[];S.score={c:0,w:0,st:0};nextEx();render();};
+        const errsCopy=S.errs.slice();
+        S.errs=[];S.score={c:0,w:0,st:0};S.answers=[];
+        S.queue=errsCopy;
+        S.qi=0;nextEx();render();};
       card.appendChild(rb);
     }
     const hb=el('button','btn bpr bfw');hb.textContent='← К юнитам';
