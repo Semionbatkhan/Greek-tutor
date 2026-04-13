@@ -792,18 +792,17 @@ const PHONICS=[
 const shuffle=a=>[...a].sort(()=>Math.random()-.5);
 
 function unitTotalItems(uid) {
+  // Use actual saved queue length if available (set when unit starts)
+  const saved = LS.get('unitQueueLen_'+uid, 0);
+  if(saved>0) return saved;
+  // Fallback formula
   const unit = SECTIONS.flatMap(s=>s.units).find(u=>u.id===uid);
   if(!unit) return 0;
   const words = unit.words.length;
   const fills = FILL_EXERCISES.filter(f=>f.unitId===uid).length;
-  const listens = LISTEN_EXERCISES.filter(l=>l.unitId===uid).reduce((a,l)=>a+l.questions.length,0);
-  const theories = THEORY_CARDS.filter(t=>t.unitId===uid).length;
-  // words appear once + ~50% get second pass from MATCH = words*1.5 on average
-  // Use fixed formula: words + second_pass_estimate + fills + listens + theories
-  // words*2 (first pass + second pass) + fills + listen_slots + theories
-  // listens here = number of listen SLOTS (texts), not questions
   const listenQs = LISTEN_EXERCISES.filter(l=>l.unitId===uid)
     .reduce((a,l)=>a+l.questions.length, 0);
+  const theories = THEORY_CARDS.filter(t=>t.unitId===uid).length;
   return words * 2 + fills + listenQs + theories;
 }
 
@@ -1148,6 +1147,7 @@ function startUnit(unit){
       });
     });
     S.queue=mixed;S.qi=0;
+    LS.set('unitQueueLen_'+unit.id, mixed.length);
     S.score={c:0,w:0,st:0};S.errs=[];S.answers=[];
     // Save actual queue length so home screen shows same number
     LS.set('unitQueueLen_'+unit.id, mixed.length);
@@ -1323,13 +1323,13 @@ function renderUnitEx(){
   // Counter - pushed to right
   const pnum=el('div');
   pnum.style.cssText='font-size:13px;font-weight:800;color:var(--mu);flex-shrink:0;white-space:nowrap';
-  pnum.textContent=`${S.qi+1}/${unitTotalItems(S.activeUnit?.id)||S.queue.length}`;
+  pnum.textContent=`${S.qi+1}/${S.queue.length}`;
   ps.appendChild(pnum);
 
   wrap.appendChild(ps);
 
   // Progress bar on own strip below navigation
-  const total2=unitTotalItems(S.activeUnit?.id)||S.queue.length||1;
+  const total2=S.queue.length||1;
   const answers2=S.answers||[];
   const segGap2=total2>40?1:2;
   const progStrip=el('div');progStrip.style.cssText='background:var(--sur);padding:5px 12px 7px;border-bottom:1px solid #e0e7ff;flex-shrink:0';
