@@ -413,8 +413,7 @@ const FILL_EXERCISES = [
    emoji:"👔"},
   // s1u5 — animals
   {id:"f10",unitId:"s1u5",
-   sentence:"Στο αγρόκτημα υπάρχουν ___, ___ και ___.",
-   hint:"Три животных с фермы",
+   sentence:"Στο αγρόκτημα υπάρχουν ___.",
    answer:"γάτα, σκυλί και άλογο",
    options:["γάτα, σκυλί και άλογο","λαγός, κουνέλι και πουλί","γουρούνι, κατσίκα και κόκορας","δελφίνι, γαϊδούρι και κότα"],
    translation:"На ферме есть кошка, собака и лошадь.",
@@ -752,18 +751,19 @@ const SECTIONS=[{
       {id:415,greek:"πάρκο",ru:"парк",emoji:"🌳",cat:"Природа"},
       {id:416,greek:"λουλούδια",ru:"цветы",emoji:"🌸",cat:"Природа"},
       {id:417,greek:"μαρούλι",ru:"салат-латук",emoji:"🥬",cat:"Еда"},
-      {id:418,greek:"αγκινάρα",ru:"артишок",emoji:"🌿",cat:"Еда"},
+      {id:418,greek:"αγκινάρα",ru:"артишок",emoji:"🫛",cat:"Еда"},
       {id:419,greek:"σπανάκι",ru:"шпинат",emoji:"🥬",cat:"Еда"},
       {id:420,greek:"φασολάκια",ru:"стручковая фасоль",emoji:"🫘",cat:"Еда"},
       {id:421,greek:"κεράσια",ru:"вишня",emoji:"🍒",cat:"Еда"},
-      {id:422,greek:"γιαούρτι",ru:"йогурт",emoji:"🫙",cat:"Еда"},
+      {id:422,greek:"γιαούρτι",ru:"йогурт",emoji:"🥣",cat:"Еда"},
       {id:423,greek:"μελιτζάνα",ru:"баклажан",emoji:"🍆",cat:"Еда"},
       {id:424,greek:"καρπούζι",ru:"арбуз",emoji:"🍉",cat:"Еда"},
       {id:425,greek:"ζαμπόν",ru:"ветчина",emoji:"🥩",cat:"Еда"},
       {id:426,greek:"ρύζι",ru:"рис",emoji:"🍚",cat:"Еда"},
       {id:427,greek:"αλάτι",ru:"соль",emoji:"🧂",cat:"Еда"},
       {id:432,greek:"υπάρχουν",ru:"существуют/есть",emoji:"📍",cat:"Глаголы"},
-      {id:433,greek:"βερικόκια",ru:"абрикосы",emoji:"🍑",cat:"Еда"},
+      {id:433,greek:"βερικόκια",ru:"абрикосы",emoji:"🍑",cat:"Еда"},,
+      {id:434,greek:"αγρόκτημα",ru:"ферма",emoji:"🌾",cat:"Природа"},
     ]},
     {id:"s1u6",title:"Μουσική και Τέχνες",titleRu:"Музыка и школа",emoji:"🎵",words:[
       {id:501,greek:"ντραμς",ru:"барабаны",emoji:"🥁",cat:"Музыка"},
@@ -824,7 +824,7 @@ function unitTotalItems(uid) {
 }
 
 // Increment this number every time you add new exercises to existing units
-const APP_VERSION = 7;
+const APP_VERSION = 8;
 
 function recalcUnitScore(uid, oldScore) {
   if(oldScore === 0) return 0;
