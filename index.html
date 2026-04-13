@@ -1823,8 +1823,10 @@ function renderEx(){
     sent.textContent=S.ex.sentence;
     const sentSpk=el('button','spk');sentSpk.textContent='🔊';sentSpk.style.flexShrink='0';sentSpk.style.marginTop='4px';
     sentSpk.onclick=()=>{
-      // Speak full sentence with answer filled in
-      const full=S.ex.sentence.replace(/___/g, ()=>S.ex.answer);
+      // Split answer by ' / ' to fill each blank separately
+      const parts=S.ex.answer.split(/\s*\/\s*/);
+      let idx=0;
+      const full=S.ex.sentence.replace(/___/g, ()=>parts[idx++]||parts[parts.length-1]);
       speak(full);
     };
     sentRow.appendChild(sent);sentRow.appendChild(sentSpk);card.appendChild(sentRow);
