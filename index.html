@@ -692,12 +692,12 @@ const SECTIONS=[{
       {id:240,greek:"χιόνι",ru:"снег",emoji:"❄️",cat:"Погода"},
       {id:241,greek:"ζεστό",ru:"жаркое/тёплое",emoji:"☀️",cat:"Погода"},
       {id:242,greek:"κρύο",ru:"холодное/холод",emoji:"🥶",cat:"Погода"},,
-      {id:243,greek:"πήγε",ru:"пошла/поехала",emoji:"🚶",cat:"Глаголы"},
+      {id:243,greek:"πήγε",ru:"пошёл/пошла",emoji:"🚶",cat:"Глаголы"},
       {id:244,greek:"άρεσε",ru:"понравилось",emoji:"❤️",cat:"Глаголы"},
-      {id:245,greek:"επισκέφτηκε",ru:"посетила",emoji:"🏛️",cat:"Глаголы"},
-      {id:246,greek:"αγόρασε",ru:"купила",emoji:"🛍️",cat:"Глаголы"},
+      {id:245,greek:"επισκέφτηκε",ru:"посетил/а",emoji:"🏛️",cat:"Глаголы"},
+      {id:246,greek:"αγόρασε",ru:"купил/а",emoji:"🛍️",cat:"Глаголы"},
       {id:247,greek:"γενικά",ru:"в целом/вообще",emoji:"📊",cat:"Наречия"},
-      {id:248,greek:"πέρασε",ru:"провела (время)",emoji:"⏰",cat:"Глаголы"},
+      {id:248,greek:"πέρασε",ru:"провёл/провела",emoji:"⏰",cat:"Глаголы"},
       {id:249,greek:"όμορφα",ru:"красивые",emoji:"✨",cat:"Прилагательные"},
       {id:250,greek:"μέρη",ru:"места",emoji:"📍",cat:"Другое"},
       {id:251,greek:"αγορά",ru:"рынок",emoji:"🏪",cat:"Другое"},
@@ -825,7 +825,7 @@ function unitTotalItems(uid) {
 }
 
 // Increment this number every time you add new exercises to existing units
-const APP_VERSION = 6;
+const APP_VERSION = 7;
 
 function recalcUnitScore(uid, oldScore) {
   if(oldScore === 0) return 0;
@@ -1104,8 +1104,9 @@ function startUnit(unit){
 
     // First pass: assign exercise types
     wordQueue.forEach(word=>{
-      const others=wordQueue.filter(w=>w.id!==word.id);
-      const fb=ALL_WORDS.filter(w=>w.id!==word.id);
+      if(!word||!word.id||!word.greek||!word.ru){return;} // skip invalid words
+      const others=wordQueue.filter(w=>w&&w.id!==word.id);
+      const fb=ALL_WORDS.filter(w=>w&&w.id!==word.id);
       const src=others.length>=3?others:fb;
       const types=['FC','C4','WRITE','MATCH'];
       const type=types[Math.floor(Math.random()*types.length)];
@@ -1126,7 +1127,8 @@ function startUnit(unit){
     const extraTypes=['FC','C4','WRITE'];
     const extraExercises=[];
     wordQueue.forEach(word=>{
-      const others=wordQueue.filter(w=>w.id!==word.id);
+      if(!word||!word.id||!word.greek||!word.ru){return;} // skip invalid
+      const others=wordQueue.filter(w=>w&&w.id!==word.id);
       const fb=ALL_WORDS.filter(w=>w.id!==word.id);
       const src=others.length>=3?others:fb;
       const type=extraTypes[Math.floor(Math.random()*extraTypes.length)];
