@@ -400,9 +400,8 @@ const FILL_EXERCISES = [
   // s1u4 — clothes
   {id:"f8",unitId:"s1u4",
    sentence:"Σήμερα βρέχει. Παίρνω την ___ και τις ___.",
-   hint:"Защита от дождя",
-   answer:"ομπρέλα και τις μπότες",
-   options:["ομπρέλα και τις μπότες","τσάντα και τα παπούτσια","παλτό και τις παντόφλες","φούστα και το πουκάμισο"],
+   answer:"ομπρέλα / μπότες",
+   options:["ομπρέλα / μπότες","τσάντα / παπούτσια","παλτό / παντόφλες","φούστα / πουκάμισο"],
    translation:"Сегодня дождь. Беру зонт и сапоги.",
    emoji:"☂️"},
   {id:"f9",unitId:"s1u4",
@@ -716,7 +715,7 @@ const SECTIONS=[{
       {id:310,greek:"ομπρέλα",ru:"зонт",emoji:"☂️",cat:"Одежда"},
       {id:311,greek:"πουκάμισο",ru:"рубашка",emoji:"👔",cat:"Одежда"},
       {id:312,greek:"σεντόνι",ru:"простыня",emoji:"🛏️",cat:"Дом"},
-      {id:313,greek:"πετσέτα",ru:"полотенце",emoji:"🛁",cat:"Дом"},
+      {id:313,greek:"πετσέτα",ru:"полотенце",emoji:"🧺",cat:"Дом"},
       {id:314,greek:"τηλέφωνο",ru:"телефон",emoji:"📞",cat:"Дом"},
       {id:315,greek:"πορτοφόλι",ru:"кошелёк",emoji:"👛",cat:"Другое"},
       {id:316,greek:"όνομα",ru:"имя",emoji:"🪪",cat:"Другое"},
@@ -731,7 +730,7 @@ const SECTIONS=[{
       {id:325,greek:"θάλασσα",ru:"море",emoji:"🌊",cat:"Природа"},
       {id:326,greek:"βουνό",ru:"гора",emoji:"⛰️",cat:"Природа"},
       {id:327,greek:"χωριό",ru:"деревня",emoji:"🏡",cat:"Природа"},
-      {id:328,greek:"ταβέρνα",ru:"таверна",emoji:"🍽️",cat:"Другое"},
+      {id:328,greek:"ταβέρνα",ru:"таверна",emoji:"🍷",cat:"Другое"},
       {id:329,greek:"κινηματογράφος",ru:"кинотеатр",emoji:"🎬",cat:"Культура"},
       {id:330,greek:"μένει",ru:"остаётся/живёт",emoji:"🏠",cat:"Глаголы"},
     ]},
@@ -1286,7 +1285,7 @@ function renderUnitEx(){
       <div style="font-size:60px">🏆</div>
       <div style="font-size:20px;font-weight:900;margin:14px 0 8px">Юнит пройден!</div>
       <div style="font-size:36px;color:var(--acc);font-weight:900;margin-bottom:8px">${pct}%</div>
-      <div style="font-size:14px;color:var(--mu);margin-bottom:18px;font-weight:700">✅ ${S.score.c} верно · ❌ ${S.score.w} ошибок</div>
+      <div style="font-size:14px;color:var(--mu);margin-bottom:18px;font-weight:700">✅ ${S.score.c} верно · ❌ ${S.errs.length} ошибок</div>
     `;
     if(S.errs.length){
       const rb=el('button','btn ber bfw');rb.style.marginBottom='10px';
