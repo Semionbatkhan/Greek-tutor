@@ -386,7 +386,7 @@ const FILL_EXERCISES = [
   {id:"f6",unitId:"s1u3",
    sentence:"Το ___ είναι κρύο και έχει χιόνι. Το ___ είναι ζεστό.",
    hint:"Зима и лето",
-   answer:"χειμώνας είναι κρύο, καλοκαίρι είναι ζεστό",
+   answer:"χειμώνας / καλοκαίρι",
    options:["χειμώνας / καλοκαίρι","φθινόπωρο / άνοιξη","καλοκαίρι / χειμώνας","άνοιξη / φθινόπωρο"],
    translation:"Зима холодная и со снегом. Лето жаркое.",
    emoji:"❄️"},
@@ -614,7 +614,11 @@ const SECTIONS=[{
       {id:26,greek:"αφίσα",ru:"афиша/плакат",emoji:"🎪",cat:"Культура"},
       {id:27,greek:"μαγιό",ru:"купальник",emoji:"👙",cat:"Одежда"},
       {id:28,greek:"κασκόλ",ru:"шарф",emoji:"🧣",cat:"Одежда"},
-      {id:29,greek:"βερικοκιά",ru:"абрикосовое дерево",emoji:"🌳",cat:"Природа"},
+      {id:29,greek:"βερικοκιά",ru:"абрикосовое дерево / абрикосы",emoji:"🍑",cat:"Природа"},
+      {id:33,greek:"ωραία",ru:"красиво / прекрасно",emoji:"✨",cat:"Прилагательные"},
+      {id:34,greek:"αγοράζω",ru:"я покупаю",emoji:"🛒",cat:"Глаголы"},
+      {id:35,greek:"παίζει",ru:"играет",emoji:"🎵",cat:"Глаголы"},
+      {id:36,greek:"παίρνει",ru:"берёт / принимает",emoji:"✋",cat:"Глаголы"},
     ]},
     {id:"s1u2",title:"Ακούω και λέω — Φωνήεντα",titleRu:"Гласные звуки",emoji:"🔤",words:[
       {id:101,greek:"ντομάτα",ru:"томат",emoji:"🍅",cat:"Еда"},
@@ -648,6 +652,8 @@ const SECTIONS=[{
       {id:129,greek:"θέατρο",ru:"театр",emoji:"🎭",cat:"Культура"},
       {id:130,greek:"διάβασμα",ru:"чтение",emoji:"📚",cat:"Культура"},
       {id:131,greek:"ταξίδι",ru:"путешествие",emoji:"✈️",cat:"Другое"},
+      {id:132,greek:"αγοράζει",ru:"покупает",emoji:"🛒",cat:"Глаголы"},
+      {id:133,greek:"παρακολουθεί",ru:"смотрит/следит",emoji:"📺",cat:"Глаголы"},
     ]},
     {id:"s1u3",title:"Εποχές και Μήνες",titleRu:"Времена года и месяцы",emoji:"📅",words:[
       {id:201,greek:"φθινόπωρο",ru:"осень",emoji:"🍂",cat:"Время"},
@@ -687,6 +693,11 @@ const SECTIONS=[{
       {id:235,greek:"δώρο",ru:"подарок",emoji:"🎁",cat:"Другое"},
       {id:236,greek:"Αθήνα",ru:"Афины",emoji:"🏛️",cat:"Города"},
       {id:237,greek:"Σαντορίνη",ru:"Санторини",emoji:"🌅",cat:"Города"},
+      {id:238,greek:"βρέχει",ru:"идёт дождь",emoji:"🌧️",cat:"Погода"},
+      {id:239,greek:"έχει",ru:"имеет / есть",emoji:"📦",cat:"Глаголы"},
+      {id:240,greek:"χιόνι",ru:"снег",emoji:"❄️",cat:"Погода"},
+      {id:241,greek:"ζεστό",ru:"жаркое/тёплое",emoji:"☀️",cat:"Погода"},
+      {id:242,greek:"κρύο",ru:"холодное/холод",emoji:"🥶",cat:"Погода"},
     ]},
     {id:"s1u4",title:"Ρούχα και Αντικείμενα",titleRu:"Одежда и предметы",emoji:"👗",words:[
       {id:301,greek:"παλτό",ru:"пальто",emoji:"🧥",cat:"Одежда"},
@@ -701,7 +712,7 @@ const SECTIONS=[{
       {id:310,greek:"ομπρέλα",ru:"зонт",emoji:"☂️",cat:"Одежда"},
       {id:311,greek:"πουκάμισο",ru:"рубашка",emoji:"👔",cat:"Одежда"},
       {id:312,greek:"σεντόνι",ru:"простыня",emoji:"🛏️",cat:"Дом"},
-      {id:313,greek:"πετσέτα",ru:"полотенце",emoji:"🧻",cat:"Дом"},
+      {id:313,greek:"πετσέτα",ru:"полотенце",emoji:"🛁",cat:"Дом"},
       {id:314,greek:"τηλέφωνο",ru:"телефон",emoji:"📞",cat:"Дом"},
       {id:315,greek:"πορτοφόλι",ru:"кошелёк",emoji:"👛",cat:"Другое"},
       {id:316,greek:"όνομα",ru:"имя",emoji:"🪪",cat:"Другое"},
@@ -718,6 +729,7 @@ const SECTIONS=[{
       {id:327,greek:"χωριό",ru:"деревня",emoji:"🏡",cat:"Природа"},
       {id:328,greek:"ταβέρνα",ru:"таверна",emoji:"🍽️",cat:"Другое"},
       {id:329,greek:"κινηματογράφος",ru:"кинотеатр",emoji:"🎬",cat:"Культура"},
+      {id:330,greek:"μένει",ru:"остаётся/живёт",emoji:"🏠",cat:"Глаголы"},
     ]},
     {id:"s1u5",title:"Ζώα και Φύση",titleRu:"Животные и природа",emoji:"🐾",words:[
       {id:401,greek:"γάτα",ru:"кошка",emoji:"🐱",cat:"Животные"},
@@ -747,6 +759,8 @@ const SECTIONS=[{
       {id:425,greek:"ζαμπόν",ru:"ветчина",emoji:"🥩",cat:"Еда"},
       {id:426,greek:"ρύζι",ru:"рис",emoji:"🍚",cat:"Еда"},
       {id:427,greek:"αλάτι",ru:"соль",emoji:"🧂",cat:"Еда"},
+      {id:432,greek:"υπάρχουν",ru:"существуют/есть",emoji:"📍",cat:"Глаголы"},
+      {id:433,greek:"βερικόκια",ru:"абрикосы",emoji:"🍑",cat:"Еда"},
     ]},
     {id:"s1u6",title:"Μουσική και Τέχνες",titleRu:"Музыка и школа",emoji:"🎵",words:[
       {id:501,greek:"ντραμς",ru:"барабаны",emoji:"🥁",cat:"Музыка"},
@@ -1808,7 +1822,11 @@ function renderEx(){
     const sent=el('div');sent.style.cssText='font-size:18px;font-weight:800;line-height:1.6;color:var(--txt);flex:1';
     sent.textContent=S.ex.sentence;
     const sentSpk=el('button','spk');sentSpk.textContent='🔊';sentSpk.style.flexShrink='0';sentSpk.style.marginTop='4px';
-    sentSpk.onclick=()=>speak(S.ex.sentence);
+    sentSpk.onclick=()=>{
+      // Speak full sentence with answer filled in
+      const full=S.ex.sentence.replace(/___/g, ()=>S.ex.answer);
+      speak(full);
+    };
     sentRow.appendChild(sent);sentRow.appendChild(sentSpk);card.appendChild(sentRow);
     // Translation hint
     const tr=el('div');tr.style.cssText='font-size:13px;color:var(--mu);font-weight:600;margin-bottom:8px';
@@ -1844,7 +1862,8 @@ function renderEx(){
     } else {
       const isOk=S.fillChosen===S.ex.answer;
       const fb=el('div','fb '+(isOk?'fbok':'fber'));
-      fb.textContent=isOk?'✅ Верно!':'❌ Правильно: '+S.ex.answer;
+      const corrSent=S.ex.sentence.replace(/___/g,()=>S.ex.answer);
+      fb.textContent=isOk?'✅ Верно!':'❌ '+corrSent;
       ew.appendChild(fb);
       const nb=el('button','btn bpr bfw');nb.textContent='Дальше →';
       nb.onclick=()=>{S.fillChecked=false;S.fillChosen=null;advance(isOk);};
