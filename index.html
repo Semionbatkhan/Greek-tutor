@@ -1104,22 +1104,20 @@ function startUnit(unit){
       }
     });
 
-    // Second pass: add extra exercise for all words that appeared in MATCH
+    // Second pass: ALL words get a second exercise (no MATCH, only FC/C4/WRITE)
     const extraTypes=['FC','C4','WRITE'];
     const extraExercises=[];
     wordQueue.forEach(word=>{
-      if(usedInMatch.has(word.id)){
-        const others=wordQueue.filter(w=>w.id!==word.id);
-        const fb=ALL_WORDS.filter(w=>w.id!==word.id);
-        const src=others.length>=3?others:fb;
-        const type=extraTypes[Math.floor(Math.random()*extraTypes.length)];
-        if(type==='FC'){
-          extraExercises.push({type,word,dir:Math.random()>.5?'grToRu':'ruToGr'});
-        } else if(type==='WRITE'){
-          extraExercises.push({type,word,dir:Math.random()>.5?'grToRu':'ruToGr'});
-        } else {
-          extraExercises.push({type,word,opts:shuffle([word,...pick(src,3)])});
-        }
+      const others=wordQueue.filter(w=>w.id!==word.id);
+      const fb=ALL_WORDS.filter(w=>w.id!==word.id);
+      const src=others.length>=3?others:fb;
+      const type=extraTypes[Math.floor(Math.random()*extraTypes.length)];
+      if(type==='FC'){
+        extraExercises.push({type,word,dir:Math.random()>.5?'grToRu':'ruToGr'});
+      } else if(type==='WRITE'){
+        extraExercises.push({type,word,dir:Math.random()>.5?'grToRu':'ruToGr'});
+      } else {
+        extraExercises.push({type,word,opts:shuffle([word,...pick(src,3)])});
       }
     });
 
