@@ -176,13 +176,13 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--txt);min-h
 .mp-time{font-size:11px;font-weight:800;color:var(--mu);white-space:nowrap}
 
 /* GENERATED TEXT */
-.gen-card{background:var(--card);border-radius:var(--r);padding:20px;border:1.5px solid var(--border);box-shadow:var(--shadow);margin-bottom:14px}
+.gen-card{background:var(--card);border-radius:var(--r);padding:20px;border:1.5px solid var(--border);box-shadow:var(--shadow);margin-top:12px;margin-bottom:14px}
 .gen-gr{font-size:17px;font-weight:700;color:var(--txt);line-height:1.8;margin-bottom:14px}
 .gen-ru{font-size:14px;color:var(--mu);line-height:1.7;font-weight:600;border-top:1.5px solid var(--border);padding-top:12px}
 .gen-word{color:var(--acc);font-weight:800}
-.gen-btn{width:100%;padding:14px;border:none;border-radius:14px;background:linear-gradient(135deg,var(--acc),#818cf8);
+.gen-btn{width:100%;padding:14px 18px;border:none;border-radius:14px;background:linear-gradient(135deg,var(--acc),#818cf8);
   color:#fff;font-family:'Nunito',sans-serif;font-size:15px;font-weight:800;cursor:pointer;
-  box-shadow:var(--shadow);margin-bottom:10px;display:flex;align-items:center;justify-content:center;gap:8px}
+  box-shadow:var(--shadow);margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;gap:10px}
 .gen-loading{text-align:center;padding:30px;color:var(--mu);font-weight:700;font-size:15px}
 @keyframes spin{to{transform:rotate(360deg)}}
 .gen-spinner{display:inline-block;width:20px;height:20px;border:3px solid #e0e7ff;border-top-color:var(--acc);border-radius:50%;animation:spin .8s linear infinite;margin-right:8px}
@@ -2412,17 +2412,18 @@ function renderLearnedWords(wrap){
   const filtered=learnedWords.filter(w=>!q||w.greek.toLowerCase().includes(q)||w.ru.toLowerCase().includes(q));
 
   // ── Generate text button ──
-  // Gen button row with info
-  const genRow=el('div');genRow.style.cssText='display:flex;gap:8px;align-items:center;margin-bottom:0';
-  const genBtn=el('button','gen-btn');genBtn.style.cssText='gen-btn;flex:1;margin-bottom:0';
-  genBtn.innerHTML='✨ Сгенерировать текст из выученных слов';
+  // Gen button — full width with info icon inside
+  const genBtn=el('button','gen-btn');
+  genBtn.style.cssText='width:100%;margin-bottom:0;display:flex;align-items:center;justify-content:space-between;padding:14px 18px;gap:10px';
+  const genBtnLeft=el('span');genBtnLeft.style.cssText='flex:1;text-align:center;font-size:15px;font-weight:800';
+  genBtnLeft.textContent='✨ Сгенерировать текст из выученных слов';
+  const genBtnInfo=el('span');
+  genBtnInfo.style.cssText='background:rgba(255,255,255,0.25);border-radius:50%;width:26px;height:26px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:900;flex-shrink:0';
+  genBtnInfo.textContent='ℹ';
+  genBtnInfo.onclick=e=>{e.stopPropagation();S.popup={type:'genInfo'};render();};
+  genBtn.appendChild(genBtnLeft);genBtn.appendChild(genBtnInfo);
   genBtn.onclick=()=>generateText();
-  const infoBtn=el('button');
-  infoBtn.style.cssText='background:#e0e7ff;border:none;border-radius:50%;width:36px;height:36px;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:900;color:var(--acc);cursor:pointer;flex-shrink:0';
-  infoBtn.textContent='ℹ';
-  infoBtn.onclick=()=>{S.popup={type:'genInfo'};render();};
-  genRow.appendChild(genBtn);genRow.appendChild(infoBtn);
-  wrap.appendChild(genRow);
+  wrap.appendChild(genBtn);
 
   // ── Show generated text ──
   if(S.genText){
