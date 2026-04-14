@@ -2194,11 +2194,11 @@ async function generateText(){
   const wordList=sample.map(w=>w.greek+' ('+w.ru+')').join(', ');
 
   try{
-    const res=await fetch('https://api.anthropic.com/v1/messages',{
+    const res=await fetch('/api/generate',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
       body:JSON.stringify({
-        model:'claude-sonnet-4-20250514',
+        model:'claude-sonnet-4-5',
         max_tokens:1000,
         system:'Ты учитель греческого языка. Отвечай ТОЛЬКО валидным JSON без markdown.',
         messages:[{role:'user',content:`Составь короткий связный текст на греческом (5-7 предложений) используя КАК МОЖНО БОЛЬШЕ из этих слов: ${wordList}. Текст должен быть логичным и естественным — история, диалог или описание. Верни JSON: {"greek": "текст на греческом", "russian": "перевод на русский", "usedWords": ["слово1","слово2"]}`}]
