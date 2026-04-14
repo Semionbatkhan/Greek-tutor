@@ -170,7 +170,7 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--txt);min-h
 
 /* MINI PLAYER */
 .mini-player{background:#f0f4ff;border-radius:14px;padding:10px 14px;display:flex;align-items:center;gap:10px;margin-bottom:12px;border:1.5px solid var(--border)}
-.mp-btn{background:var(--acc);border:none;border-radius:50%;width:34px;height:34px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;font-size:14px;color:#fff}
+.mp-btn{background:var(--acc);border:none;border-radius:50%;width:44px;height:44px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;color:#fff}
 .mp-bar{flex:1;height:5px;background:#c7d2fe;border-radius:99px;cursor:pointer;position:relative}
 .mp-fill{height:100%;background:var(--acc);border-radius:99px;transition:width .3s;pointer-events:none}
 .mp-time{font-size:11px;font-weight:800;color:var(--mu);white-space:nowrap}
@@ -2232,7 +2232,7 @@ function buildMiniPlayer(playFnOrText, rawText){
   let segStartTime=0; // when current segment started
   let raf=null;
 
-  const btn=el('button','mp-btn');btn.textContent='▶';
+  const btn=el('button','mp-btn');btn.innerHTML='<svg width="14" height="16" viewBox="0 0 14 16" fill="none"><polygon points="2,1 13,8 2,15" fill="white"/></svg>';
   const bar=el('div','mp-bar');
   bar.style.cssText='flex:1;height:8px;background:#c7d2fe;border-radius:99px;cursor:pointer;position:relative;touch-action:none;user-select:none';
   const fill=el('div');
@@ -2258,12 +2258,12 @@ function buildMiniPlayer(playFnOrText, rawText){
     stopTTS();
     currentSeg=Math.max(0,Math.min(segIdx,totalSegments-1));
     isPlaying=true;
-    btn.textContent='⏸';
+    btn.innerHTML='<svg width="14" height="16" viewBox="0 0 14 16" fill="none"><rect x="1" y="1" width="4" height="14" rx="1.5" fill="white"/><rect x="9" y="1" width="4" height="14" rx="1.5" fill="white"/></svg>';
     
     function speakSeg(i){
       if(i>=totalSegments){
         // Done
-        isPlaying=false;currentSeg=0;btn.textContent='▶';
+        isPlaying=false;currentSeg=0;btn.innerHTML='<svg width="14" height="16" viewBox="0 0 14 16" fill="none"><polygon points="2,1 13,8 2,15" fill="white"/></svg>';
         fill.style.width='0%';timeEl.textContent='0:00';
         return;
       }
@@ -2292,7 +2292,7 @@ function buildMiniPlayer(playFnOrText, rawText){
     cancelAnimationFrame(raf);
     // currentSeg stays where it is — resume will restart from this segment
     isPlaying=false;
-    btn.textContent='▶';
+    btn.innerHTML='<svg width="14" height="16" viewBox="0 0 14 16" fill="none"><polygon points="2,1 13,8 2,15" fill="white"/></svg>';
   }
 
   btn.onclick=()=>{
