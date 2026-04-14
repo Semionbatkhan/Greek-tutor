@@ -924,8 +924,8 @@ let S={
     return scores;
   })(),
   toast:null,
-  genText:null,      // {greek, russian, loading}
-  genTextShown:false,
+  genText:LS.get('genText',null),      // {greek, russian, loading}
+  genTextShown:LS.get('genTextShown',false),
   genCount:LS.get('genCount',0),
   lastActiveUnitId:LS.get('lastActiveUnitId',null),
 };
@@ -2244,8 +2244,10 @@ async function generateText(){
     if(parsed.lines){
       // Dialogue format
       S.genText={loading:false,greek:null,russian:null,lines:parsed.lines,usedWords:parsed.usedWords||[],genre:parsed.genre||'Диалог',isDialogue:true};
+    LS.set('genText',S.genText);
     } else {
       S.genText={loading:false,greek:parsed.greek,russian:parsed.russian,lines:null,usedWords:parsed.usedWords||[],genre:parsed.genre||'',isDialogue:false};
+    LS.set('genText',S.genText);
     }
   }catch(e){
     S.genText={loading:false,greek:null,russian:null,error:true};
@@ -2354,7 +2356,7 @@ function renderLearnedWords(wrap){
         const toggleBtn=el('button','btn bot');
         toggleBtn.style.cssText='font-size:13px;padding:8px 14px;flex:unset;width:auto;margin-bottom:10px';
         toggleBtn.textContent=S.genTextShown?'🙈 Скрыть перевод':'👁 Показать перевод';
-        toggleBtn.onclick=()=>{S.genTextShown=!S.genTextShown;render();};
+        toggleBtn.onclick=()=>{S.genTextShown=!S.genTextShown;LS.set('genTextShown',S.genTextShown);render();};
         gc.appendChild(toggleBtn);
         if(S.genTextShown){
           const ruDiv=el('div','gen-ru');
@@ -2379,7 +2381,7 @@ function renderLearnedWords(wrap){
         const toggleBtn=el('button','btn bot');
         toggleBtn.style.cssText='font-size:13px;padding:8px 14px;flex:unset;width:auto;margin-bottom:10px';
         toggleBtn.textContent=S.genTextShown?'🙈 Скрыть перевод':'👁 Показать перевод';
-        toggleBtn.onclick=()=>{S.genTextShown=!S.genTextShown;render();};
+        toggleBtn.onclick=()=>{S.genTextShown=!S.genTextShown;LS.set('genTextShown',S.genTextShown);render();};
         gc.appendChild(toggleBtn);
         if(S.genTextShown){
           const ruDiv=el('div','gen-ru');ruDiv.textContent=S.genText.russian;gc.appendChild(ruDiv);
