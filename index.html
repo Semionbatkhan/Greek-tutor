@@ -167,6 +167,18 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--txt);min-h
 .prog-title{font-size:11px;font-weight:800;letter-spacing:2px;color:var(--mu);text-transform:uppercase;margin-bottom:8px}
 .prog-pct{font-size:28px;font-weight:900;color:var(--acc);margin-bottom:6px}
 
+/* GENERATED TEXT */
+.gen-card{background:var(--sur);border-radius:var(--r);padding:20px;border:1.5px solid #e0e7ff;box-shadow:var(--shadow);margin-bottom:14px}
+.gen-gr{font-size:17px;font-weight:700;color:var(--txt);line-height:1.8;margin-bottom:14px}
+.gen-ru{font-size:14px;color:var(--mu);line-height:1.7;font-weight:600;border-top:1.5px solid #e0e7ff;padding-top:12px}
+.gen-word{color:var(--acc);font-weight:800}
+.gen-btn{width:100%;padding:14px;border:none;border-radius:14px;background:linear-gradient(135deg,var(--acc),#818cf8);
+  color:#fff;font-family:'Nunito',sans-serif;font-size:15px;font-weight:800;cursor:pointer;
+  box-shadow:var(--shadow);margin-bottom:10px;display:flex;align-items:center;justify-content:center;gap:8px}
+.gen-loading{text-align:center;padding:30px;color:var(--mu);font-weight:700;font-size:15px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.gen-spinner{display:inline-block;width:20px;height:20px;border:3px solid #e0e7ff;border-top-color:var(--acc);border-radius:50%;animation:spin .8s linear infinite;margin-right:8px}
+
 /* ANIMATIONS */
 @keyframes fi{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 @keyframes pop{from{transform:scale(.5);opacity:0}to{transform:scale(1);opacity:1}}
@@ -912,6 +924,8 @@ let S={
     return scores;
   })(),
   toast:null,
+  genText:null,      // {greek, russian, loading}
+  genTextShown:false,
   lastActiveUnitId:LS.get('lastActiveUnitId',null),
 };
 let lpTimer=null;
@@ -2167,6 +2181,41 @@ function handlePR(ru){
   }else S.pMSelR=ru;render();
 }
 
+// ─── GENERATE TEXT FROM LEARNED WORDS ────────────────────
+async function generateText(){
+  const learnedWords=ALL_WORDS.filter(w=>S.learned.has(w.id));
+  if(!learnedWords.length){showToast('Нет выученных слов!');return;}
+
+  S.genText={loading:true,greek:null,russian:null};
+  render();
+
+  // Pick up to 25 random learned words for context
+  const sample=shuffle(learnedWords).slice(0,25);
+  const wordList=sample.map(w=>w.greek+' ('+w.ru+')').join(', ');
+
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:1000,
+        system:'Ты учитель греческого языка. Отвечай ТОЛЬКО валидным JSON без markdown.',
+        messages:[{role:'user',content:`Составь короткий связный текст на греческом (5-7 предложений) используя КАК МОЖНО БОЛЬШЕ из этих слов: ${wordList}. Текст должен быть логичным и естественным — история, диалог или описание. Верни JSON: {"greek": "текст на греческом", "russian": "перевод на русский", "usedWords": ["слово1","слово2"]}`}]
+      })
+    });
+    const data=await res.json();
+    const text=data.content?.map(b=>b.text||'').join('')||'';
+    const clean=text.replace(/\`\`\`json|\`\`\`/g,'').trim();
+    const parsed=JSON.parse(clean);
+    S.genText={loading:false,greek:parsed.greek,russian:parsed.russian,usedWords:parsed.usedWords||[]};
+  }catch(e){
+    S.genText={loading:false,greek:null,russian:null,error:true};
+    showToast('Ошибка генерации, попробуй ещё раз');
+  }
+  render();
+}
+
 // ─── LEARNED WORDS TAB ────────────────────────────────────
 function renderLearnedWords(wrap){
   if(!S.learned.size){
@@ -2178,6 +2227,56 @@ function renderLearnedWords(wrap){
   const learnedWords=ALL_WORDS.filter(w=>S.learned.has(w.id));
   const q=S.lwSearch.toLowerCase();
   const filtered=learnedWords.filter(w=>!q||w.greek.toLowerCase().includes(q)||w.ru.toLowerCase().includes(q));
+
+  // ── Generate text button ──
+  const genBtn=el('button','gen-btn');
+  genBtn.innerHTML='✨ Сгенерировать текст из выученных слов';
+  genBtn.onclick=()=>generateText();
+  wrap.appendChild(genBtn);
+
+  // ── Show generated text ──
+  if(S.genText){
+    const gc=el('div','gen-card');
+    if(S.genText.loading){
+      const gl=el('div','gen-loading');
+      gl.innerHTML='<span class="gen-spinner"></span>Генерирую текст...';
+      gc.appendChild(gl);
+    } else if(S.genText.error){
+      gc.innerHTML='<div style="color:var(--er);font-weight:700;text-align:center">❌ Ошибка. Попробуй ещё раз.</div>';
+    } else {
+      // Greek text with learned words highlighted
+      let greekHtml=S.genText.greek||'';
+      if(S.genText.usedWords&&S.genText.usedWords.length){
+        S.genText.usedWords.forEach(w=>{
+          const escaped=w.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+          greekHtml=greekHtml.replace(new RegExp('(?<![\\w])'+escaped+'(?![\\w])','g'),'<span class="gen-word">'+w+'</span>');
+        });
+      }
+      const grDiv=el('div','gen-gr');grDiv.innerHTML=greekHtml;
+      // Speak button
+      const spkRow=el('div');spkRow.style.cssText='display:flex;align-items:center;gap:10px;margin-bottom:12px';
+      spkRow.appendChild(grDiv);
+      const sb=el('button','spk');sb.textContent='🔊';
+      sb.onclick=()=>speak(S.genText.greek);
+      spkRow.appendChild(sb);
+      gc.appendChild(spkRow);
+      // Show/hide translation toggle
+      const toggleBtn=el('button','btn bot');toggleBtn.style.cssText='font-size:13px;padding:8px 14px;flex:unset;width:auto;margin-bottom:10px';
+      toggleBtn.textContent=S.genTextShown?'🙈 Скрыть перевод':'👁 Показать перевод';
+      toggleBtn.onclick=()=>{S.genTextShown=!S.genTextShown;render();};
+      gc.appendChild(toggleBtn);
+      if(S.genTextShown){
+        const ruDiv=el('div','gen-ru');ruDiv.textContent=S.genText.russian;gc.appendChild(ruDiv);
+      }
+      // Used words count
+      if(S.genText.usedWords&&S.genText.usedWords.length){
+        const cnt=el('div');cnt.style.cssText='font-size:12px;color:var(--ok);font-weight:800;margin-top:10px';
+        cnt.textContent='✅ Использовано выученных слов: '+S.genText.usedWords.length;
+        gc.appendChild(cnt);
+      }
+    }
+    wrap.appendChild(gc);
+  }
 
   // Search
   const wlt=el('div','wlt');
