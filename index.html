@@ -2202,101 +2202,124 @@ function handlePR(ru){
 }
 
 // ─── MINI PLAYER ─────────────────────────────────────────
-function buildMiniPlayer(playFn, text){
+// playFn can be a string (text to speak) or array of {text, pitch} objects (dialogue)
+function buildMiniPlayer(playFnOrText, rawText){
   const wrap=el('div','mini-player');
-  const words=(text||'').split(/\s+/).filter(Boolean).length;
-  const totalMs=Math.max(words*420,1500);
+
+  // Parse into speakable segments
+  let segments=[];
+  if(Array.isArray(playFnOrText)){
+    // Dialogue: array of {text, pitch}
+    segments=playFnOrText.map(s=>({text:s.text,pitch:s.pitch||1.0}));
+  } else if(typeof playFnOrText==='string'){
+    // Plain text: split into sentences
+    segments=playFnOrText.split(/(?<=[.!?;])\s+/).filter(s=>s.trim().length>1)
+      .map(s=>({text:s.trim(),pitch:1.0}));
+    if(!segments.length)segments=[{text:playFnOrText,pitch:1.0}];
+  } else {
+    // Legacy: function — fallback
+    segments=[{text:rawText||'',pitch:1.0}];
+  }
+
+  const totalSegments=segments.length;
+  // Estimate ms per segment proportional to word count
+  const segMs=segments.map(s=>Math.max(s.text.split(/\s+/).length*420,600));
+  const totalMs=segMs.reduce((a,b)=>a+b,0)||3000;
+  const segStart=segMs.reduce((acc,ms,i)=>{acc.push(i===0?0:acc[i-1]+ms);return acc;},[]);
 
   let isPlaying=false;
-  let pausedAt=0;
-  let startTime=0;
+  let currentSeg=0;   // which segment is playing/paused at
+  let segStartTime=0; // when current segment started
   let raf=null;
 
   const btn=el('button','mp-btn');btn.textContent='▶';
-
-  // Progress bar — just a fill, no thumb/scrubber visible
   const bar=el('div','mp-bar');
   bar.style.cssText='flex:1;height:8px;background:#c7d2fe;border-radius:99px;cursor:pointer;position:relative;touch-action:none;user-select:none';
   const fill=el('div');
-  fill.style.cssText='height:100%;background:var(--acc);border-radius:99px;width:0%;pointer-events:none;transition:none';
+  fill.style.cssText='height:100%;background:var(--acc);border-radius:99px;width:0%;pointer-events:none';
   bar.appendChild(fill);
+  const timeEl=el('div','mp-time');timeEl.textContent='0:00';
 
-  const timeEl=el('div','mp-time');
+  function msElapsed(){
+    if(!isPlaying)return segStart[currentSeg]||0;
+    return (segStart[currentSeg]||0)+(Date.now()-segStartTime);
+  }
 
-  function getElapsed(){return isPlaying?pausedAt+(Date.now()-startTime):pausedAt;}
-  function updateUI(ms){
-    const pct=Math.min(ms/totalMs,1);
-    fill.style.width=(pct*100)+'%';
+  function updateUI(){
+    const ms=Math.min(msElapsed(),totalMs);
+    fill.style.width=((ms/totalMs)*100)+'%';
     const sec=Math.floor(ms/1000);
     timeEl.textContent=Math.floor(sec/60)+':'+(sec%60<10?'0':'')+sec%60;
   }
 
   function stopTTS(){try{speechSynthesis.cancel();}catch(e){}}
 
-  function tick(){
-    if(!isPlaying)return;
-    const ms=getElapsed();
-    updateUI(ms);
-    if(ms<totalMs){raf=requestAnimationFrame(tick);}
-    else{isPlaying=false;pausedAt=0;btn.textContent='▶';updateUI(0);}
+  function playFrom(segIdx){
+    stopTTS();
+    currentSeg=Math.max(0,Math.min(segIdx,totalSegments-1));
+    isPlaying=true;
+    btn.textContent='⏸';
+    
+    function speakSeg(i){
+      if(i>=totalSegments){
+        // Done
+        isPlaying=false;currentSeg=0;btn.textContent='▶';
+        fill.style.width='0%';timeEl.textContent='0:00';
+        return;
+      }
+      const seg=segments[i];
+      const clean=seg.text.replace(/[а-яёА-ЯЁ]/g,'').trim();
+      if(!clean){speakSeg(i+1);return;}
+      currentSeg=i;
+      segStartTime=Date.now();
+      const u=new SpeechSynthesisUtterance(clean);
+      u.lang='el-GR';u.rate=0.82;u.pitch=seg.pitch;
+      if(greekVoice)u.voice=greekVoice;
+      u.onend=()=>{if(isPlaying)speakSeg(i+1);};
+      speechSynthesis.speak(u);
+    }
+    speakSeg(currentSeg);
+    cancelAnimationFrame(raf);
+    function tick(){
+      updateUI();
+      if(isPlaying)raf=requestAnimationFrame(tick);
+    }
+    raf=requestAnimationFrame(tick);
   }
 
   function pause(){
     stopTTS();
     cancelAnimationFrame(raf);
-    pausedAt=getElapsed();
+    // currentSeg stays where it is — resume will restart from this segment
     isPlaying=false;
     btn.textContent='▶';
   }
 
-  function play(){
-    if(pausedAt>=totalMs)pausedAt=0;
-    isPlaying=true;
-    btn.textContent='⏸';
-    startTime=Date.now();
-    stopTTS();
-    playFn();
-    raf=requestAnimationFrame(tick);
-  }
+  btn.onclick=()=>{
+    if(isPlaying){pause();}
+    else{playFrom(currentSeg);}
+  };
 
-  btn.onclick=()=>{isPlaying?pause():play();};
-
-  // Drag to seek — hold end of fill and drag
-  let dragging=false;
-  let wasPlaying=false;
-
-  function getPct(clientX){
-    const rect=bar.getBoundingClientRect();
-    return Math.max(0,Math.min(1,(clientX-rect.left)/rect.width));
+  // Drag to seek
+  let dragging=false,wasPlaying=false;
+  function getPct(cx){const r=bar.getBoundingClientRect();return Math.max(0,Math.min(1,(cx-r.left)/r.width));}
+  function seekTo(cx){
+    const pct=getPct(cx);
+    const ms=pct*totalMs;
+    // Find which segment this ms falls in
+    let seg=0;
+    for(let i=0;i<totalSegments-1;i++){if(ms>=segStart[i+1])seg=i+1;else break;}
+    currentSeg=seg;
+    fill.style.width=(pct*100)+'%';
+    const sec=Math.floor(ms/1000);
+    timeEl.textContent=Math.floor(sec/60)+':'+(sec%60<10?'0':'')+sec%60;
   }
-
-  function onDragStart(clientX){
-    dragging=true;
-    wasPlaying=isPlaying;
-    if(isPlaying){stopTTS();cancelAnimationFrame(raf);isPlaying=false;}
-    pausedAt=getPct(clientX)*totalMs;
-    updateUI(pausedAt);
-    btn.textContent='▶';
-  }
-  function onDragMove(clientX){
-    if(!dragging)return;
-    pausedAt=getPct(clientX)*totalMs;
-    updateUI(pausedAt);
-  }
-  function onDragEnd(clientX){
-    if(!dragging)return;
-    dragging=false;
-    pausedAt=getPct(clientX)*totalMs;
-    updateUI(pausedAt);
-    if(wasPlaying)play();
-  }
-
-  bar.addEventListener('mousedown',e=>{e.preventDefault();onDragStart(e.clientX);});
-  bar.addEventListener('touchstart',e=>{e.preventDefault();onDragStart(e.touches[0].clientX);},{passive:false});
-  document.addEventListener('mousemove',e=>{if(dragging)onDragMove(e.clientX);});
-  document.addEventListener('touchmove',e=>{if(dragging){e.preventDefault();onDragMove(e.touches[0].clientX);}},{passive:false});
-  document.addEventListener('mouseup',e=>{if(dragging)onDragEnd(e.clientX);});
-  document.addEventListener('touchend',e=>{if(dragging)onDragEnd(e.changedTouches[0].clientX);});
+  bar.addEventListener('mousedown',e=>{e.preventDefault();wasPlaying=isPlaying;if(isPlaying)pause();dragging=true;seekTo(e.clientX);},{passive:false});
+  bar.addEventListener('touchstart',e=>{e.preventDefault();wasPlaying=isPlaying;if(isPlaying)pause();dragging=true;seekTo(e.touches[0].clientX);},{passive:false});
+  document.addEventListener('mousemove',e=>{if(dragging)seekTo(e.clientX);});
+  document.addEventListener('touchmove',e=>{if(dragging){e.preventDefault();seekTo(e.touches[0].clientX);}},{passive:false});
+  document.addEventListener('mouseup',()=>{if(dragging){dragging=false;if(wasPlaying)playFrom(currentSeg);}});
+  document.addEventListener('touchend',()=>{if(dragging){dragging=false;if(wasPlaying)playFrom(currentSeg);}});
 
   wrap.appendChild(btn);wrap.appendChild(bar);wrap.appendChild(timeEl);
   return wrap;
@@ -2395,7 +2418,7 @@ function renderLearnedWords(wrap){
   genBtn.innerHTML='✨ Сгенерировать текст из выученных слов';
   genBtn.onclick=()=>generateText();
   const infoBtn=el('button');
-  infoBtn.style.cssText='background:#3a2020;border:none;border-radius:50%;width:36px;height:36px;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:900;color:var(--acc);cursor:pointer;flex-shrink:0';
+  infoBtn.style.cssText='background:#e0e7ff;border:none;border-radius:50%;width:36px;height:36px;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:900;color:var(--acc);cursor:pointer;flex-shrink:0';
   infoBtn.textContent='ℹ';
   infoBtn.onclick=()=>{S.popup={type:'genInfo'};render();};
   genRow.appendChild(genBtn);genRow.appendChild(infoBtn);
@@ -2456,22 +2479,12 @@ function renderLearnedWords(wrap){
         });
 
         // Mini player for dialogue — two voices
-        const dlPlay=()=>{
-          if(!window.speechSynthesis)return;
-          try{speechSynthesis.cancel();}catch(e){}
-          lines.forEach((line,i)=>{
-            const isFirst=speakers.indexOf(line.speaker)===0;
-            const clean=line.greek.replace(/[а-яёА-ЯЁ]+/g,'').trim();
-            if(!clean)return;
-            const u=new SpeechSynthesisUtterance(clean);
-            u.lang='el-GR';u.rate=0.82;u.pitch=isFirst?1.2:0.8;
-            if(greekVoice)u.voice=greekVoice;
-            speechSynthesis.speak(u);
-            if(i<lines.length-1){const pause=new SpeechSynthesisUtterance(' ');pause.lang='el-GR';pause.volume=0;pause.rate=0.1;speechSynthesis.speak(pause);}
-          });
-        };
-        const dlText=lines.map(l=>l.greek).join(' ');
-        gc.appendChild(buildMiniPlayer(dlPlay, dlText));
+        // Build segments array for dialogue player
+        const dlSegments=lines.map(line=>({
+          text:line.greek,
+          pitch:speakers.indexOf(line.speaker)===0?1.2:0.8
+        }));
+        gc.appendChild(buildMiniPlayer(dlSegments, lines.map(l=>l.greek).join(' ')));
 
         // Translation toggle
         const toggleBtn=el('button','btn bot');
@@ -2494,7 +2507,7 @@ function renderLearnedWords(wrap){
         const grDiv=el('div','gen-gr');grDiv.innerHTML=greekHtml;
         gc.appendChild(grDiv);
         // Mini player for non-dialogue
-        gc.appendChild(buildMiniPlayer(()=>speak(S.genText.greek), S.genText.greek));
+        gc.appendChild(buildMiniPlayer(S.genText.greek, S.genText.greek));
         // Translation toggle
         const toggleBtn=el('button','btn bot');
         toggleBtn.style.cssText='font-size:13px;padding:8px 14px;flex:unset;width:auto;margin-bottom:10px';
