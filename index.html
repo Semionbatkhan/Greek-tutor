@@ -926,6 +926,7 @@ let S={
   toast:null,
   genText:null,      // {greek, russian, loading}
   genTextShown:false,
+  genCount:LS.get('genCount',0),
   lastActiveUnitId:LS.get('lastActiveUnitId',null),
 };
 let lpTimer=null;
@@ -2183,15 +2184,24 @@ function handlePR(ru){
 
 // ─── GENERATE TEXT FROM LEARNED WORDS ────────────────────
 async function generateText(){
-  const learnedWords=ALL_WORDS.filter(w=>S.learned.has(w.id));
-  if(!learnedWords.length){showToast('Нет выученных слов!');return;}
-
   S.genText={loading:true,greek:null,russian:null};
   render();
 
-  // Pick up to 25 random learned words for context
-  const sample=shuffle(learnedWords).slice(0,25);
+  const learnedWords=ALL_WORDS.filter(w=>S.learned.has(w.id));
+
+  // Pick up to 65 random learned words
+  const sample=shuffle(learnedWords).slice(0,65);
   const wordList=sample.map(w=>w.greek+' ('+w.ru+')').join(', ');
+
+  // Cycle through 3 genres
+  const genres=['ДНЕВНИК: текст написан от первого лица, как личный дневник или заметка о дне — "Сегодня я...", естественный разговорный стиль',
+    'ДИАЛОГ: короткий живой разговор между двумя людьми (Анна и Янис, или покупатель и продавец, или друзья)',
+    'ИСТОРИЯ: маленький рассказ от третьего лица про конкретного персонажа и что с ним произошло'];
+  if(!S.genCount)S.genCount=0;
+  const genre=genres[S.genCount%3];
+  S.genCount++;LS.set('genCount',S.genCount);
+
+  const learnedCount=learnedWords.length;
 
   try{
     const res=await fetch('/api/generate',{
@@ -2200,15 +2210,29 @@ async function generateText(){
       body:JSON.stringify({
         model:'claude-sonnet-4-5',
         max_tokens:1000,
-        system:'Ты учитель греческого языка. Отвечай ТОЛЬКО валидным JSON без markdown.',
-        messages:[{role:'user',content:`Составь короткий связный текст на греческом (5-7 предложений) используя КАК МОЖНО БОЛЬШЕ из этих слов: ${wordList}. Текст должен быть логичным и естественным — история, диалог или описание. Верни JSON: {"greek": "текст на греческом", "russian": "перевод на русский", "usedWords": ["слово1","слово2"]}`}]
+        system:'Ты опытный учитель греческого языка уровня А1. Отвечай ТОЛЬКО валидным JSON без markdown и без пояснений.',
+        messages:[{role:'user',content:`Задача: составь текст на греческом языке уровня А1.
+
+ЖАНР: ${genre}
+
+СЛОВА СТУДЕНТА (${learnedCount} выученных, показываю до 65): ${wordList || 'пока нет выученных слов'}
+
+ПРАВИЛА:
+1. Используй КАК МОЖНО БОЛЬШЕ слов из списка студента — это главный приоритет
+2. Если слов студента не хватает для связного текста — добавляй слова уровня А1 (артикли, глаголы είμαι/έχω/πάω/τρώω, простые прилагательные καλός/μικρός/μεγάλος, предлоги, союзы και/αλλά/ή)
+3. Итоговый текст: максимум 80 слов ВСЕГО (считая предлоги и артикли)
+4. Текст должен быть логичным, естественным и интересным — НЕ перечисляй слова подряд
+5. Грамматика А1: простое настоящее время, простые предложения
+
+Верни JSON:
+{"greek": "текст на греческом", "russian": "перевод на русский", "usedWords": ["слово1из списка","слово2из списка"], "genre": "название жанра по-русски"}`}]
       })
     });
     const data=await res.json();
     const text=data.content?.map(b=>b.text||'').join('')||'';
-    const clean=text.replace(/\`\`\`json|\`\`\`/g,'').trim();
+    const clean=text.replace(/```json|```/g,'').trim();
     const parsed=JSON.parse(clean);
-    S.genText={loading:false,greek:parsed.greek,russian:parsed.russian,usedWords:parsed.usedWords||[]};
+    S.genText={loading:false,greek:parsed.greek,russian:parsed.russian,usedWords:parsed.usedWords||[],genre:parsed.genre||''};
   }catch(e){
     S.genText={loading:false,greek:null,russian:null,error:true};
     showToast('Ошибка генерации, попробуй ещё раз');
@@ -2252,6 +2276,7 @@ function renderLearnedWords(wrap){
           greekHtml=greekHtml.replace(new RegExp('(?<![\\w])'+escaped+'(?![\\w])','g'),'<span class="gen-word">'+w+'</span>');
         });
       }
+      if(S.genText.genre){const gl=el('div');gl.style.cssText='font-size:11px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:var(--acc);margin-bottom:10px';gl.textContent='📖 '+S.genText.genre;gc.appendChild(gl);}
       const grDiv=el('div','gen-gr');grDiv.innerHTML=greekHtml;
       // Speak button
       const spkRow=el('div');spkRow.style.cssText='display:flex;align-items:center;gap:10px;margin-bottom:12px';
