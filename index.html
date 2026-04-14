@@ -12,16 +12,18 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 :root{
-  --bg:#f0f4ff;--sur:#ffffff;--card:#ffffff;--card2:#f7f9ff;
-  --acc:#4f46e5;--acc2:#ef4444;--acc3:#f59e0b;--acc4:#10b981;
-  --txt:#1e1b4b;--mu:#6b7280;--ok:#10b981;--er:#ef4444;--r:16px;
-  --shadow:0 2px 12px rgba(79,70,229,.10);
+  --bg:#141414;--sur:#1e1e1e;--card:#252525;--card2:#2a2a2a;
+  --acc:#c0392b;--acc2:#e74c3c;--acc3:#f0b429;--acc4:#f0b429;
+  --txt:#f0e6d3;--mu:#8a7a6a;--ok:#f0b429;--er:#ff4444;--r:16px;
+  --shadow:0 2px 16px rgba(0,0,0,.5);
+  --gold:#f0b429;--red:#c0392b;--red2:#e74c3c;
+  --border:#333;
 }
 body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--txt);min-height:100vh}
 .app{max-width:480px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column;background:var(--bg)}
 
 /* NAV TOP */
-.nav{background:var(--sur);border-bottom:2px solid #e0e7ff;display:flex;padding:8px 6px 0;flex-shrink:0;box-shadow:var(--shadow)}
+.nav{background:#1a1010;border-bottom:2px solid #3a2020;display:flex;padding:8px 6px 0;flex-shrink:0;box-shadow:var(--shadow)}
 .nt{flex:1;padding:10px 2px 9px;background:none;border:none;border-bottom:3px solid transparent;
   color:var(--mu);font-family:'Nunito',sans-serif;font-size:11px;font-weight:800;cursor:pointer;
   display:flex;flex-direction:column;align-items:center;gap:4px;text-transform:uppercase;
@@ -32,60 +34,60 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--txt);min-h
 /* SCROLL */
 .sc{flex:1;overflow-y:auto;padding:16px;-webkit-overflow-scrolling:touch}
 .sc::-webkit-scrollbar{width:3px}
-.sc::-webkit-scrollbar-thumb{background:rgba(79,70,229,.2);border-radius:2px}
+.sc::-webkit-scrollbar-thumb{background:rgba(192,57,43,.4);border-radius:2px}
 
 /* PROGRESS */
-.pb-wrap{flex:1;height:8px;background:#e0e7ff;border-radius:99px;overflow:hidden}
-.pb-fill{height:100%;background:linear-gradient(90deg,var(--acc),#818cf8);border-radius:99px;transition:width .5s}
-.ps{background:var(--sur);padding:8px 14px;border-bottom:1px solid #e0e7ff;display:flex;align-items:center;gap:10px;flex-shrink:0}
+.pb-wrap{flex:1;height:8px;background:#333;border-radius:99px;overflow:hidden}
+.pb-fill{height:100%;background:linear-gradient(90deg,var(--red),var(--gold));border-radius:99px;transition:width .5s}
+.ps{background:var(--sur);padding:8px 14px;border-bottom:1px solid #333;display:flex;align-items:center;gap:10px;flex-shrink:0}
 .pt2{font-size:12px;color:var(--mu);white-space:nowrap;font-weight:700}
 
 /* SCORES */
-.sco{display:flex;gap:8px;padding:10px 14px;background:var(--sur);border-bottom:1px solid #e0e7ff;flex-shrink:0}
-.chip{background:var(--bg);border-radius:99px;padding:5px 13px;font-size:13px;font-weight:800;display:flex;align-items:center;gap:5px;border:1.5px solid #e0e7ff}
+.sco{display:flex;gap:8px;padding:10px 14px;background:var(--sur);border-bottom:1px solid #333;flex-shrink:0}
+.chip{background:var(--bg);border-radius:99px;padding:5px 13px;font-size:13px;font-weight:800;display:flex;align-items:center;gap:5px;border:1.5px solid #333}
 .g{color:var(--ok)}.r{color:var(--er)}.y{color:var(--acc3)}.b{color:var(--acc)}
 
 /* CARDS */
-.card{background:var(--sur);border-radius:var(--r);padding:24px;border:1.5px solid #e0e7ff;box-shadow:var(--shadow)}
+.card{background:var(--sur);border-radius:var(--r);padding:24px;border:1.5px solid #333;box-shadow:var(--shadow)}
 .cc{text-align:center}
 .be{font-size:64px;margin-bottom:10px;line-height:1}
 .bw{font-family:'Nunito',sans-serif;font-size:28px;font-weight:900;line-height:1.3;color:var(--txt)}
 .bwr{color:var(--acc)}
-.spk{background:#e0e7ff;border:none;font-size:20px;cursor:pointer;padding:6px 10px;border-radius:12px;transition:background .15s}
-.spk:active{background:#c7d2fe}
-.fca{margin-top:16px;padding:14px 20px;background:#ede9fe;border:2px solid #c4b5fd;
+.spk{background:#3a2020;border:none;font-size:20px;cursor:pointer;padding:6px 10px;border-radius:12px;transition:background .15s}
+.spk:active{background:#5a3030}
+.fca{margin-top:16px;padding:14px 20px;background:#2a1a10;border:2px solid var(--gold);
   border-radius:12px;font-size:22px;font-weight:800;color:var(--acc);animation:fi .3s ease}
 .fcr{display:flex;gap:10px;margin-top:14px}
 
 /* CHOICES */
 .chs{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px}
-.cb2{padding:16px 10px;background:var(--sur);border:2px solid #e0e7ff;border-radius:14px;
+.cb2{padding:16px 10px;background:var(--card);border:2px solid #333;border-radius:14px;
   font-family:'Nunito',sans-serif;font-size:15px;font-weight:700;color:var(--txt);cursor:pointer;transition:all .2s;text-align:center;box-shadow:var(--shadow);touch-action:manipulation}
 .cb2:disabled{cursor:default}
-.cb2.ck{border-color:var(--ok);background:#d1fae5;color:#065f46}
-.cb2.cw{border-color:var(--er);background:#fee2e2;color:#991b1b}
-.cb2.ms{border-color:var(--acc);background:#ede9fe;color:var(--acc)}
+.cb2.ck{border-color:var(--gold);background:#2a2000;color:var(--gold)}
+.cb2.cw{border-color:var(--er);background:#2a0000;color:#ff6666}
+.cb2.ms{border-color:var(--acc);background:#2a0a08;color:var(--acc2)}
 
 /* WRITE */
-.wi{width:100%;padding:15px;background:var(--sur);border:2px solid #e0e7ff;
+.wi{width:100%;padding:15px;background:var(--card);border:2px solid #333;
   border-radius:14px;font-family:'Nunito',sans-serif;font-size:18px;color:var(--txt);outline:none;transition:border-color .2s;font-weight:700}
 .wi:focus{border-color:var(--acc)}
-.wi.wok{border-color:var(--ok);background:#d1fae5}
-.wi.wfl{border-color:var(--er);background:#fee2e2}
+.wi.wok{border-color:var(--gold);background:#1a1500}
+.wi.wfl{border-color:var(--er);background:#1a0000}
 .fb{padding:13px 16px;border-radius:12px;font-size:14px;font-weight:700;animation:fi .3s;margin-top:8px}
-.fbok{background:#d1fae5;color:#065f46}
-.fber{background:#fee2e2;color:#991b1b}
+.fbok{background:#1a1500;color:var(--gold)}
+.fber{background:#1a0000;color:#ff6666}
 .swl{font-size:13px;color:var(--acc);cursor:pointer;text-decoration:underline;text-align:right;margin-top:8px;font-weight:700}
 
 /* MATCH */
 .mg{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .mg-row{display:contents}
 .mc{display:contents}
-.mi{padding:13px;background:var(--sur);border:2px solid #e0e7ff;border-radius:12px;
+.mi{padding:13px;background:var(--card);border:2px solid #333;border-radius:12px;
   font-size:14px;font-weight:700;cursor:pointer;text-align:center;transition:all .2s;user-select:none;box-shadow:var(--shadow);min-height:52px;display:flex;align-items:center;justify-content:center}
-.mi.ms{border-color:var(--acc);background:#ede9fe;color:var(--acc)}
-.mi.mm{border-color:var(--ok);background:#d1fae5;color:#065f46;opacity:.7}
-.mi.mw{border-color:var(--er);background:#fee2e2}
+.mi.ms{border-color:var(--acc);background:#2a0a08;color:var(--acc2)}
+.mi.mm{border-color:var(--gold);background:#1a1500;color:var(--gold);opacity:.8}
+.mi.mw{border-color:var(--er);background:#1a0000}
 
 /* BUTTONS */
 .btn{padding:15px;border:none;border-radius:14px;font-family:'Nunito',sans-serif;font-size:15px;
@@ -93,86 +95,93 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--txt);min-h
 .btn:active{transform:scale(.96)}
 .bok{background:var(--ok);color:#fff}
 .ber{background:var(--er);color:#fff}
-.bpr{background:var(--acc);color:#fff}
-.bot{background:var(--sur);border:2px solid #e0e7ff;color:var(--txt)}
+.bpr{background:var(--red);color:#fff}
+.bot{background:var(--card);border:2px solid #444;color:var(--txt)}
 .bfw{width:100%}
 .br{display:flex;gap:10px}
 .ex{font-size:11px;font-weight:800;letter-spacing:2px;color:var(--acc);text-transform:uppercase;margin-bottom:10px}
 .ew{display:flex;flex-direction:column;gap:14px}
 
 /* SECTION/UNIT */
-.sb{background:var(--sur);border-radius:var(--r);margin-bottom:14px;overflow:hidden;border:1.5px solid #e0e7ff;box-shadow:var(--shadow)}
-.sh{padding:16px;display:flex;align-items:center;gap:12px;background:linear-gradient(135deg,#ede9fe,#e0e7ff)}
+.sb{background:var(--sur);border-radius:var(--r);margin-bottom:14px;overflow:hidden;border:1.5px solid #333;box-shadow:var(--shadow)}
+.sh{padding:16px;display:flex;align-items:center;gap:12px;background:linear-gradient(135deg,#2a0a08,#1e1e1e)}
 .st{font-size:14px;font-weight:900;color:var(--acc)}
 .ss{font-size:12px;color:var(--mu);margin-top:2px;font-weight:600}
-.ur{padding:14px 16px;display:flex;align-items:center;gap:12px;border-top:1px solid #f0f4ff;cursor:pointer;transition:background .15s}
-.ur:active{background:#f0f4ff}
+.ur{padding:14px 16px;display:flex;align-items:center;gap:12px;border-top:1px solid #2a2a2a;cursor:pointer;transition:background .15s}
+.ur:active{background:#2a1a10}
 .ue{font-size:24px;width:30px;text-align:center}
 .ui{flex:1}
 .ut{font-size:14px;font-weight:800;color:var(--txt)}
 .us{font-size:12px;color:var(--mu);margin-top:2px;font-weight:600}
-.ub{background:#ede9fe;border-radius:99px;padding:4px 10px;font-size:12px;color:var(--acc);font-weight:800}
-.sb2{background:var(--acc);border:none;border-radius:99px;padding:7px 16px;font-family:'Nunito',sans-serif;font-size:12px;font-weight:800;color:#fff;cursor:pointer}
+.ub{background:#2a0a08;border-radius:99px;padding:4px 10px;font-size:12px;color:var(--gold);font-weight:800}
+.sb2{background:var(--red);border:none;border-radius:99px;padding:7px 16px;font-family:'Nunito',sans-serif;font-size:12px;font-weight:800;color:#fff;cursor:pointer}
 
 /* LAST ACTIVE UNIT */
-.ur.last-unit{background:linear-gradient(90deg,#ede9fe 0%,#f8f7ff 100%);border-left:3px solid var(--acc);}
+.ur.last-unit{background:linear-gradient(90deg,#2a0a08 0%,#1e1e1e 100%);border-left:3px solid var(--gold);}
 
 /* UNIT PROGRESS BADGE */
 .upct{font-size:12px;font-weight:800;color:var(--ok);margin-right:6px}
 
 /* WORD LIST */
 .wlt{display:flex;align-items:center;gap:8px;margin-bottom:12px}
-.wls{flex:1;padding:11px 14px;background:var(--sur);border:2px solid #e0e7ff;border-radius:12px;font-family:'Nunito',sans-serif;font-size:14px;color:var(--txt);outline:none;font-weight:600}
+.wls{flex:1;padding:11px 14px;background:var(--card);border:2px solid #333;border-radius:12px;font-family:'Nunito',sans-serif;font-size:14px;color:var(--txt);outline:none;font-weight:600}
 .wls::placeholder{color:var(--mu)}
-.wleb{padding:10px 14px;background:var(--acc);border:none;border-radius:12px;font-size:13px;font-weight:800;color:#fff;cursor:pointer;white-space:nowrap}
-.cl{font-size:11px;font-weight:800;letter-spacing:2px;color:var(--mu);text-transform:uppercase;padding:12px 0 6px;border-bottom:1.5px solid #e0e7ff;margin-bottom:6px}
-.wr{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #f0f4ff}
+.wleb{padding:10px 14px;background:var(--red);border:none;border-radius:12px;font-size:13px;font-weight:800;color:#fff;cursor:pointer;white-space:nowrap}
+.cl{font-size:11px;font-weight:800;letter-spacing:2px;color:var(--mu);text-transform:uppercase;padding:12px 0 6px;border-bottom:1.5px solid #333;margin-bottom:6px}
+.wr{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #2a2a2a}
 .we{font-size:22px;width:28px;text-align:center}
 .wg{font-size:15px;font-weight:800;flex:1;color:var(--txt)}
 .wru{font-size:13px;color:var(--mu);margin-right:4px;font-weight:600}
-.wsp{background:#e0e7ff;border:none;font-size:16px;cursor:pointer;padding:4px 8px;border-radius:8px;color:var(--acc)}
+.wsp{background:#3a2020;border:none;font-size:16px;cursor:pointer;padding:4px 8px;border-radius:8px;color:var(--gold)}
 .cb3{width:19px;height:19px;accent-color:var(--acc);cursor:pointer;flex-shrink:0}
 .pn{display:flex;align-items:center;justify-content:center;gap:8px;padding:14px 0;flex-wrap:wrap}
-.pgb{width:34px;height:34px;border-radius:10px;border:2px solid #e0e7ff;background:var(--sur);color:var(--txt);font-size:13px;font-weight:800;cursor:pointer}
-.pgb.pa{background:var(--acc);color:#fff;border-color:var(--acc)}
+.pgb{width:34px;height:34px;border-radius:10px;border:2px solid #333;background:var(--card);color:var(--txt);font-size:13px;font-weight:800;cursor:pointer}
+.pgb.pa{background:var(--red);color:#fff;border-color:var(--acc)}
 .sar{display:flex;align-items:center;gap:8px;margin-bottom:12px;font-size:13px;color:var(--mu);font-weight:700}
 
 /* PRACTICE TABS */
 .ptabs{display:flex;gap:6px;margin-bottom:14px}
-.ptab{flex:1;padding:10px;background:var(--sur);border:2px solid #e0e7ff;border-radius:12px;
+.ptab{flex:1;padding:10px;background:var(--card);border:2px solid #333;border-radius:12px;
   font-family:'Nunito',sans-serif;font-size:13px;font-weight:800;cursor:pointer;text-align:center;color:var(--mu);transition:all .2s}
-.ptab.on{background:var(--acc);color:#fff;border-color:var(--acc)}
+.ptab.on{background:var(--red);color:#fff;border-color:var(--acc)}
 
 /* LEARNED WORDS */
-.lw-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #f0f4ff}
-.lw-badge{background:#d1fae5;border:1.5px solid #6ee7b7;border-radius:99px;padding:3px 10px;font-size:12px;font-weight:800;color:#065f46}
+.lw-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #2a2a2a}
+.lw-badge{background:#1a1500;border:1.5px solid var(--gold);border-radius:99px;padding:3px 10px;font-size:12px;font-weight:800;color:var(--gold)}
 
 /* PRACTICE */
 .pe{text-align:center;padding:48px 20px;color:var(--mu)}
 
 /* POPUP */
-.po{position:fixed;inset:0;background:rgba(30,27,75,.4);display:flex;align-items:center;justify-content:center;z-index:999;animation:fi .2s}
-.pb2{background:var(--sur);border-radius:20px;padding:26px;width:290px;border:2px solid #e0e7ff;text-align:center;box-shadow:0 8px 32px rgba(79,70,229,.15)}
+.po{position:fixed;inset:0;background:rgba(0,0,0,.75);display:flex;align-items:center;justify-content:center;z-index:999;animation:fi .2s}
+.pb2{background:var(--sur);border-radius:20px;padding:26px;width:290px;border:2px solid #333;text-align:center;box-shadow:0 8px 32px rgba(0,0,0,.6)}
 .popt{font-size:18px;font-weight:900;margin-bottom:6px;color:var(--txt)}
 .popu{font-size:13px;color:var(--mu);margin-bottom:20px;font-weight:600}
 
 /* PHONICS */
-.phc{background:var(--sur);border-radius:14px;padding:16px;border-left:4px solid var(--acc);margin-bottom:10px;box-shadow:var(--shadow)}
+.phc{background:var(--card);border-radius:14px;padding:16px;border-left:4px solid var(--gold);margin-bottom:10px;box-shadow:var(--shadow)}
 .phs{font-size:20px;font-weight:900;color:var(--acc)}
-.phl{font-size:15px;font-weight:800;color:var(--acc3);margin:4px 0}
+.phl{font-size:15px;font-weight:800;color:var(--gold);margin:4px 0}
 .phe{font-size:13px;color:var(--mu);font-weight:600}
 
 /* PROGRESS CARDS */
-.prog-card{background:var(--sur);border-radius:var(--r);padding:18px;border:1.5px solid #e0e7ff;box-shadow:var(--shadow);margin-bottom:10px}
+.prog-card{background:var(--sur);border-radius:var(--r);padding:18px;border:1.5px solid #333;box-shadow:var(--shadow);margin-bottom:10px}
 .prog-title{font-size:11px;font-weight:800;letter-spacing:2px;color:var(--mu);text-transform:uppercase;margin-bottom:8px}
 .prog-pct{font-size:28px;font-weight:900;color:var(--acc);margin-bottom:6px}
 
+/* MINI PLAYER */
+.mini-player{background:#f0f4ff;border-radius:14px;padding:10px 14px;display:flex;align-items:center;gap:10px;margin-bottom:12px;border:1.5px solid #333}
+.mp-btn{background:var(--red);border:none;border-radius:50%;width:34px;height:34px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;font-size:14px;color:#fff}
+.mp-bar{flex:1;height:5px;background:#3a2020;border-radius:99px;cursor:pointer;position:relative}
+.mp-fill{height:100%;background:var(--red);border-radius:99px;transition:width .3s;pointer-events:none}
+.mp-time{font-size:11px;font-weight:800;color:var(--mu);white-space:nowrap}
+
 /* GENERATED TEXT */
-.gen-card{background:var(--sur);border-radius:var(--r);padding:20px;border:1.5px solid #e0e7ff;box-shadow:var(--shadow);margin-bottom:14px}
+.gen-card{background:var(--card);border-radius:var(--r);padding:20px;border:1.5px solid #3a2020;box-shadow:var(--shadow);margin-bottom:14px}
 .gen-gr{font-size:17px;font-weight:700;color:var(--txt);line-height:1.8;margin-bottom:14px}
-.gen-ru{font-size:14px;color:var(--mu);line-height:1.7;font-weight:600;border-top:1.5px solid #e0e7ff;padding-top:12px}
+.gen-ru{font-size:14px;color:var(--mu);line-height:1.7;font-weight:600;border-top:1.5px solid #333;padding-top:12px}
 .gen-word{color:var(--acc);font-weight:800}
-.gen-btn{width:100%;padding:14px;border:none;border-radius:14px;background:linear-gradient(135deg,var(--acc),#818cf8);
+.gen-btn{width:100%;padding:14px;border:none;border-radius:14px;background:linear-gradient(135deg,var(--red),var(--gold));
   color:#fff;font-family:'Nunito',sans-serif;font-size:15px;font-weight:800;cursor:pointer;
   box-shadow:var(--shadow);margin-bottom:10px;display:flex;align-items:center;justify-content:center;gap:8px}
 .gen-loading{text-align:center;padding:30px;color:var(--mu);font-weight:700;font-size:15px}
@@ -185,7 +194,7 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--txt);min-h
 .pop{animation:pop .3s cubic-bezier(.175,.885,.32,1.275)}
 
 /* TOAST */
-.toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%);background:var(--acc);
+.toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%);background:var(--red);
   border-radius:99px;padding:10px 24px;font-size:14px;font-weight:800;
   color:#fff;z-index:1000;animation:fi .3s ease;white-space:nowrap;box-shadow:0 4px 20px rgba(79,70,229,.3)}
 </style>
@@ -1094,7 +1103,7 @@ function renderHome(){
       const sess=LS.get('session',null);
       const unitErrs=LS.get('unitErrs_'+u.id,[]);
       if(unitErrs.length>0){
-        const errRow=el('div');errRow.style.cssText='padding:8px 16px 10px;border-top:1px solid #f0f4ff;';
+        const errRow=el('div');errRow.style.cssText='padding:8px 16px 10px;border-top:1px solid #2a2a2a;';
         const errBtn=el('button','btn ber bfw');errBtn.style.cssText='font-size:13px;padding:10px;';
         errBtn.textContent=`🔁 Повторить ошибки (${unitErrs.length})`;
         errBtn.onclick=e=>{
@@ -1409,17 +1418,17 @@ function renderUnitEx(){
   const answers2=S.answers||[];
   const segGap2=total2>40?1:2;
   const progStrip=el('div');progStrip.style.cssText='background:var(--sur);padding:5px 12px 7px;border-bottom:1px solid #e0e7ff;flex-shrink:0';
-  const segWrap2=el('div');segWrap2.style.cssText=`display:flex;gap:${segGap2}px;height:8px;border-radius:99px;overflow:hidden;background:#e0e7ff;width:100%`;
+  const segWrap2=el('div');segWrap2.style.cssText=`display:flex;gap:${segGap2}px;height:8px;border-radius:99px;overflow:hidden;background:#333;width:100%`;
   for(let i=0;i<total2;i++){
     const seg=el('div');seg.style.cssText='flex:1;height:100%;border-radius:2px;';
     if(i<answers2.length){
-      if(answers2[i]==='theory')seg.style.background='#10b981';
-      else if(answers2[i]==='ok')seg.style.background='#10b981';
-      else seg.style.background='#ef4444';
+      if(answers2[i]==='theory')seg.style.background='#f0b429';
+      else if(answers2[i]==='ok')seg.style.background='#f0b429';
+      else seg.style.background='#c0392b';
     } else if(i===S.qi){
-      seg.style.background='#818cf8';
+      seg.style.background='#e74c3c';
     } else {
-      seg.style.background='#e0e7ff';
+      seg.style.background='#333';
     }
     segWrap2.appendChild(seg);
   }
@@ -1448,7 +1457,7 @@ function renderEx(){
       const w=el('div','bw bwr');w.textContent=word.ru;card.appendChild(w);
     }
     if(!S.fcRev){
-      const hint=el('div');hint.style.cssText='margin-top:20px;cursor:pointer;color:var(--mu);font-size:15px;font-weight:700';
+      const hint=el('div');hint.style.cssText='margin-top:20px;cursor:pointer;color:#8a7a6a;font-size:15px;font-weight:700';
       hint.textContent='👆 Нажми — '+(isGR?'покажу перевод':'покажу по-гречески');
       hint.onclick=()=>{S.fcRev=true;render();};card.appendChild(hint);
     }else{
@@ -1456,7 +1465,7 @@ function renderEx(){
       if(isGR){ans.textContent=word.ru;}
       else{const row=el('div');row.style.cssText='display:flex;align-items:center;justify-content:center;gap:10px';const w=el('span');w.textContent=word.greek;row.appendChild(w);row.appendChild(spkBtn());ans.appendChild(row);}
       card.appendChild(ans);
-      const fchint=el('div');fchint.style.cssText='font-size:11px;color:var(--mu);text-align:center;margin-top:10px;font-weight:700';
+      const fchint=el('div');fchint.style.cssText='font-size:11px;color:#8a7a6a;text-align:center;margin-top:10px;font-weight:700';
       fchint.textContent='«Не знал» — добавит в ошибки · «Знаю» — засчитает верным';
       card.appendChild(fchint);
       const fcr=el('div','fcr');
@@ -1584,7 +1593,7 @@ function renderEx(){
 
     const card=el('div','card');
     // Header
-    const hdr=el('div');hdr.style.cssText='display:flex;align-items:center;gap:12px;margin-bottom:16px;padding-bottom:14px;border-bottom:2px solid #e0e7ff';
+    const hdr=el('div');hdr.style.cssText='display:flex;align-items:center;gap:12px;margin-bottom:16px;padding-bottom:14px;border-bottom:2px solid #333';
     const em=el('div');em.style.fontSize='40px';em.textContent=t.emoji;
     const titles=el('div');
     const tit=el('div');tit.style.cssText='font-size:18px;font-weight:900;color:var(--acc)';tit.textContent=t.title;
@@ -1600,7 +1609,7 @@ function renderEx(){
         lbl2.textContent=block.label;wrap.appendChild(lbl2);
       }
       if(block.example){
-        const ex=el('div');ex.style.cssText='background:#f0f4ff;border-radius:10px;padding:10px 14px;font-size:14px;font-weight:700;color:var(--acc);line-height:1.9;white-space:pre-line';
+        const ex=el('div');ex.style.cssText='background:#1e1410;border-radius:10px;padding:10px 14px;font-size:14px;font-weight:700;color:var(--gold);line-height:1.9;white-space:pre-line';
         ex.innerHTML=block.example.split(' || ').map(l=>'<div>'+l+'</div>').join('');
         // Add speak button for greek text
         const spkRow=el('div');spkRow.style.cssText='display:flex;align-items:flex-start;gap:8px';
@@ -1802,7 +1811,7 @@ function renderEx(){
     // Show text (collapsible)
     const showTxt=el('div');showTxt.style.cssText='font-size:12px;color:var(--acc);cursor:pointer;font-weight:700;text-decoration:underline;margin-bottom:8px';
     showTxt.textContent='Показать текст';
-    const txtBlock=el('div');txtBlock.style.cssText='font-size:14px;line-height:1.9;color:var(--txt);display:none;background:#f0f4ff;border-radius:10px;padding:14px;margin-bottom:8px';
+    const txtBlock=el('div');txtBlock.style.cssText='font-size:14px;line-height:1.9;color:var(--txt);display:none;background:#1e1410;border-radius:10px;padding:14px;margin-bottom:8px';
     (l.dialogue||[{speaker:'',text:l.text}]).forEach(seg=>{
       const p=el('div');p.style.cssText='margin-bottom:10px';
       if(seg.speaker){
@@ -2071,8 +2080,8 @@ function renderPractice(){
   }
   // Long-press hint
   const hint=el('div');
-  hint.style.cssText='display:flex;align-items:center;gap:8px;background:#ede9fe;border-radius:12px;padding:10px 14px;margin-bottom:14px;font-size:13px;font-weight:700;color:var(--acc)';
-  hint.innerHTML='👆 Удержи карточку — отметить как выученное';
+  hint.style.cssText='display:flex;align-items:center;gap:8px;background:#2a0a08;border-radius:12px;padding:10px 14px;margin-bottom:14px;font-size:13px;font-weight:700;color:var(--gold)';
+  hint.innerHTML='👆 Удержи слово — отметить как выученное';
   wrap.appendChild(hint);
   if(!S.pEx)buildPEx();
   if(!S.pEx)return wrap;
@@ -2112,22 +2121,25 @@ function renderPractice(){
       }
       card.appendChild(ans);
       const fcr=el('div');fcr.style.cssText='display:flex;flex-direction:column;gap:8px;margin-top:14px';
-      const nb=el('button','btn ber');nb.textContent='❌ Не знал';nb.onclick=()=>{buildPEx();render();};
-      const kb=el('button','btn bot');kb.textContent='✅ Знаю / вроде помню';
-      kb.onclick=()=>{buildPEx();render();};
+      const nb=el('button','btn ber');nb.textContent='😬 Не знал / помню смутно';nb.onclick=()=>{buildPEx();render();};
       const lb=el('button','btn bok');lb.textContent='⭐ Знаю точно — в выученные';
       lb.onclick=()=>{
         const w=S.pEx.word;
         S.learned.add(w.id);S.checked.delete(w.id);
         save();buildPEx();showToast('⭐ Добавлено в выученные!');render();
       };
-      fcr.appendChild(nb);fcr.appendChild(kb);fcr.appendChild(lb);card.appendChild(fcr);
+      fcr.appendChild(nb);fcr.appendChild(lb);card.appendChild(fcr);
     }
     wrap.appendChild(card);
   }
 
   // MATCH exercise — only checked words
   else if(S.pEx.t==='MA'){
+    // Info hint for match
+    const matchHint=el('div');
+    matchHint.style.cssText='display:flex;align-items:center;gap:8px;margin-bottom:10px;font-size:13px;color:var(--mu);font-weight:700';
+    matchHint.innerHTML=`<span style="background:#3a2020;border-radius:50%;width:22px;height:22px;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:900;color:var(--acc);cursor:pointer;flex-shrink:0" onclick="S.popup={type:'matchInfo'};render()">ℹ</span><span>Соедини пары · нажми на слово = озвучка</span>`;
+    wrap.appendChild(matchHint);
 
     const mg=el('div','mg');
     S.pEx.ll.forEach((gr,idx)=>{
@@ -2150,7 +2162,13 @@ function renderPractice(){
       let cls='mi'+(isD?' mm':S.pMSelR===ru?' ms':S.pMWrong.includes(ru)?' mw':'');
       const d=el('div',cls);
       d.style.cssText='grid-column:2;grid-row:'+(idx+1)+';align-self:stretch;cursor:pointer;display:flex;align-items:center;justify-content:center';
-      d.textContent=ru;d.onclick=()=>handlePR(ru);
+      d.textContent=ru;
+      d.onclick=()=>handlePR(ru);
+      const pairForRu=S.pEx.pairs.find(p=>p.ru===ru);
+      d.onmousedown=()=>{lpTimer=setTimeout(()=>{S.popup={word:pairForRu,fromPractice:true,fromMatch:pairForRu?.greek};render();},650);};
+      d.onmouseup=d.onmouseleave=()=>clearTimeout(lpTimer);
+      d.ontouchstart=()=>{lpTimer=setTimeout(()=>{S.popup={word:pairForRu,fromPractice:true,fromMatch:pairForRu?.greek};render();},650);};
+      d.ontouchend=()=>clearTimeout(lpTimer);
       mg.appendChild(d);
     });
     wrap.appendChild(mg);
@@ -2182,7 +2200,56 @@ function handlePR(ru){
   }else S.pMSelR=ru;render();
 }
 
-// ─── GENERATE TEXT FROM LEARNED WORDS ────────────────────
+// ─── MINI PLAYER ─────────────────────────────────────────
+function buildMiniPlayer(playFn, text){
+  const wrap=el('div','mini-player');
+  let isPlaying=false;
+  let startTime=0;
+  let totalMs=0;
+  // Estimate duration: ~0.35s per Greek word at rate 0.82
+  const words=(text||'').split(/\s+/).filter(Boolean).length;
+  totalMs=Math.max(words*420, 1500);
+
+  const btn=el('button','mp-btn');btn.textContent='▶';
+  const bar=el('div','mp-bar');
+  const fill=el('div','mp-fill');fill.style.width='0%';bar.appendChild(fill);
+  const timeEl=el('div','mp-time');timeEl.textContent='0:00';
+
+  let raf=null;
+  function updateBar(){
+    if(!isPlaying)return;
+    const elapsed=Date.now()-startTime;
+    const pct=Math.min((elapsed/totalMs)*100,100);
+    fill.style.width=pct+'%';
+    const sec=Math.floor(elapsed/1000);
+    timeEl.textContent=Math.floor(sec/60)+':'+(sec%60<10?'0':'')+sec%60;
+    if(pct<100){raf=requestAnimationFrame(updateBar);}
+    else{isPlaying=false;btn.textContent='▶';fill.style.width='0%';timeEl.textContent='0:00';}
+  }
+
+  btn.onclick=()=>{
+    if(isPlaying){
+      try{speechSynthesis.cancel();}catch(e){}
+      cancelAnimationFrame(raf);isPlaying=false;btn.textContent='▶';
+      fill.style.width='0%';timeEl.textContent='0:00';
+    } else {
+      isPlaying=true;btn.textContent='⏹';startTime=Date.now();
+      playFn();raf=requestAnimationFrame(updateBar);
+    }
+  };
+
+  // Scrub bar — tap to skip
+  bar.onclick=e=>{
+    const rect=bar.getBoundingClientRect();
+    const pct=(e.clientX-rect.left)/rect.width;
+    fill.style.width=(pct*100)+'%';
+  };
+
+  wrap.appendChild(btn);wrap.appendChild(bar);wrap.appendChild(timeEl);
+  return wrap;
+}
+
+// ─── GENERATE TEXT ────────────────────────────────────────
 async function generateText(){
   S.genText={loading:true,greek:null,russian:null};
   render();
@@ -2269,10 +2336,17 @@ function renderLearnedWords(wrap){
   const filtered=learnedWords.filter(w=>!q||w.greek.toLowerCase().includes(q)||w.ru.toLowerCase().includes(q));
 
   // ── Generate text button ──
-  const genBtn=el('button','gen-btn');
+  // Gen button row with info
+  const genRow=el('div');genRow.style.cssText='display:flex;gap:8px;align-items:center;margin-bottom:0';
+  const genBtn=el('button','gen-btn');genBtn.style.cssText='gen-btn;flex:1;margin-bottom:0';
   genBtn.innerHTML='✨ Сгенерировать текст из выученных слов';
   genBtn.onclick=()=>generateText();
-  wrap.appendChild(genBtn);
+  const infoBtn=el('button');
+  infoBtn.style.cssText='background:#3a2020;border:none;border-radius:50%;width:36px;height:36px;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:900;color:var(--acc);cursor:pointer;flex-shrink:0';
+  infoBtn.textContent='ℹ';
+  infoBtn.onclick=()=>{S.popup={type:'genInfo'};render();};
+  genRow.appendChild(genBtn);genRow.appendChild(infoBtn);
+  wrap.appendChild(genRow);
 
   // ── Show generated text ──
   if(S.genText){
@@ -2295,7 +2369,7 @@ function renderLearnedWords(wrap){
       // Genre label
       if(S.genText.genre){
         const gl=el('div');
-        gl.style.cssText='font-size:11px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:var(--acc);margin-bottom:10px';
+        gl.style.cssText='font-size:11px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:var(--gold);margin-bottom:10px';
         const icons={'Диалог':'💬','Дневник':'📔','История':'📖'};
         const icon=Object.entries(icons).find(([k])=>S.genText.genre.includes(k));
         gl.textContent=(icon?icon[1]:'📖')+' '+S.genText.genre;
@@ -2311,7 +2385,7 @@ function renderLearnedWords(wrap){
           const row=el('div');
           row.style.cssText='margin-bottom:10px';
           const nameSpan=el('span');
-          nameSpan.style.cssText='font-weight:900;color:'+(speakers.indexOf(line.speaker)===0?'var(--acc)':'#e11d48')+';font-size:14px';
+          nameSpan.style.cssText='font-weight:900;color:'+(speakers.indexOf(line.speaker)===0?'var(--acc)':'#e74c3c')+';font-size:14px';
           nameSpan.textContent=line.speaker+': ';
           const textSpan=el('span');
           // Highlight learned words
@@ -2319,7 +2393,7 @@ function renderLearnedWords(wrap){
           if(S.genText.usedWords&&S.genText.usedWords.length){
             S.genText.usedWords.forEach(w=>{
               const esc=w.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
-              txt=txt.replace(new RegExp(esc,'g'),'<mark style="background:none;color:var(--acc);font-weight:800">'+w+'</mark>');
+              txt=txt.replace(new RegExp(esc,'g'),'<mark style="background:none;color:var(--gold);font-weight:800">'+w+'</mark>');
             });
           }
           textSpan.style.cssText='font-size:16px;font-weight:700;color:var(--txt);line-height:1.7';
@@ -2328,10 +2402,8 @@ function renderLearnedWords(wrap){
           gc.appendChild(row);
         });
 
-        // Speak button — two voices
-        const sb=el('button','spk');sb.style.cssText='display:flex;align-items:center;gap:6px;padding:8px 14px;margin-bottom:12px;font-size:14px';
-        sb.innerHTML='🔊 Прослушать диалог';
-        sb.onclick=()=>{
+        // Mini player for dialogue — two voices
+        const dlPlay=()=>{
           if(!window.speechSynthesis)return;
           try{speechSynthesis.cancel();}catch(e){}
           lines.forEach((line,i)=>{
@@ -2339,18 +2411,14 @@ function renderLearnedWords(wrap){
             const clean=line.greek.replace(/[а-яёА-ЯЁ]+/g,'').trim();
             if(!clean)return;
             const u=new SpeechSynthesisUtterance(clean);
-            u.lang='el-GR';u.rate=0.82;
-            u.pitch=isFirst?1.2:0.8;
+            u.lang='el-GR';u.rate=0.82;u.pitch=isFirst?1.2:0.8;
             if(greekVoice)u.voice=greekVoice;
             speechSynthesis.speak(u);
-            if(i<lines.length-1){
-              const pause=new SpeechSynthesisUtterance(' ');
-              pause.lang='el-GR';pause.volume=0;pause.rate=0.1;
-              speechSynthesis.speak(pause);
-            }
+            if(i<lines.length-1){const pause=new SpeechSynthesisUtterance(' ');pause.lang='el-GR';pause.volume=0;pause.rate=0.1;speechSynthesis.speak(pause);}
           });
         };
-        gc.appendChild(sb);
+        const dlText=lines.map(l=>l.greek).join(' ');
+        gc.appendChild(buildMiniPlayer(dlPlay, dlText));
 
         // Translation toggle
         const toggleBtn=el('button','btn bot');
@@ -2371,12 +2439,9 @@ function renderLearnedWords(wrap){
       } else {
         // ── NON-DIALOGUE rendering ──
         const grDiv=el('div','gen-gr');grDiv.innerHTML=greekHtml;
-        const spkRow=el('div');spkRow.style.cssText='display:flex;align-items:center;gap:10px;margin-bottom:12px';
-        spkRow.appendChild(grDiv);
-        const sb=el('button','spk');sb.textContent='🔊';
-        sb.onclick=()=>speak(S.genText.greek);
-        spkRow.appendChild(sb);
-        gc.appendChild(spkRow);
+        gc.appendChild(grDiv);
+        // Mini player for non-dialogue
+        gc.appendChild(buildMiniPlayer(()=>speak(S.genText.greek), S.genText.greek));
         // Translation toggle
         const toggleBtn=el('button','btn bot');
         toggleBtn.style.cssText='font-size:13px;padding:8px 14px;flex:unset;width:auto;margin-bottom:10px';
@@ -2390,7 +2455,7 @@ function renderLearnedWords(wrap){
 
       // Used words count
       if(S.genText.usedWords&&S.genText.usedWords.length){
-        const cnt=el('div');cnt.style.cssText='font-size:12px;color:var(--ok);font-weight:800;margin-top:10px';
+        const cnt=el('div');cnt.style.cssText='font-size:12px;color:var(--gold);font-weight:800;margin-top:10px';
         cnt.textContent='✅ Использовано выученных слов: '+S.genText.usedWords.length;
         gc.appendChild(cnt);
       }
@@ -2448,6 +2513,50 @@ function renderPopup(){
   const po=el('div','po');
   po.onclick=()=>{S.popup=null;render();};
   const pb=el('div','pb2');pb.onclick=e=>e.stopPropagation();
+
+  // ── Info popup: generate text ──
+  if(S.popup.type==='genInfo'){
+    pb.style.cssText='background:var(--sur);border-radius:20px;padding:22px;width:310px;border:2px solid #333;box-shadow:0 8px 32px rgba(0,0,0,.7);max-height:80vh;overflow-y:auto';
+    pb.innerHTML=`
+      <div style="font-size:18px;font-weight:900;color:var(--acc);margin-bottom:12px">✨ Как генерируется текст</div>
+      <div style="font-size:13px;font-weight:700;color:var(--txt);line-height:1.7;margin-bottom:10px">
+        Берётся до 65 случайных слов из твоих <b>выученных</b>. Claude составляет связный текст, органично вписывая эти слова. Если слов не хватает — добавляются базовые слова уровня А1.
+      </div>
+      <div style="font-size:12px;font-weight:800;color:var(--mu);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">Жанры по очереди:</div>
+      <div style="font-size:13px;font-weight:700;color:var(--txt);line-height:1.8">
+        📔 <b>Дневник</b> — от первого лица, один день<br>
+        💬 <b>Диалог</b> — разговор двух людей, каждый своим голосом<br>
+        📖 <b>История</b> — рассказ от третьего лица
+      </div>
+      <div style="font-size:13px;font-weight:700;color:var(--txt);line-height:1.7;margin-top:10px">
+        Выученные слова <b style="color:var(--acc)">подсвечены синим</b>. Диалог озвучивается двумя голосами — мужским и женским.
+      </div>
+      <div style="font-size:12px;color:var(--mu);margin-top:10px;font-weight:600">Текст сохраняется — он останется даже если выйти из браузера.</div>
+    `;
+    const cb=el('button','btn bpr bfw');cb.style.marginTop='14px';cb.textContent='Понятно';
+    cb.onclick=()=>{S.popup=null;render();};pb.appendChild(cb);
+    po.appendChild(pb);return po;
+  }
+
+  // ── Info popup: match exercise ──
+  if(S.popup.type==='matchInfo'){
+    pb.style.cssText='background:var(--sur);border-radius:20px;padding:22px;width:310px;border:2px solid #333;box-shadow:0 8px 32px rgba(0,0,0,.7)';
+    pb.innerHTML=`
+      <div style="font-size:18px;font-weight:900;color:var(--acc);margin-bottom:12px">🔗 Как тренировать сопоставление</div>
+      <div style="font-size:14px;font-weight:700;color:var(--txt);line-height:1.7">
+        Старайся проверять себя <b>с русского на греческий</b> — читай русское слово и вспоминай греческое.<br><br>
+        Именно так работает речь: ты думаешь по-русски и переводишь на греческий — а не наоборот.
+      </div>
+      <div style="font-size:13px;color:var(--mu);margin-top:10px;font-weight:600">
+        👆 Нажатие на греческое слово = озвучка<br>
+        👆 Удержи любое слово из пары = отметить как выученное
+      </div>
+    `;
+    const cb=el('button','btn bpr bfw');cb.style.marginTop='14px';cb.textContent='Понятно';
+    cb.onclick=()=>{S.popup=null;render();};pb.appendChild(cb);
+    po.appendChild(pb);return po;
+  }
+
   const pt=el('div','popt');pt.textContent=S.popup.word?.greek||'';pb.appendChild(pt);
   const pu=el('div','popu');pu.textContent='Отметить как выученное?';pb.appendChild(pu);
   const br=el('div','br');
