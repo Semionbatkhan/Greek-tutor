@@ -2447,26 +2447,25 @@ async function generateText(){
 
 ЖАНР: ${genre}
 
-ШАГ 1 — придумай логичную мини-историю в выбранном жанре. Одна чёткая ситуация, одно место, один момент времени. 7-9 предложений, цель — около 80 слов (допустимо 65-95).
+ШАГ 1 — придумай простую, логичную мини-историю. Одна сцена, одно место (дом, кафе, рынок, парк, школа). Никаких путешествий между странами, никаких экзотических локаций.
 
-ШАГ 2 — впиши в эту историю слова из списка студента, где это звучит ЕСТЕСТВЕННО. Не ломай логику ради вставки слова.
+ШАГ 2 — естественно впиши слова студента туда, где они реально подходят. Не вставляй слово насильно.
 
-СЛОВА СТУДЕНТА (используй те, что подходят по смыслу): ${wordList || 'пока нет — используй базовые слова А1'}
+СЛОВА СТУДЕНТА: ${wordList || 'пока нет — используй базовые слова А1'}
 
-ТРЕБОВАНИЯ:
-- Текст логичный и связный — одна тема, одна сцена
-- Длина текста: от 65 до 95 слов включая предлоги и артикли (стремись к 80)
-- Грамматика А1: настоящее время, простые предложения
-- Слова студента вставляй только если они вписываются в историю
-- Если слов студента не хватает — используй базовые А1 слова
+СТРОГИЕ ТРЕБОВАНИЯ:
+- Одна сцена, одно место, один момент — НЕ перескакивай между локациями
+- Длина: 65-100 слов включая артикли и предлоги (стремись к 80, можно до 100 если нужно для плавности)
+- Грамматика А1: настоящее время, простые предложения без сложных конструкций
+- НЕ добавляй названия стран и городов которых нет в списке студента
+- Используй только греческие имена: Анна, Мария, Элени, Янис, Петрос, Никос
+- Дополняй только базовыми А1 словами: είμαι, έχω, πάω, θέλω, τρώω, πίνω, αγοράζω, βλέπω, артикли, предлоги, союзы
 
-Если жанр ДИАЛОГ — верни JSON с полем lines (массив реплик):
+Если жанр ДИАЛОГ — верни JSON:
 {"genre": "Диалог", "lines": [{"speaker": "Анна", "greek": "реплика", "russian": "перевод"}, {"speaker": "Янис", "greek": "реплика", "russian": "перевод"}], "usedWords": ["слова"]}
 
 Если жанр ДНЕВНИК или ИСТОРИЯ — верни JSON:
-{"genre": "жанр по-русски", "greek": "текст", "russian": "перевод", "usedWords": ["слова"]}
-
-Имена для диалога выбирай греческие: Анна, Мария, Элени, Янис, Петрос, Никос.`}]
+{"genre": "жанр по-русски", "greek": "текст", "russian": "перевод", "usedWords": ["слова"]}`}]
       })
     });
     const data=await res.json();
@@ -2486,6 +2485,25 @@ async function generateText(){
     showToast('Ошибка генерации, попробуй ещё раз');
   }
   render();
+}
+
+
+// Highlight learned words in greek text — matches stems to catch inflected forms
+function highlightLearnedInText(text){
+  if(!text)return text;
+  const learnedWords=ALL_WORDS.filter(w=>S.learned.has(w.id)&&w.greek&&w.greek.length>=3);
+  let result=text;
+  // Sort by length descending to match longer words first
+  const sorted=[...learnedWords].sort((a,b)=>b.greek.length-a.greek.length);
+  sorted.forEach(w=>{
+    const stem=w.greek.slice(0,Math.max(4,w.greek.length-2));
+    try{
+      const esc=stem.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+      result=result.replace(new RegExp('('+esc+'\\S*)','g'),
+        '<span style="color:var(--acc);font-weight:800">$1</span>');
+    }catch(e){}
+  });
+  return result;
 }
 
 // ─── LEARNED WORDS TAB ────────────────────────────────────
@@ -2525,13 +2543,7 @@ function renderLearnedWords(wrap){
       gc.innerHTML='<div style="color:var(--er);font-weight:700;text-align:center">❌ Ошибка. Попробуй ещё раз.</div>';
     } else {
       // Greek text with learned words highlighted
-      let greekHtml=S.genText.greek||'';
-      if(S.genText.usedWords&&S.genText.usedWords.length){
-        S.genText.usedWords.forEach(w=>{
-          const escaped=w.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
-          greekHtml=greekHtml.replace(new RegExp('(?<![\\w])'+escaped+'(?![\\w])','g'),'<span class="gen-word">'+w+'</span>');
-        });
-      }
+      let greekHtml=highlightLearnedInText(S.genText.greek||'');
       // Genre label
       if(S.genText.genre){
         const gl=el('div');
@@ -2559,11 +2571,11 @@ function renderLearnedWords(wrap){
           if(S.genText.usedWords&&S.genText.usedWords.length){
             S.genText.usedWords.forEach(w=>{
               const esc=w.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
-              txt=txt.replace(new RegExp(esc,'g'),'<mark style="background:none;color:var(--acc3);font-weight:800">'+w+'</mark>');
             });
           }
+          const highlightedTxt=highlightLearnedInText(line.greek||'');
           textSpan.style.cssText='font-size:16px;font-weight:700;color:var(--txt);line-height:1.7';
-          textSpan.innerHTML='"'+txt+'"';
+          textSpan.innerHTML='"'+highlightedTxt+'"';
           row.appendChild(nameSpan);row.appendChild(textSpan);
           gc.appendChild(row);
         });
