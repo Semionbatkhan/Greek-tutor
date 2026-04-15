@@ -2488,22 +2488,39 @@ async function generateText(){
 }
 
 
-// Highlight learned words in greek text — matches stems to catch inflected forms
+// Highlight learned words in greek text
 function highlightLearnedInText(text){
   if(!text)return text;
-  const learnedWords=ALL_WORDS.filter(w=>S.learned.has(w.id)&&w.greek&&w.greek.length>=3);
-  let result=text;
-  // Sort by length descending to match longer words first
+  const learnedWords=ALL_WORDS.filter(w=>S.learned.has(w.id)&&w.greek&&w.greek.length>=2);
+  // Sort by length descending — longer words first prevents "την" matching inside "στην"
   const sorted=[...learnedWords].sort((a,b)=>b.greek.length-a.greek.length);
-  sorted.forEach(w=>{
-    const stem=w.greek.slice(0,Math.max(4,w.greek.length-2));
-    try{
-      const esc=stem.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
-      result=result.replace(new RegExp('('+esc+'\\S*)','g'),
-        '<span style="color:var(--acc);font-weight:800">$1</span>');
-    }catch(e){}
+
+  // Work on plain text, track which character positions are already highlighted
+  // Use a token-based approach: split into words, check each word
+  const SPAN_OPEN='<span style="color:var(--acc);font-weight:800">';
+  const SPAN_CLOSE='</span>';
+
+  // Split text preserving punctuation and spaces
+  const tokens=text.split(/([\s,;:.!?"«»()]+)/);
+  const result=tokens.map(token=>{
+    // If it's whitespace/punctuation, keep as is
+    if(!token||/^[\s,;:.!?"«»()]+$/.test(token))return token;
+    // Try to match this token against learned words
+    // First try exact match, then stem match
+    const tokenLower=token.toLowerCase();
+    for(const w of sorted){
+      const wLower=w.greek.toLowerCase();
+      // Exact match
+      if(tokenLower===wLower)return SPAN_OPEN+token+SPAN_CLOSE;
+      // Stem match for long words (5+ chars): token starts with stem of learned word
+      if(w.greek.length>=5){
+        const stem=wLower.slice(0,w.greek.length-2);
+        if(tokenLower.startsWith(stem))return SPAN_OPEN+token+SPAN_CLOSE;
+      }
+    }
+    return token;
   });
-  return result;
+  return result.join('');
 }
 
 // ─── LEARNED WORDS TAB ────────────────────────────────────
@@ -2688,7 +2705,7 @@ function renderPopup(){
     pb.innerHTML=`
       <div style="font-size:18px;font-weight:900;color:var(--acc);margin-bottom:12px">✨ Как генерируется текст</div>
       <div style="font-size:13px;font-weight:700;color:var(--txt);line-height:1.7;margin-bottom:10px">
-        Берётся до 65 случайных слов из твоих <b>выученных</b>. Claude составляет связный текст, органично вписывая эти слова. Если слов не хватает — добавляются базовые слова уровня А1.
+        Берётся до 65 случайных слов из твоих <b>выученных</b>. Claude составляет связный текст (65–100 слов), органично вписывая их. Одна сцена, одно место. Если слов не хватает — добавляются только базовые слова А1. Никаких посторонних стран и городов.
       </div>
       <div style="font-size:12px;font-weight:800;color:var(--mu);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">Жанры по очереди:</div>
       <div style="font-size:13px;font-weight:700;color:var(--txt);line-height:1.8">
