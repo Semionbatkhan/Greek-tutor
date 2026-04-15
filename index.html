@@ -276,6 +276,35 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--txt);min-h
 .dark .prog-card{border-color:#4a4a4a}
 /* Dark mode nav active underline */
 .dark .nt.on{color:var(--ok);border-bottom-color:var(--ok)}
+
+/* ── ADAPTIVE UNIT (s1u0) ── */
+.phase-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:32px 24px;text-align:center;min-height:300px}
+.phase-icon{font-size:52px;margin-bottom:16px}
+.phase-title{font-size:20px;font-weight:900;color:var(--acc);margin-bottom:10px}
+.phase-sub{font-size:14px;font-weight:600;color:var(--mu);line-height:1.6;margin-bottom:24px}
+
+/* Collapsed drag-drop */
+.collapsed-card{background:var(--sur);border-radius:var(--r);padding:20px;border:1.5px solid var(--border);box-shadow:var(--shadow);margin-bottom:14px;text-align:center}
+.collapsed-target{min-height:52px;background:var(--sur2);border:2px dashed var(--border);border-radius:12px;
+  display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;
+  padding:8px;margin:14px 0;font-size:20px;font-weight:900;color:var(--acc)}
+.collapsed-target.has-content{border-style:solid;border-color:var(--acc);background:var(--acc-light)}
+.syllable-pool{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:14px}
+.syllable{padding:10px 16px;background:var(--card);border:2px solid var(--border);border-radius:10px;
+  font-size:18px;font-weight:800;cursor:grab;user-select:none;transition:all .2s;color:var(--txt)}
+.syllable:active{cursor:grabbing;transform:scale(1.05);border-color:var(--acc);background:var(--acc-light)}
+.syllable.used{opacity:.3;cursor:default;pointer-events:none}
+.syllable.dragging{opacity:.5;transform:scale(1.08);border-color:var(--acc)}
+.collapsed-target.drag-over{border-color:var(--ok);background:rgba(16,185,129,.1)}
+
+/* Progress info */
+.prog-info{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--mu);
+  padding:4px 0 8px;font-weight:700}
+.prog-info-btn{background:var(--spk-bg);border:none;border-radius:50%;width:18px;height:18px;
+  font-size:10px;font-weight:900;color:var(--acc);cursor:pointer;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center}
+
 </style>
 </head>
 <body>
@@ -1028,6 +1057,17 @@ let S={
     });
     return scores;
   })(),
+  // Adaptive unit state (s1u0)
+  adaptPhase:'theory', // theory|fc_intro|fc|c4|collapsed_intro|collapsed|summary_intro|summary
+  adaptUnknown:[],     // word ids marked as unknown in FC phase
+  adaptC4Wrong:[],     // word ids wrong in C4
+  adaptCollWrong:[],   // word ids wrong/skipped in collapsed
+  adaptWordIdx:0,      // current word index in current phase
+  adaptDynTotal:0,     // dynamic total for progress bar
+  adaptAnswered:0,     // answered so far
+  collSyllables:[],    // current collapsed syllable arrangement
+  collPlaced:[],       // placed syllables in order
+  collDragging:null,   // currently dragging syllable index
   toast:null,
   darkMode:LS.get('darkMode',false),
   genText:LS.get('genText',null),      // {greek, russian, loading}
@@ -1161,6 +1201,522 @@ function render(){
 
 function el(tag,cls,html){const e=document.createElement(tag);if(cls)e.className=cls;if(html)e.innerHTML=html;return e;}
 
+// ─── GREEK SYLLABLE SPLITTER ──────────────────────────────
+function splitGreekSyllables(word){
+  const vowels='αεηιοωυάέήίόώύϊϋΐΰ';
+  const isVowel=c=>vowels.includes(c.toLowerCase());
+  // Simple rule: split before consonant+vowel groups
+  const letters=[...word];
+  const syllables=[];
+  let current='';
+  for(let i=0;i<letters.length;i++){
+    current+=letters[i];
+    if(isVowel(letters[i])){
+      // Check if next char is consonant followed by vowel → keep with next
+      if(i+1<letters.length&&!isVowel(letters[i+1])&&i+2<letters.length&&isVowel(letters[i+2])){
+        syllables.push(current);current='';
+      } else if(i+1<letters.length&&isVowel(letters[i+1])){
+        // two vowels: split here unless diphthong
+        syllables.push(current);current='';
+      } else if(i===letters.length-1){
+        syllables.push(current);current='';
+      } else {
+        syllables.push(current);current='';
+      }
+    }
+  }
+  if(current)syllables.push(current);
+  // Merge single-char non-vowel syllables with neighbors
+  const merged=[];
+  for(let i=0;i<syllables.length;i++){
+    if(syllables[i].length===1&&!isVowel(syllables[i])&&merged.length){
+      merged[merged.length-1]+=syllables[i];
+    } else {merged.push(syllables[i]);}
+  }
+  return merged.filter(s=>s.length>0);
+}
+
+// ─── ADAPTIVE UNIT HELPERS ───────────────────────────────
+function isAdaptiveUnit(unit){return unit&&unit.id==='s1u0';}
+
+function adaptGetWords(){
+  return S.activeUnit?S.activeUnit.words:[];
+}
+
+function adaptCalcTotal(){
+  const words=adaptGetWords();
+  const nWords=words.length;
+  const nUnknown=S.adaptUnknown.length;
+  const nC4Wrong=S.adaptC4Wrong.length;
+  const theories=THEORY_CARDS.filter(t=>t.unitId==='s1u0').length;
+  const fills=FILL_EXERCISES.filter(f=>f.unitId==='s1u0').length;
+  const listenQs=LISTEN_EXERCISES.filter(l=>l.unitId==='s1u0').reduce((a,l)=>a+l.questions.length,0);
+  // theory + fc_intro(1) + fc(nWords) + c4(nUnknown) + collapsed(c4wrong) + summary_intro(1) + fill+listen
+  let total=theories+1+nWords+nUnknown+nC4Wrong+1+fills+listenQs;
+  return total;
+}
+
+function adaptCurrentWord(){
+  const phase=S.adaptPhase;
+  if(phase==='fc'){return adaptGetWords()[S.adaptWordIdx]||null;}
+  if(phase==='c4'){
+    const unknownWords=adaptGetWords().filter(w=>S.adaptUnknown.includes(w.id));
+    return unknownWords[S.adaptWordIdx]||null;
+  }
+  if(phase==='collapsed'){
+    const wrongWords=adaptGetWords().filter(w=>S.adaptC4Wrong.includes(w.id));
+    return wrongWords[S.adaptWordIdx]||null;
+  }
+  return null;
+}
+
+function adaptBuildC4(word){
+  const src=ALL_WORDS.filter(w=>w.id!==word.id);
+  return shuffle([word,...pick(src,3)]);
+}
+
+function adaptNextPhase(){
+  const words=adaptGetWords();
+  S.adaptWordIdx=0;
+  S.adaptAnswered=Math.min(S.adaptAnswered+1,adaptCalcTotal());
+  if(S.adaptPhase==='theory'){
+    // Theory handled by normal THEORY_SLOT flow; 
+    // Phase switches after last theory card in renderAdaptiveEx
+    S.adaptPhase='fc_intro';
+  } else if(S.adaptPhase==='fc_intro'){
+    S.adaptPhase='fc';
+  } else if(S.adaptPhase==='fc'){
+    if(S.adaptUnknown.length>0){S.adaptPhase='c4';}
+    else{S.adaptPhase='summary_intro';}
+  } else if(S.adaptPhase==='c4'){
+    if(S.adaptC4Wrong.length>0){S.adaptPhase='collapsed';}
+    else{S.adaptPhase='summary_intro';}
+  } else if(S.adaptPhase==='collapsed'){
+    S.adaptPhase='summary_intro';
+  } else if(S.adaptPhase==='summary_intro'){
+    S.adaptPhase='summary';
+  }
+}
+
+function adaptInitCollapsed(word){
+  const syls=splitGreekSyllables(word.greek);
+  S.collSyllables=shuffle([...syls]);
+  S.collPlaced=[];
+  S.collCorrectSyls=syls; // correct order
+}
+
+// ─── START ADAPTIVE UNIT ─────────────────────────────────
+function startAdaptiveUnit(unit){
+  S.activeUnit=unit;
+  S.adaptPhase='theory';
+  S.adaptUnknown=[];
+  S.adaptC4Wrong=[];
+  S.adaptCollWrong=[];
+  S.adaptWordIdx=0;
+  S.adaptAnswered=0;
+  S.answers=[];
+  S.score={c:0,w:0,st:0};
+  S.errs=[];
+  // Build theory queue first
+  const theories=THEORY_CARDS.filter(t=>t.unitId===unit.id);
+  S.queue=theories.map(t=>({type:'THEORY_SLOT',theoryId:t.id}));
+  S.qi=0;
+  S.mode='unit';
+  nextEx();render();
+}
+
+// ─── RENDER ADAPTIVE UNIT ────────────────────────────────
+function renderAdaptiveUnit(){
+  const wrap=el('div');wrap.style.cssText='display:flex;flex-direction:column;flex:1';
+
+  // ── Progress bar ──
+  const total=adaptCalcTotal()||1;
+  // answered = S.adaptAnswered
+  const answered=S.adaptAnswered;
+  const pct=Math.round((answered/total)*100);
+  
+  const ps=el('div','ps');
+  ps.style.cssText='background:var(--sur);padding:6px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:6px;flex-shrink:0';
+  const back=el('button');back.innerHTML='&#8592;';
+  back.style.cssText='background:none;border:none;color:var(--mu);cursor:pointer;font-size:36px;line-height:1;flex-shrink:0;padding:0 4px 2px';
+  back.onclick=()=>{S.mode='home';S.adaptPhase='theory';render();};
+  ps.appendChild(back);
+  const pbWrap=el('div','pb-wrap');
+  const pbFill=el('div','pb-fill');pbFill.style.width=pct+'%';
+  pbWrap.appendChild(pbFill);ps.appendChild(pbWrap);
+  const pnum=el('div');pnum.style.cssText='font-size:12px;font-weight:800;color:var(--mu);flex-shrink:0';
+  pnum.textContent=answered+'/'+total;
+  ps.appendChild(pnum);
+  // Info btn
+  const infoBtn=el('button','prog-info-btn');infoBtn.textContent='ℹ';
+  infoBtn.onclick=()=>{S.popup={type:'adaptInfo'};render();};
+  ps.appendChild(infoBtn);
+  wrap.appendChild(ps);
+
+  const sc=el('div','sc');
+
+  // ── Render by phase ──
+  const phase=S.adaptPhase;
+
+  if(phase==='theory'){
+    // Handled by normal renderEx but we intercept after last theory
+    const ex=S.ex;
+    if(!ex){sc.appendChild(el('div'));wrap.appendChild(sc);return wrap;}
+    sc.appendChild(renderEx());
+    // Check if this was last theory card
+    const theories=THEORY_CARDS.filter(t=>t.unitId==='s1u0');
+    const allTheoryDone=S.qi>=theories.length;
+    if(allTheoryDone&&ex.type==='THEORY'){
+      // Will switch to fc_intro on next advance
+    }
+  }
+  else if(phase==='fc_intro'){
+    const words=adaptGetWords();
+    const d=el('div','phase-screen');
+    d.innerHTML=`<div class="phase-icon">🃏</div>
+      <div class="phase-title">Знакомство со словами</div>
+      <div class="phase-sub">Сейчас пройдёмся по <b>${words.length} словам</b>.<br>Отвечай честно — <b>знаю</b> или <b>не знаю</b>.<br>Система составит упражнения только для тех слов, которые ты не знаешь.</div>`;
+    const btn=el('button','btn bpr bfw');btn.textContent='Начать →';
+    btn.onclick=()=>{S.adaptPhase='fc';S.adaptWordIdx=0;S.adaptAnswered++;render();};
+    d.appendChild(btn);sc.appendChild(d);
+  }
+  else if(phase==='fc'){
+    renderAdaptFC(sc);
+  }
+  else if(phase==='c4'){
+    renderAdaptC4(sc);
+  }
+  else if(phase==='collapsed'){
+    const word=adaptCurrentWord();
+    if(!word){adaptNextPhase();render();return wrap;}
+    const syls=splitGreekSyllables(word.greek);
+    if(word.greek.length<=3||syls.length<2){
+      // Too short — do C4 instead
+      renderAdaptC4Fallback(sc,word);
+    } else {
+      renderAdaptCollapsed(sc,word);
+    }
+  }
+  else if(phase==='summary_intro'){
+    const d=el('div','phase-screen');
+    d.innerHTML=`<div class="phase-icon">📋</div>
+      <div class="phase-title">Итоговые упражнения</div>
+      <div class="phase-sub">Сейчас несколько упражнений, которые проверят насколько хорошо усвоились новые слова.</div>`;
+    const br=el('div','br');
+    const skipBtn=el('button','btn bot');skipBtn.style.flex='0.8';
+    skipBtn.textContent='Перейти сразу к итогу';
+    skipBtn.onclick=()=>{S.adaptPhase='summary';S.adaptAnswered++;startAdaptiveSummary();render();};
+    const goBtn=el('button','btn bpr');
+    goBtn.textContent='Поехали →';
+    goBtn.onclick=()=>{S.adaptPhase='summary';S.adaptAnswered++;startAdaptiveSummary();render();};
+    br.appendChild(skipBtn);br.appendChild(goBtn);d.appendChild(br);sc.appendChild(d);
+  }
+  else if(phase==='summary'){
+    if(!S.ex){sc.appendChild(el('div'));wrap.appendChild(sc);return wrap;}
+    sc.appendChild(renderEx());
+  }
+
+  wrap.appendChild(sc);return wrap;
+}
+
+function renderAdaptFC(sc){
+  const words=adaptGetWords();
+  const word=words[S.adaptWordIdx];
+  if(!word){
+    // Done with FC phase
+    adaptNextPhase();render();return;
+  }
+  const card=el('div','card cc');card.style.marginBottom='14px';
+  renderWordVisual(word,card);
+  const gw=el('div','bw');gw.textContent=word.greek;
+  const sb=el('button','spk');sb.textContent='🔊';sb.onclick=()=>speak(word.greek);
+  const row=el('div');row.style.cssText='display:flex;align-items:center;justify-content:center;gap:10px;margin:8px 0 4px';
+  row.appendChild(gw);row.appendChild(sb);card.appendChild(row);
+  const ru=el('div','bwr');ru.style.cssText='font-size:16px;font-weight:700;color:var(--mu);margin-top:4px';
+  ru.textContent=word.ru;card.appendChild(ru);
+  sc.appendChild(card);
+
+  const br=el('div','br');
+  const nb=el('button','btn ber');nb.textContent='❌ Не знаю';
+  nb.onclick=()=>{
+    if(!S.adaptUnknown.includes(word.id))S.adaptUnknown.push(word.id);
+    S.answers.push('err');S.adaptAnswered++;
+    S.adaptWordIdx++;
+    if(S.adaptWordIdx>=words.length){adaptNextPhase();}
+    render();
+  };
+  const yb=el('button','btn bok');yb.textContent='✅ Знаю';
+  yb.onclick=()=>{
+    S.answers.push('ok');S.adaptAnswered++;
+    S.adaptWordIdx++;
+    if(S.adaptWordIdx>=words.length){adaptNextPhase();}
+    render();
+  };
+  br.appendChild(nb);br.appendChild(yb);sc.appendChild(br);
+
+  // Progress dots
+  const prog=el('div');prog.style.cssText='font-size:12px;color:var(--mu);font-weight:700;text-align:center;margin-top:10px';
+  prog.textContent=(S.adaptWordIdx+1)+' / '+words.length;
+  sc.appendChild(prog);
+}
+
+function renderAdaptC4(sc){
+  const unknownWords=adaptGetWords().filter(w=>S.adaptUnknown.includes(w.id));
+  const word=unknownWords[S.adaptWordIdx];
+  if(!word){adaptNextPhase();render();return;}
+  renderAdaptC4Word(sc,word,false);
+}
+
+function renderAdaptC4Fallback(sc,word){
+  renderAdaptC4Word(sc,word,true);
+}
+
+function renderAdaptC4Word(sc,word,isCollapsedFallback){
+  const lbl=el('div','ex');lbl.textContent='ВЫБЕРИ ПЕРЕВОД';sc.appendChild(lbl);
+  const card=el('div','card cc');card.style.marginBottom='10px';
+  renderWordVisual(word,card);
+  const row=el('div');row.style.cssText='display:flex;align-items:center;justify-content:center;gap:10px';
+  const gw=el('div','bw');gw.textContent=word.greek;
+  const sb=el('button','spk');sb.textContent='🔊';sb.onclick=()=>speak(word.greek);
+  row.appendChild(gw);row.appendChild(sb);card.appendChild(row);sc.appendChild(card);
+
+  if(!S._adaptC4Opts||S._adaptC4Word!==word.id){
+    S._adaptC4Opts=shuffle([word,...pick(ALL_WORDS.filter(w=>w.id!==word.id),3)]);
+    S._adaptC4Word=word.id;
+    S._adaptC4Checked=false;
+    S._adaptC4Chosen=null;
+  }
+
+  const chs=el('div','chs');
+  S._adaptC4Opts.forEach(o=>{
+    let cls='cb2';
+    if(S._adaptC4Checked){if(o.id===word.id)cls+=' ck';else if(o.id===S._adaptC4Chosen)cls+=' cw';}
+    else if(S._adaptC4Chosen===o.id)cls+=' ms';
+    const b=el('button',cls);b.textContent=o.ru;
+    if(S._adaptC4Checked)b.disabled=true;
+    b.onclick=()=>{if(S._adaptC4Checked)return;S._adaptC4Chosen=o.id;render();};
+    chs.appendChild(b);
+  });
+  sc.appendChild(chs);
+
+  if(S._adaptC4Chosen&&!S._adaptC4Checked){
+    const chk=el('button','btn bpr bfw');chk.textContent='Проверить';
+    chk.onclick=()=>{
+      S._adaptC4Checked=true;
+      const ok=S._adaptC4Chosen===word.id;
+      S.answers.push(ok?'ok':'err');S.adaptAnswered++;
+      if(!ok&&!S.adaptC4Wrong.includes(word.id))S.adaptC4Wrong.push(word.id);
+      render();
+      if(ok){
+        setTimeout(()=>{
+          S._adaptC4Opts=null;S._adaptC4Word=null;S._adaptC4Checked=false;S._adaptC4Chosen=null;
+          if(isCollapsedFallback){
+            S.adaptWordIdx++;
+            const wrongWords=adaptGetWords().filter(w=>S.adaptC4Wrong.includes(w.id));
+            if(S.adaptWordIdx>=wrongWords.length){adaptNextPhase();}
+          } else {
+            S.adaptWordIdx++;
+            const unknownWords=adaptGetWords().filter(w=>S.adaptUnknown.includes(w.id));
+            if(S.adaptWordIdx>=unknownWords.length){adaptNextPhase();}
+          }
+          render();
+        },1000);
+      }
+    };
+    sc.appendChild(chk);
+  }
+  if(S._adaptC4Checked){
+    const ok=S._adaptC4Chosen===word.id;
+    const fb=el('div','fb '+(ok?'fbok':'fber'));
+    fb.textContent=ok?'✅ Верно!':'❌ Правильно: '+word.ru;
+    sc.appendChild(fb);
+    if(!ok){
+      const nb=el('button','btn bpr bfw');nb.textContent='Дальше →';
+      nb.onclick=()=>{
+        S._adaptC4Opts=null;S._adaptC4Word=null;S._adaptC4Checked=false;S._adaptC4Chosen=null;
+        if(isCollapsedFallback){
+          S.adaptWordIdx++;
+          const wrongWords=adaptGetWords().filter(w=>S.adaptC4Wrong.includes(w.id));
+          if(S.adaptWordIdx>=wrongWords.length){adaptNextPhase();}
+        } else {
+          S.adaptWordIdx++;
+          const unknownWords=adaptGetWords().filter(w=>S.adaptUnknown.includes(w.id));
+          if(S.adaptWordIdx>=unknownWords.length){adaptNextPhase();}
+        }
+        render();
+      };
+      sc.appendChild(nb);
+    }
+  }
+  // Progress
+  const phaseWords=isCollapsedFallback?adaptGetWords().filter(w=>S.adaptC4Wrong.includes(w.id)):adaptGetWords().filter(w=>S.adaptUnknown.includes(w.id));
+  const prog=el('div');prog.style.cssText='font-size:12px;color:var(--mu);font-weight:700;text-align:center;margin-top:10px';
+  prog.textContent=(S.adaptWordIdx+1)+' / '+phaseWords.length;
+  sc.appendChild(prog);
+}
+
+function renderAdaptCollapsed(sc,word){
+  const syls=splitGreekSyllables(word.greek);
+  // Init if new word
+  if(!S.collSyllables||S.collSyllables.length===0||S._collWord!==word.id){
+    S._collWord=word.id;
+    S.collSyllables=shuffle([...syls]);
+    S.collPlaced=[];
+    S.collCorrectSyls=syls;
+    S._collChecked=false;
+  }
+
+  const lbl=el('div','ex');lbl.textContent='СОСТАВЬ СЛОВО ПО СЛОГАМ';sc.appendChild(lbl);
+
+  // Word card (Russian)
+  const card=el('div','card cc');card.style.marginBottom='10px';
+  renderWordVisual(word,card);
+  const ru=el('div','bw bwr');ru.textContent=word.ru;card.appendChild(ru);
+  sc.appendChild(card);
+
+  // Target drop zone
+  const target=el('div','collapsed-target'+(S.collPlaced.length?' has-content':''));
+  target.id='coll-target';
+  if(S._collChecked){
+    // Show full word colored
+    const ok=S.collPlaced.join('')===S.collCorrectSyls.join('');
+    target.style.borderColor=ok?'var(--ok)':'var(--er)';
+    target.style.background=ok?'var(--ok-light)':'var(--er-light)';
+    target.style.color=ok?'var(--ok-dark)':'var(--er)';
+    target.textContent=S.collCorrectSyls.join('·');
+  } else {
+    S.collPlaced.forEach((syl,i)=>{
+      const span=el('span');span.style.cssText='cursor:pointer;padding:2px 4px;border-radius:6px;font-size:20px;font-weight:900';
+      span.textContent=syl;
+      span.title='Нажми чтобы убрать';
+      span.onclick=()=>{
+        S.collSyllables[S.collSyllables.indexOf('__used_'+i)]=syl;
+        S.collPlaced.splice(i,1);
+        // Fix used markers
+        render();
+      };
+      target.appendChild(span);
+    });
+    if(!S.collPlaced.length){
+      const ph=el('span');ph.style.cssText='color:var(--mu);font-size:14px;font-weight:700';
+      ph.textContent='Перетащи слоги сюда';target.appendChild(ph);
+    }
+  }
+
+  // Drag over
+  target.ondragover=e=>{e.preventDefault();target.classList.add('drag-over');};
+  target.ondragleave=()=>target.classList.remove('drag-over');
+  target.ondrop=e=>{
+    e.preventDefault();target.classList.remove('drag-over');
+    const idx=parseInt(e.dataTransfer.getData('text'));
+    if(isNaN(idx))return;
+    const syl=S.collSyllables[idx];
+    if(syl&&!syl.startsWith('__used_')){
+      S.collPlaced.push(syl);
+      S.collSyllables[idx]='__used_'+idx;
+      render();
+    }
+  };
+  sc.appendChild(target);
+
+  // Syllable pool
+  if(!S._collChecked){
+    const pool=el('div','syllable-pool');
+    S.collSyllables.forEach((syl,i)=>{
+      const isUsed=syl.startsWith('__used_');
+      const d=el('div','syllable'+(isUsed?' used':''));
+      d.textContent=isUsed?'':syl;
+      d.draggable=!isUsed;
+      d.ondragstart=e=>{e.dataTransfer.setData('text',i);d.classList.add('dragging');};
+      d.ondragend=()=>d.classList.remove('dragging');
+      // Touch drag
+      d.ontouchstart=e=>{
+        if(isUsed)return;
+        S._touchDragIdx=i;
+        S._touchDragEl=d;
+        d.classList.add('dragging');
+      };
+      d.ontouchend=e=>{
+        d.classList.remove('dragging');
+        const touch=e.changedTouches[0];
+        const el2=document.elementFromPoint(touch.clientX,touch.clientY);
+        if(el2&&(el2.id==='coll-target'||el2.closest('#coll-target'))){
+          const syl2=S.collSyllables[S._touchDragIdx];
+          if(syl2&&!syl2.startsWith('__used_')){
+            S.collPlaced.push(syl2);
+            S.collSyllables[S._touchDragIdx]='__used_'+S._touchDragIdx;
+            render();
+          }
+        }
+        S._touchDragIdx=null;
+      };
+      pool.appendChild(d);
+    });
+    sc.appendChild(pool);
+
+    // Buttons
+    const allPlaced=S.collPlaced.length===syls.length;
+    if(allPlaced){
+      const chk=el('button','btn bpr bfw');chk.textContent='Проверить';
+      chk.onclick=()=>{
+        S._collChecked=true;
+        const ok=S.collPlaced.join('')===S.collCorrectSyls.join('');
+        S.answers.push(ok?'ok':'err');S.adaptAnswered++;
+        if(!ok&&!S.adaptCollWrong.includes(word.id))S.adaptCollWrong.push(word.id);
+        render();
+        if(ok){setTimeout(()=>adaptCollNext(),1200);}
+      };
+      sc.appendChild(chk);
+    }
+
+    // Give up button
+    const giveup=el('button','btn bot bfw');giveup.style.marginTop='8px';
+    giveup.textContent='🏳️ Сдаюсь';
+    giveup.onclick=()=>{
+      S.collPlaced=[...S.collCorrectSyls];
+      S._collChecked=true;
+      S.answers.push('err');S.adaptAnswered++;
+      if(!S.adaptCollWrong.includes(word.id))S.adaptCollWrong.push(word.id);
+      render();
+    };
+    sc.appendChild(giveup);
+  } else {
+    // Checked state — show Next button
+    const ok=S.collPlaced.join('')===S.collCorrectSyls.join('');
+    const fb=el('div','fb '+(ok?'fbok':'fber'));
+    fb.textContent=ok?'✅ Верно! '+word.greek:'❌ Правильно: '+word.greek;
+    sc.appendChild(fb);
+    const nb=el('button','btn bpr bfw');nb.textContent='Дальше →';
+    nb.onclick=()=>adaptCollNext();sc.appendChild(nb);
+  }
+
+  // Progress
+  const wrongWords=adaptGetWords().filter(w=>S.adaptC4Wrong.includes(w.id));
+  const prog=el('div');prog.style.cssText='font-size:12px;color:var(--mu);font-weight:700;text-align:center;margin-top:10px';
+  prog.textContent=(S.adaptWordIdx+1)+' / '+wrongWords.length;
+  sc.appendChild(prog);
+}
+
+function adaptCollNext(){
+  S._collChecked=false;S._collWord=null;S.collPlaced=[];S.collSyllables=[];
+  S.adaptWordIdx++;
+  const wrongWords=adaptGetWords().filter(w=>S.adaptC4Wrong.includes(w.id));
+  if(S.adaptWordIdx>=wrongWords.length){adaptNextPhase();}
+  render();
+}
+
+function startAdaptiveSummary(){
+  // Build summary queue: fill + listen
+  const fills=FILL_EXERCISES.filter(f=>f.unitId==='s1u0');
+  const listens=LISTEN_EXERCISES.filter(l=>l.unitId==='s1u0');
+  const queue=[];
+  fills.forEach(f=>queue.push({type:'FILL_SLOT',fillId:f.id}));
+  listens.forEach(l=>l.questions.forEach((_,qIdx)=>queue.push({type:'LISTEN_SLOT',listenId:l.id,qIdx})));
+  S.queue=queue;S.qi=0;
+  nextEx();
+}
+
+
 // ─── HOME ─────────────────────────────────────────────────
 function renderHome(){
   const sc=el('div','sc');
@@ -1192,6 +1748,7 @@ function renderHome(){
       const isLastUnit=S.lastActiveUnitId===u.id;
       const ur=el('div','ur'+(isLastUnit?' last-unit':''));
       const totalEx=unitTotalItems(u.id);
+      const showCount=u.id!=='s1u0';
       ur.innerHTML=`
         <div class="ue">${u.emoji}</div>
         <div class="ui">
@@ -1199,7 +1756,7 @@ function renderHome(){
           <div class="us">${u.titleRu} · ${u.words.length} слов</div>
         </div>
         ${upct>0?`<div class="upct">${upct}%</div>`:''}
-        <div class="ub" title="Упражнений в юните">${totalEx} упр.</div>
+        ${showCount?`<div class="ub" title="Упражнений в юните">${totalEx} упр.</div>`:''}
         <button class="sb2">▶</button>
       `;
       ur.onclick=()=>startUnit(u);
@@ -1228,6 +1785,7 @@ function renderHome(){
 }
 
 function startUnit(unit){
+  if(isAdaptiveUnit(unit)){startAdaptiveUnit(unit);return;}
   const sess=LS.get('session',null);
   if(sess&&sess.unitId===unit.id&&sess.qi<sess.queue.length){
     S.activeUnit=unit;
@@ -1444,6 +2002,7 @@ function advance(ok){
 
 // ─── UNIT EXERCISE ────────────────────────────────────────
 function renderUnitEx(){
+  if(isAdaptiveUnit(S.activeUnit))return renderAdaptiveUnit();
   const wrap=el('div');
   wrap.style.cssText='display:flex;flex-direction:column;flex:1';
   if(S.queue.length>0&&S.qi>=S.queue.length){
@@ -1751,11 +2310,16 @@ function renderEx(){
 
     const nb=el('button','btn bpr bfw');nb.textContent='Понятно, дальше →';
     nb.onclick=()=>{
-      // Theory counts as correct but doesn't affect score
       if(!S.answers)S.answers=[];
       S.answers.push('theory');
+      S.adaptAnswered++;
       S.qi++;
       save();
+      if(isAdaptiveUnit(S.activeUnit)){
+        if(S.qi<S.queue.length){nextEx();render();}
+        else{S.adaptPhase='fc_intro';render();}
+        return;
+      }
       if(S.qi<S.queue.length){nextEx();render();}
       else{
         const pct=Math.round((S.score.c/(S.score.c+S.score.w||1))*100);
