@@ -1758,6 +1758,7 @@ function renderAdaptCollapsed(sc,word){
   const prog=el('div');prog.style.cssText='font-size:12px;color:var(--mu);font-weight:700;text-align:center;margin-top:10px';
   prog.textContent=(S.adaptWordIdx+1)+' / '+wrongWords.length;
   sc.appendChild(prog);
+}
 
 function adaptCollNext(){
   S._collChecked=false;S._collWord=null;S.collPlaced=[];S.collSyllables=[];
