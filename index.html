@@ -1308,6 +1308,22 @@ function adaptInitCollapsed(word){
 // ─── START ADAPTIVE UNIT ─────────────────────────────────
 function startAdaptiveUnit(unit){
   S.activeUnit=unit;
+  // Try to restore saved progress
+  const saved=LS.get('adaptState',null);
+  if(saved&&saved.unitId===unit.id&&saved.phase&&saved.phase!=='theory'){
+    S.adaptPhase=saved.phase;
+    S.adaptUnknown=saved.unknown||[];
+    S.adaptC4Wrong=saved.c4wrong||[];
+    S.adaptCollWrong=saved.collwrong||[];
+    S.adaptWordIdx=saved.wordIdx||0;
+    S.adaptAnswered=saved.answered||0;
+    S.answers=saved.answers||[];
+    S.score=saved.score||{c:0,w:0,st:0};
+    S.errs=[];
+    // Rebuild queue for current phase
+    if(saved.phase==='summary'){startAdaptiveSummary();}
+    S.mode='unit';render();return;
+  }
   S.adaptPhase='theory';
   S.adaptUnknown=[];
   S.adaptC4Wrong=[];
@@ -1317,7 +1333,6 @@ function startAdaptiveUnit(unit){
   S.answers=[];
   S.score={c:0,w:0,st:0};
   S.errs=[];
-  // Build theory queue first
   const theories=THEORY_CARDS.filter(t=>t.unitId===unit.id);
   S.queue=theories.map(t=>({type:'THEORY_SLOT',theoryId:t.id}));
   S.qi=0;
@@ -1339,18 +1354,33 @@ function renderAdaptiveUnit(){
   ps.style.cssText='background:var(--sur);padding:6px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:6px;flex-shrink:0';
   const back=el('button');back.innerHTML='&#8592;';
   back.style.cssText='background:none;border:none;color:var(--mu);cursor:pointer;font-size:36px;line-height:1;flex-shrink:0;padding:0 4px 2px';
-  back.onclick=()=>{S.mode='home';S.adaptPhase='theory';render();};
+  back.onclick=()=>{
+    // Save adaptive progress to localStorage
+    LS.set('adaptState',{
+      unitId:S.activeUnit?.id,
+      phase:S.adaptPhase,
+      unknown:S.adaptUnknown,
+      c4wrong:S.adaptC4Wrong,
+      collwrong:S.adaptCollWrong,
+      wordIdx:S.adaptWordIdx,
+      answered:S.adaptAnswered,
+      answers:S.answers||[],
+      score:S.score
+    });
+    S.mode='home';render();
+  };
   ps.appendChild(back);
   const pbWrap=el('div','pb-wrap');
   const pbFill=el('div','pb-fill');pbFill.style.width=pct+'%';
   pbWrap.appendChild(pbFill);ps.appendChild(pbWrap);
-  const pnum=el('div');pnum.style.cssText='font-size:12px;font-weight:800;color:var(--mu);flex-shrink:0';
+  const pnum=el('div');pnum.style.cssText='font-size:12px;font-weight:800;color:var(--mu);flex-shrink:0;display:flex;align-items:center;gap:5px';
   pnum.textContent=answered+'/'+total;
-  ps.appendChild(pnum);
-  // Info btn
   const infoBtn=el('button','prog-info-btn');infoBtn.textContent='ℹ';
   infoBtn.onclick=()=>{S.popup={type:'adaptInfo'};render();};
-  ps.appendChild(infoBtn);
+  pnum.appendChild(infoBtn);
+  ps.appendChild(pnum);
+  // Info btn
+
   wrap.appendChild(ps);
 
   const sc=el('div','sc');
@@ -1443,6 +1473,7 @@ function renderAdaptFC(sc){
     S.answers.push('err');S.adaptAnswered++;
     S.adaptWordIdx++;
     if(S.adaptWordIdx>=words.length){adaptNextPhase();}
+    LS.set('adaptState',{unitId:S.activeUnit?.id,phase:S.adaptPhase,unknown:S.adaptUnknown,c4wrong:S.adaptC4Wrong,collwrong:S.adaptCollWrong,wordIdx:S.adaptWordIdx,answered:S.adaptAnswered,answers:S.answers,score:S.score});
     render();
   };
   const yb=el('button','btn bok');yb.textContent='✅ Знаю';
@@ -1450,6 +1481,7 @@ function renderAdaptFC(sc){
     S.answers.push('ok');S.adaptAnswered++;
     S.adaptWordIdx++;
     if(S.adaptWordIdx>=words.length){adaptNextPhase();}
+    LS.set('adaptState',{unitId:S.activeUnit?.id,phase:S.adaptPhase,unknown:S.adaptUnknown,c4wrong:S.adaptC4Wrong,collwrong:S.adaptCollWrong,wordIdx:S.adaptWordIdx,answered:S.adaptAnswered,answers:S.answers,score:S.score});
     render();
   };
   br.appendChild(nb);br.appendChild(yb);sc.appendChild(br);
@@ -1487,7 +1519,7 @@ function renderAdaptC4Word(sc,word,isCollapsedFallback){
     S._adaptC4Chosen=null;
   }
 
-  const chs=el('div','chs');
+  const chs=el('div','chs');chs.style.marginTop='8px';
   S._adaptC4Opts.forEach(o=>{
     let cls='cb2';
     if(S._adaptC4Checked){if(o.id===word.id)cls+=' ck';else if(o.id===S._adaptC4Chosen)cls+=' cw';}
@@ -2347,11 +2379,11 @@ function renderEx(){
 
     // Audio player - icon only, no text
     const playerWrap=el('div');
-    playerWrap.style.cssText='margin-bottom:14px;position:relative;border-radius:14px;overflow:hidden;background:#fff;border:2px solid #4f46e5;cursor:pointer;user-select:none;height:64px;touch-action:none';
+    playerWrap.style.cssText='margin-bottom:14px;position:relative;border-radius:14px;overflow:hidden;background:var(--mp-bg);border:2px solid var(--acc);cursor:pointer;user-select:none;height:64px;touch-action:none';
     const playerFill=el('div');
-    playerFill.style.cssText='position:absolute;top:0;left:0;height:100%;background:#4f46e5;width:0%;pointer-events:none';
+    playerFill.style.cssText='position:absolute;top:0;left:0;height:100%;background:var(--acc);width:0%;pointer-events:none';
     const playerIcon=el('div');
-    playerIcon.style.cssText='position:absolute;inset:0;z-index:2;display:flex;align-items:center;justify-content:center;font-size:28px';
+    playerIcon.style.cssText='position:absolute;inset:0;z-index:2;display:flex;align-items:center;justify-content:center;font-size:28px;color:#fff';
     playerIcon.textContent='▶';
     playerWrap.appendChild(playerFill);
     playerWrap.appendChild(playerIcon);
@@ -2399,7 +2431,7 @@ function renderEx(){
 
     function refreshIcon(){
       const pct=parseFloat(playerFill.style.width)||0;
-      playerIcon.style.color=pct>50?'#fff':'var(--acc)';
+      playerIcon.style.color='#fff';
     }
 
     function startProgress(){
@@ -2481,7 +2513,7 @@ function renderEx(){
     // Show text (collapsible)
     const showTxt=el('div');showTxt.style.cssText='font-size:12px;color:var(--acc);cursor:pointer;font-weight:700;text-decoration:underline;margin-bottom:8px';
     showTxt.textContent='Показать текст';
-    const txtBlock=el('div');txtBlock.style.cssText='font-size:14px;line-height:1.9;color:var(--txt);display:none;background:#1e1410;border-radius:10px;padding:14px;margin-bottom:8px';
+    const txtBlock=el('div');txtBlock.style.cssText='font-size:14px;line-height:1.9;color:var(--txt);display:none;background:var(--sur2);border-radius:10px;padding:14px;margin-bottom:8px';
     (l.dialogue||[{speaker:'',text:l.text}]).forEach(seg=>{
       const p=el('div');p.style.cssText='margin-bottom:10px';
       if(seg.speaker){
