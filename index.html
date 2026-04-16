@@ -1355,7 +1355,6 @@ function renderAdaptiveUnit(){
   const back=el('button');back.innerHTML='&#8592;';
   back.style.cssText='background:none;border:none;color:var(--mu);cursor:pointer;font-size:36px;line-height:1;flex-shrink:0;padding:0 4px 2px';
   back.onclick=()=>{
-    // Save adaptive progress to localStorage
     LS.set('adaptState',{
       unitId:S.activeUnit?.id,
       phase:S.adaptPhase,
@@ -1370,6 +1369,13 @@ function renderAdaptiveUnit(){
     S.mode='home';render();
   };
   ps.appendChild(back);
+
+  // Reset progress button
+  const resetBtn=el('button');
+  resetBtn.style.cssText='background:none;border:none;color:var(--mu);cursor:pointer;font-size:12px;font-weight:800;padding:4px 8px;border-radius:8px;white-space:nowrap;flex-shrink:0';
+  resetBtn.textContent='↺ Сброс';
+  resetBtn.onclick=()=>{S.popup={type:'resetUnit',unitId:S.activeUnit?.id};render();};
+  ps.appendChild(resetBtn);
   const pbWrap=el('div','pb-wrap');
   const pbFill=el('div','pb-fill');pbFill.style.width=pct+'%';
   pbWrap.appendChild(pbFill);ps.appendChild(pbWrap);
@@ -3364,6 +3370,49 @@ function renderPopup(){
   }
 
   // ── Info popup: match exercise ──
+  if(S.popup.type==='resetUnit'){
+    pb.style.cssText='background:var(--sur);border-radius:20px;padding:22px;width:290px;border:2px solid var(--border);text-align:center;box-shadow:0 8px 32px rgba(0,0,0,.2)';
+    pb.innerHTML=`
+      <div style="font-size:36px;margin-bottom:10px">↺</div>
+      <div style="font-size:17px;font-weight:900;color:var(--txt);margin-bottom:8px">Сбросить прогресс?</div>
+      <div style="font-size:13px;color:var(--mu);font-weight:600;margin-bottom:20px;line-height:1.5">
+        Все упражнения юнита начнутся заново.<br>Прогресс юнита, раздела и учебника обнулится.
+      </div>
+    `;
+    const br=el('div','br');
+    const nb=el('button','btn bot');nb.textContent='Отмена';
+    nb.onclick=()=>{S.popup=null;render();};
+    const yb=el('button','btn ber');yb.textContent='Сбросить';
+    yb.onclick=()=>{
+      const uid=S.popup.unitId||'s1u0';
+      // Reset unit score
+      if(S.unitScores)S.unitScores[uid]=0;
+      LS.set('unitScores',S.unitScores);
+      // Clear saved session and adaptive state
+      LS.set('session',null);
+      LS.set('adaptState',null);
+      LS.set('unitQueueLen_'+uid,0);
+      LS.set('unitErrs_'+uid,[]);
+      // Reset adaptive state
+      S.adaptPhase='theory';
+      S.adaptUnknown=[];
+      S.adaptC4Wrong=[];
+      S.adaptCollWrong=[];
+      S.adaptWordIdx=0;
+      S.adaptAnswered=0;
+      S.answers=[];
+      S.score={c:0,w:0,st:0};
+      S.errs=[];
+      S.popup=null;
+      save();
+      showToast('✅ Прогресс сброшен');
+      // Restart unit
+      startAdaptiveUnit(S.activeUnit);
+    };
+    br.appendChild(nb);br.appendChild(yb);pb.appendChild(br);
+    po.appendChild(pb);return po;
+  }
+
   if(S.popup.type==='matchInfo'){
     pb.style.cssText='background:var(--sur);border-radius:20px;padding:22px;width:310px;border:2px solid #333;box-shadow:0 8px 32px rgba(0,0,0,.7)';
     pb.innerHTML=`
