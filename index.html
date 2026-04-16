@@ -3312,6 +3312,22 @@ function renderPopup(){
   po.onclick=()=>{S.popup=null;render();};
   const pb=el('div','pb2');pb.onclick=e=>e.stopPropagation();
 
+  // ── Info popup: adaptive progress explanation ──
+  if(S.popup.type==='adaptInfo'){
+    pb.style.cssText='background:var(--sur);border-radius:20px;padding:22px;width:310px;border:2px solid var(--border);box-shadow:0 8px 32px rgba(0,0,0,.2)';
+    pb.innerHTML=`
+      <div style="font-size:18px;font-weight:900;color:var(--acc);margin-bottom:12px">📊 Почему растёт прогресс?</div>
+      <div style="font-size:14px;font-weight:700;color:var(--txt);line-height:1.7">
+        Когда ты отмечаешь слово <b>«Не знаю»</b> — система добавляет для него дополнительные упражнения: сначала выбор из 4 вариантов, потом составление слова по слогам.<br><br>
+        Поэтому чем больше слов ты не знаешь — тем длиннее становится юнит и тем выше растёт счётчик.<br><br>
+        Это нормально: система подстраивается под тебя и фокусируется именно на сложных словах.
+      </div>
+    `;
+    const cb=el('button','btn bpr bfw');cb.style.marginTop='14px';cb.textContent='Понятно';
+    cb.onclick=()=>{S.popup=null;render();};pb.appendChild(cb);
+    po.appendChild(pb);return po;
+  }
+
   // ── Info popup: generate text ──
   if(S.popup.type==='genInfo'){
     pb.style.cssText='background:var(--sur);border-radius:20px;padding:22px;width:310px;border:2px solid #333;box-shadow:0 8px 32px rgba(0,0,0,.7);max-height:80vh;overflow-y:auto';
