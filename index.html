@@ -262,7 +262,7 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--txt);min-h
 .dark .cb2.ms{border-color:#f0b429 !important;background:rgba(240,180,41,.25) !important;color:#f0b429 !important;border-width:3px !important}
 .dark .cb2.ck{border-color:var(--ok);background:rgba(240,180,41,.2);color:var(--ok);border-width:2.5px}
 .dark .cb2.cw{border-color:var(--er);background:rgba(255,68,68,.2);color:#ff8888;border-width:2.5px}
-.dark .mi.ms{border-color:var(--acc);background:rgba(231,76,60,.3);color:#ff9988;border-width:2.5px}
+.dark .mi.ms{border-color:#f0b429;background:rgba(240,180,41,.15);color:#f0b429;border-width:2.5px}
 .dark .mi.mm{border-color:var(--ok);background:rgba(240,180,41,.25);color:var(--ok);border-width:2.5px;opacity:1}
 .dark .mi.mw{border-color:var(--er);background:rgba(255,68,68,.2);border-width:2.5px}
 .dark .fca{background:rgba(231,76,60,.2);border-color:var(--acc)}
@@ -1584,23 +1584,21 @@ function renderAdaptC4Word(sc,word,isCollapsedFallback){
 }
 
 function renderAdaptCollapsed(sc,word){
-  // Split into syllables or letters if word <= 3 chars
+  // Split into syllables; if word <=3 chars, split into individual letters
   const rawSyls=splitGreekSyllables(word.greek);
   const syls=(word.greek.length<=3)?[...word.greek]:rawSyls;
 
-  // Init if new word
+  // Init state if new word
   if(!S.collSyllables||S.collSyllables.length===0||S._collWord!==word.id){
     S._collWord=word.id;
     S.collSyllables=shuffle([...syls]);
     S.collPlaced=[];
     S.collCorrectSyls=syls;
     S._collChecked=false;
-    S._collUserAnswer=null;
+    S._collUserAnswer=null; // store user's attempt
   }
 
-  const lbl=el('div','ex');
-  lbl.textContent=word.greek.length<=3?'СОСТАВЬ СЛОВО ПО БУКВАМ':'СОСТАВЬ СЛОВО ПО СЛОГАМ';
-  sc.appendChild(lbl);
+  const lbl=el('div','ex');lbl.textContent='СОСТАВЬ СЛОВО ПО СЛОГАМ';sc.appendChild(lbl);
 
   // Word card (Russian)
   const card=el('div','card cc');card.style.marginBottom='10px';
@@ -1609,61 +1607,75 @@ function renderAdaptCollapsed(sc,word){
   sc.appendChild(card);
 
   // Target drop zone
-  const target=el('div','collapsed-target'+(S.collPlaced.length?' has-content':''));
+  const isCorrect=S._collChecked&&S._collUserAnswer&&S._collUserAnswer.join('')===S.collCorrectSyls.join('');
+  const target=el('div');
   target.id='coll-target';
+  // No red border on drag — just dashed border, color changes only on check
+  let targetStyle='min-height:52px;border-radius:12px;display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap;padding:10px;margin:14px 0;font-size:20px;font-weight:900;';
   if(S._collChecked){
-    const ok=S._collUserAnswer&&S._collUserAnswer.join('')===S.collCorrectSyls.join('');
-    target.style.borderColor=ok?'var(--ok)':'var(--er)';
-    target.style.borderStyle='solid';
-    target.style.background=ok?'var(--ok-light)':'var(--er-light)';
-    target.style.color=ok?'var(--ok-dark)':'var(--er)';
-    // Show USER's answer (not the correct one)
-    const displaySyls=S._collUserAnswer||S.collCorrectSyls;
-    displaySyls.forEach(syl=>{
-      const span=el('span');
-      span.style.cssText='padding:2px 4px;font-size:20px;font-weight:900';
-      span.textContent=syl;
-      target.appendChild(span);
+    targetStyle+=isCorrect
+      ?'background:var(--ok-light);border:2px solid var(--ok);color:var(--ok-dark);'
+      :'background:var(--er-light);border:2px solid var(--er);color:var(--er);';
+  } else {
+    targetStyle+='background:var(--sur2);border:2px dashed var(--border);color:var(--acc);';
+  }
+  target.style.cssText=targetStyle;
+
+  if(S._collChecked){
+    // Show USER's answer, not the correct one
+    const displayed=S._collUserAnswer||S.collPlaced;
+    displayed.forEach(syl=>{
+      const span=el('span');span.textContent=syl;target.appendChild(span);
     });
+    // Show correct answer below if wrong
+    if(!isCorrect){
+      const hint=el('div');hint.style.cssText='font-size:13px;color:var(--ok-dark);background:var(--ok-light);border-radius:8px;padding:6px 12px;margin-top:8px;font-weight:700';
+      hint.textContent='✅ Правильно: '+S.collCorrectSyls.join('');
+      target.appendChild(hint);
+    }
   } else {
     S.collPlaced.forEach((syl,i)=>{
       const span=el('span');
-      span.style.cssText='cursor:pointer;padding:2px 6px;border-radius:6px;font-size:20px;font-weight:900;background:var(--acc-light);margin:2px';
+      span.style.cssText='cursor:pointer;padding:2px 6px;border-radius:6px;font-size:20px;font-weight:900;background:var(--acc-light);border:1px solid var(--acc);color:var(--acc)';
       span.textContent=syl;
+      span.title='Нажми чтобы убрать';
       span.onclick=()=>{
-        // Return syllable to pool
-        const poolIdx=S.collSyllables.findIndex(s=>s==='__used_'+i+'_'+syl);
-        if(poolIdx>=0)S.collSyllables[poolIdx]=syl;
-        else{
-          // Find first used slot
-          const ui=S.collSyllables.findIndex(s=>s.startsWith('__used_'));
-          if(ui>=0)S.collSyllables[ui]=syl;
-          else S.collSyllables.push(syl);
+        // Find first available slot for this syllable
+        const origIdx=S.collSyllables.indexOf('__used_'+i);
+        // Find any used slot to free
+        for(let j=0;j<S.collSyllables.length;j++){
+          if(S.collSyllables[j]==='__used_'+i){S.collSyllables[j]=syl;break;}
         }
         S.collPlaced.splice(i,1);
+        // Re-index remaining used markers
+        S.collSyllables=S.collSyllables.map((s,j)=>{
+          if(typeof s==='string'&&s.startsWith('__used_')){
+            const usedIdx=parseInt(s.replace('__used_',''));
+            if(usedIdx>i)return '__used_'+(usedIdx-1);
+          }
+          return s;
+        });
         render();
       };
       target.appendChild(span);
     });
     if(!S.collPlaced.length){
       const ph=el('span');ph.style.cssText='color:var(--mu);font-size:14px;font-weight:700';
-      ph.textContent='Перетащи сюда';target.appendChild(ph);
+      ph.textContent='Перетащи слоги сюда';target.appendChild(ph);
     }
   }
 
   // Drag over — NO red border, just subtle highlight
-  target.ondragover=e=>{e.preventDefault();target.style.background='rgba(79,70,229,0.08)';};
-  target.ondragleave=()=>{target.style.background='';};
+  target.ondragover=e=>{e.preventDefault();};
+  target.ondragleave=()=>{};
   target.ondrop=e=>{
-    e.preventDefault();target.style.background='';
-    const data=e.dataTransfer.getData('text');
-    if(!data)return;
-    const idx2=parseInt(data);
+    e.preventDefault();
+    const idx2=parseInt(e.dataTransfer.getData('text'));
     if(isNaN(idx2))return;
     const syl=S.collSyllables[idx2];
     if(syl&&!syl.startsWith('__used_')){
       S.collPlaced.push(syl);
-      S.collSyllables[idx2]='__used_'+idx2+'_'+syl;
+      S.collSyllables[idx2]='__used_'+S.collPlaced.length-1;
       render();
     }
   };
@@ -1673,40 +1685,42 @@ function renderAdaptCollapsed(sc,word){
   if(!S._collChecked){
     const pool=el('div','syllable-pool');
     S.collSyllables.forEach((syl,i)=>{
-      const isUsed=syl.startsWith('__used_');
-      const realSyl=isUsed?'':syl;
+      const isUsed=typeof syl==='string'&&syl.startsWith('__used_');
       const d=el('div','syllable'+(isUsed?' used':''));
-      d.textContent=realSyl;
+      d.textContent=isUsed?'':syl;
       d.draggable=!isUsed;
       d.ondragstart=e=>{e.dataTransfer.setData('text',String(i));d.classList.add('dragging');};
       d.ondragend=()=>d.classList.remove('dragging');
       // Touch
-      d.ontouchstart=e=>{if(isUsed)return;S._touchDragIdx=i;d.classList.add('dragging');};
+      d.ontouchstart=e=>{
+        if(isUsed)return;
+        S._touchDragIdx=i;S._touchDragSyl=syl;
+        d.classList.add('dragging');
+      };
       d.ontouchend=e=>{
         d.classList.remove('dragging');
-        if(S._touchDragIdx===null||S._touchDragIdx===undefined)return;
         const touch=e.changedTouches[0];
         const el2=document.elementFromPoint(touch.clientX,touch.clientY);
-        const tgt=el2&&(el2.id==='coll-target'||el2.closest('#coll-target'));
-        if(tgt){
-          const s2=S.collSyllables[S._touchDragIdx];
-          if(s2&&!s2.startsWith('__used_')){
-            S.collPlaced.push(s2);
-            S.collSyllables[S._touchDragIdx]='__used_'+S._touchDragIdx+'_'+s2;
+        if(el2&&(el2.id==='coll-target'||el2.closest('#coll-target'))){
+          const dragSyl=S.collSyllables[S._touchDragIdx];
+          if(dragSyl&&!dragSyl.startsWith('__used_')){
+            S.collPlaced.push(dragSyl);
+            S.collSyllables[S._touchDragIdx]='__used_'+(S.collPlaced.length-1);
             render();
           }
         }
-        S._touchDragIdx=null;
+        S._touchDragIdx=null;S._touchDragSyl=null;
       };
       pool.appendChild(d);
     });
     sc.appendChild(pool);
 
+    // Check / Give up buttons
     const allPlaced=S.collPlaced.length===syls.length;
     if(allPlaced){
       const chk=el('button','btn bpr bfw');chk.textContent='Проверить';
       chk.onclick=()=>{
-        S._collUserAnswer=[...S.collPlaced];
+        S._collUserAnswer=[...S.collPlaced]; // save user answer before anything
         S._collChecked=true;
         const ok=S.collPlaced.join('')===S.collCorrectSyls.join('');
         S.answers.push(ok?'ok':'err');S.adaptAnswered++;
@@ -1720,10 +1734,9 @@ function renderAdaptCollapsed(sc,word){
     const giveup=el('button','btn bot bfw');giveup.style.marginTop='8px';
     giveup.textContent='🏳️ Сдаюсь';
     giveup.onclick=()=>{
-      S._collUserAnswer=[...S.collPlaced];
-      // Fill remaining with correct to show full word
-      const remaining=S.collCorrectSyls.filter((_,i)=>i>=S.collPlaced.length);
-      S._collUserAnswer=[...S.collPlaced,...remaining.map(()=>'?')];
+      S._collUserAnswer=[...S.collPlaced]; // save whatever was placed
+      // Fill remaining slots with correct syllables to show what's missing
+      S.collPlaced=[...S.collCorrectSyls];
       S._collChecked=true;
       S.answers.push('err');S.adaptAnswered++;
       if(!S.adaptCollWrong.includes(word.id))S.adaptCollWrong.push(word.id);
@@ -1731,9 +1744,10 @@ function renderAdaptCollapsed(sc,word){
     };
     sc.appendChild(giveup);
   } else {
-    const ok=S._collUserAnswer&&S._collUserAnswer.join('')===S.collCorrectSyls.join('');
+    // Checked — show Next button
+    const ok=isCorrect;
     const fb=el('div','fb '+(ok?'fbok':'fber'));
-    fb.textContent=ok?'✅ Верно! '+word.greek:'❌ Правильно: '+word.greek;
+    fb.textContent=ok?'✅ Верно! '+word.greek:'❌ Неверно';
     sc.appendChild(fb);
     const nb=el('button','btn bpr bfw');nb.textContent='Дальше →';
     nb.onclick=()=>adaptCollNext();sc.appendChild(nb);
@@ -1744,7 +1758,7 @@ function renderAdaptCollapsed(sc,word){
   const prog=el('div');prog.style.cssText='font-size:12px;color:var(--mu);font-weight:700;text-align:center;margin-top:10px';
   prog.textContent=(S.adaptWordIdx+1)+' / '+wrongWords.length;
   sc.appendChild(prog);
-}
+
 function adaptCollNext(){
   S._collChecked=false;S._collWord=null;S.collPlaced=[];S.collSyllables=[];
   S.adaptWordIdx++;
