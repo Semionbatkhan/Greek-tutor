@@ -117,7 +117,7 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--txt);min-h
 .cb2:disabled{cursor:default}
 .cb2.ck{border-color:var(--ok);background:var(--ok-light);color:var(--ok-dark)}
 .cb2.cw{border-color:var(--er);background:var(--er-light);color:var(--er-dark)}
-.cb2.ms{border-color:var(--acc);background:var(--acc-light);color:var(--acc);border-width:2.5px;font-weight:800}
+.cb2.ms{border-color:var(--acc);background:var(--acc-light);color:var(--acc);border-width:2.5px;font-weight:800;box-shadow:0 0 0 3px rgba(79,70,229,.15)}
 
 /* WRITE */
 .wi{width:100%;padding:15px;background:var(--card);border:2px solid var(--border);
@@ -259,7 +259,7 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--txt);min-h
 .dark .bwr{color:var(--acc)}
 
 /* Dark mode — selected/matched states need stronger contrast */
-.dark .cb2.ms{border-color:var(--acc);background:rgba(231,76,60,.25);color:#ff8877;border-width:2.5px}
+.dark .cb2.ms{border-color:#f0b429 !important;background:rgba(240,180,41,.25) !important;color:#f0b429 !important;border-width:3px !important}
 .dark .cb2.ck{border-color:var(--ok);background:rgba(240,180,41,.2);color:var(--ok);border-width:2.5px}
 .dark .cb2.cw{border-color:var(--er);background:rgba(255,68,68,.2);color:#ff8888;border-width:2.5px}
 .dark .mi.ms{border-color:var(--acc);background:rgba(231,76,60,.3);color:#ff9988;border-width:2.5px}
@@ -728,7 +728,7 @@ const SECTIONS=[{
       {id:653,greek:"ξέρω",ru:"я знаю",emoji:"",cat:"Глаголы"},
       {id:654,greek:"ξέρουμε",ru:"мы знаем",emoji:"",cat:"Глаголы"},
       {id:655,greek:"ίδια",ru:"одинаковый/та же",emoji:"🟰",cat:"Прилагательные"},
-      {id:656,greek:"μέρα",ru:"день",emoji:"☀️",cat:"Время"},,
+      {id:656,greek:"μέρα",ru:"день",emoji:"☀️",cat:"Время"},
       {id:657,greek:"Εγώ",ru:"я",emoji:"👤",cat:"Местоимения"},
       {id:658,greek:"Εσύ",ru:"ты",emoji:"👤",cat:"Местоимения"},
       {id:659,greek:"Αυτός",ru:"он",emoji:"👤",cat:"Местоимения"},
@@ -1432,14 +1432,10 @@ function renderAdaptiveUnit(){
     d.innerHTML=`<div class="phase-icon">📋</div>
       <div class="phase-title">Итоговые упражнения</div>
       <div class="phase-sub">Сейчас несколько упражнений, которые проверят насколько хорошо усвоились новые слова.</div>`;
-    const br=el('div','br');
-    const skipBtn=el('button','btn bot');skipBtn.style.flex='0.8';
-    skipBtn.textContent='Перейти сразу к итогу';
-    skipBtn.onclick=()=>{S.adaptPhase='summary';S.adaptAnswered++;startAdaptiveSummary();render();};
-    const goBtn=el('button','btn bpr');
+    const goBtn=el('button','btn bpr bfw');
     goBtn.textContent='Поехали →';
     goBtn.onclick=()=>{S.adaptPhase='summary';S.adaptAnswered++;startAdaptiveSummary();render();};
-    br.appendChild(skipBtn);br.appendChild(goBtn);d.appendChild(br);sc.appendChild(d);
+    d.appendChild(goBtn);sc.appendChild(d);
   }
   else if(phase==='summary'){
     if(!S.ex){sc.appendChild(el('div'));wrap.appendChild(sc);return wrap;}
@@ -1588,7 +1584,10 @@ function renderAdaptC4Word(sc,word,isCollapsedFallback){
 }
 
 function renderAdaptCollapsed(sc,word){
-  const syls=splitGreekSyllables(word.greek);
+  // Split into syllables or letters if word <= 3 chars
+  const rawSyls=splitGreekSyllables(word.greek);
+  const syls=(word.greek.length<=3)?[...word.greek]:rawSyls;
+
   // Init if new word
   if(!S.collSyllables||S.collSyllables.length===0||S._collWord!==word.id){
     S._collWord=word.id;
@@ -1596,9 +1595,12 @@ function renderAdaptCollapsed(sc,word){
     S.collPlaced=[];
     S.collCorrectSyls=syls;
     S._collChecked=false;
+    S._collUserAnswer=null;
   }
 
-  const lbl=el('div','ex');lbl.textContent='СОСТАВЬ СЛОВО ПО СЛОГАМ';sc.appendChild(lbl);
+  const lbl=el('div','ex');
+  lbl.textContent=word.greek.length<=3?'СОСТАВЬ СЛОВО ПО БУКВАМ':'СОСТАВЬ СЛОВО ПО СЛОГАМ';
+  sc.appendChild(lbl);
 
   // Word card (Russian)
   const card=el('div','card cc');card.style.marginBottom='10px';
@@ -1610,42 +1612,58 @@ function renderAdaptCollapsed(sc,word){
   const target=el('div','collapsed-target'+(S.collPlaced.length?' has-content':''));
   target.id='coll-target';
   if(S._collChecked){
-    // Show full word colored
-    const ok=S.collPlaced.join('')===S.collCorrectSyls.join('');
+    const ok=S._collUserAnswer&&S._collUserAnswer.join('')===S.collCorrectSyls.join('');
     target.style.borderColor=ok?'var(--ok)':'var(--er)';
+    target.style.borderStyle='solid';
     target.style.background=ok?'var(--ok-light)':'var(--er-light)';
     target.style.color=ok?'var(--ok-dark)':'var(--er)';
-    target.textContent=S.collCorrectSyls.join('·');
+    // Show USER's answer (not the correct one)
+    const displaySyls=S._collUserAnswer||S.collCorrectSyls;
+    displaySyls.forEach(syl=>{
+      const span=el('span');
+      span.style.cssText='padding:2px 4px;font-size:20px;font-weight:900';
+      span.textContent=syl;
+      target.appendChild(span);
+    });
   } else {
     S.collPlaced.forEach((syl,i)=>{
-      const span=el('span');span.style.cssText='cursor:pointer;padding:2px 4px;border-radius:6px;font-size:20px;font-weight:900';
+      const span=el('span');
+      span.style.cssText='cursor:pointer;padding:2px 6px;border-radius:6px;font-size:20px;font-weight:900;background:var(--acc-light);margin:2px';
       span.textContent=syl;
-      span.title='Нажми чтобы убрать';
       span.onclick=()=>{
-        S.collSyllables[S.collSyllables.indexOf('__used_'+i)]=syl;
+        // Return syllable to pool
+        const poolIdx=S.collSyllables.findIndex(s=>s==='__used_'+i+'_'+syl);
+        if(poolIdx>=0)S.collSyllables[poolIdx]=syl;
+        else{
+          // Find first used slot
+          const ui=S.collSyllables.findIndex(s=>s.startsWith('__used_'));
+          if(ui>=0)S.collSyllables[ui]=syl;
+          else S.collSyllables.push(syl);
+        }
         S.collPlaced.splice(i,1);
-        // Fix used markers
         render();
       };
       target.appendChild(span);
     });
     if(!S.collPlaced.length){
       const ph=el('span');ph.style.cssText='color:var(--mu);font-size:14px;font-weight:700';
-      ph.textContent='Перетащи слоги сюда';target.appendChild(ph);
+      ph.textContent='Перетащи сюда';target.appendChild(ph);
     }
   }
 
-  // Drag over
-  target.ondragover=e=>{e.preventDefault();target.classList.add('drag-over');};
-  target.ondragleave=()=>target.classList.remove('drag-over');
+  // Drag over — NO red border, just subtle highlight
+  target.ondragover=e=>{e.preventDefault();target.style.background='rgba(79,70,229,0.08)';};
+  target.ondragleave=()=>{target.style.background='';};
   target.ondrop=e=>{
-    e.preventDefault();target.classList.remove('drag-over');
-    const idx=parseInt(e.dataTransfer.getData('text'));
-    if(isNaN(idx))return;
-    const syl=S.collSyllables[idx];
+    e.preventDefault();target.style.background='';
+    const data=e.dataTransfer.getData('text');
+    if(!data)return;
+    const idx2=parseInt(data);
+    if(isNaN(idx2))return;
+    const syl=S.collSyllables[idx2];
     if(syl&&!syl.startsWith('__used_')){
       S.collPlaced.push(syl);
-      S.collSyllables[idx]='__used_'+idx;
+      S.collSyllables[idx2]='__used_'+idx2+'_'+syl;
       render();
     }
   };
@@ -1656,27 +1674,25 @@ function renderAdaptCollapsed(sc,word){
     const pool=el('div','syllable-pool');
     S.collSyllables.forEach((syl,i)=>{
       const isUsed=syl.startsWith('__used_');
+      const realSyl=isUsed?'':syl;
       const d=el('div','syllable'+(isUsed?' used':''));
-      d.textContent=isUsed?'':syl;
+      d.textContent=realSyl;
       d.draggable=!isUsed;
-      d.ondragstart=e=>{e.dataTransfer.setData('text',i);d.classList.add('dragging');};
+      d.ondragstart=e=>{e.dataTransfer.setData('text',String(i));d.classList.add('dragging');};
       d.ondragend=()=>d.classList.remove('dragging');
-      // Touch drag
-      d.ontouchstart=e=>{
-        if(isUsed)return;
-        S._touchDragIdx=i;
-        S._touchDragEl=d;
-        d.classList.add('dragging');
-      };
+      // Touch
+      d.ontouchstart=e=>{if(isUsed)return;S._touchDragIdx=i;d.classList.add('dragging');};
       d.ontouchend=e=>{
         d.classList.remove('dragging');
+        if(S._touchDragIdx===null||S._touchDragIdx===undefined)return;
         const touch=e.changedTouches[0];
         const el2=document.elementFromPoint(touch.clientX,touch.clientY);
-        if(el2&&(el2.id==='coll-target'||el2.closest('#coll-target'))){
-          const syl2=S.collSyllables[S._touchDragIdx];
-          if(syl2&&!syl2.startsWith('__used_')){
-            S.collPlaced.push(syl2);
-            S.collSyllables[S._touchDragIdx]='__used_'+S._touchDragIdx;
+        const tgt=el2&&(el2.id==='coll-target'||el2.closest('#coll-target'));
+        if(tgt){
+          const s2=S.collSyllables[S._touchDragIdx];
+          if(s2&&!s2.startsWith('__used_')){
+            S.collPlaced.push(s2);
+            S.collSyllables[S._touchDragIdx]='__used_'+S._touchDragIdx+'_'+s2;
             render();
           }
         }
@@ -1686,11 +1702,11 @@ function renderAdaptCollapsed(sc,word){
     });
     sc.appendChild(pool);
 
-    // Buttons
     const allPlaced=S.collPlaced.length===syls.length;
     if(allPlaced){
       const chk=el('button','btn bpr bfw');chk.textContent='Проверить';
       chk.onclick=()=>{
+        S._collUserAnswer=[...S.collPlaced];
         S._collChecked=true;
         const ok=S.collPlaced.join('')===S.collCorrectSyls.join('');
         S.answers.push(ok?'ok':'err');S.adaptAnswered++;
@@ -1701,11 +1717,13 @@ function renderAdaptCollapsed(sc,word){
       sc.appendChild(chk);
     }
 
-    // Give up button
     const giveup=el('button','btn bot bfw');giveup.style.marginTop='8px';
     giveup.textContent='🏳️ Сдаюсь';
     giveup.onclick=()=>{
-      S.collPlaced=[...S.collCorrectSyls];
+      S._collUserAnswer=[...S.collPlaced];
+      // Fill remaining with correct to show full word
+      const remaining=S.collCorrectSyls.filter((_,i)=>i>=S.collPlaced.length);
+      S._collUserAnswer=[...S.collPlaced,...remaining.map(()=>'?')];
       S._collChecked=true;
       S.answers.push('err');S.adaptAnswered++;
       if(!S.adaptCollWrong.includes(word.id))S.adaptCollWrong.push(word.id);
@@ -1713,8 +1731,7 @@ function renderAdaptCollapsed(sc,word){
     };
     sc.appendChild(giveup);
   } else {
-    // Checked state — show Next button
-    const ok=S.collPlaced.join('')===S.collCorrectSyls.join('');
+    const ok=S._collUserAnswer&&S._collUserAnswer.join('')===S.collCorrectSyls.join('');
     const fb=el('div','fb '+(ok?'fbok':'fber'));
     fb.textContent=ok?'✅ Верно! '+word.greek:'❌ Правильно: '+word.greek;
     sc.appendChild(fb);
@@ -1728,7 +1745,6 @@ function renderAdaptCollapsed(sc,word){
   prog.textContent=(S.adaptWordIdx+1)+' / '+wrongWords.length;
   sc.appendChild(prog);
 }
-
 function adaptCollNext(){
   S._collChecked=false;S._collWord=null;S.collPlaced=[];S.collSyllables=[];
   S.adaptWordIdx++;
@@ -2646,9 +2662,17 @@ function renderEx(){
     } else {
       const isOk=S.fillChosen===S.ex.answer;
       const fb=el('div','fb '+(isOk?'fbok':'fber'));
-      const corrSent=S.ex.sentence.replace(/___/g,()=>S.ex.answer);
-      fb.textContent=isOk?'✅ Верно!':'❌ '+corrSent;
+      fb.textContent=isOk?'✅ Верно!':'❌ Неверно';
       ew.appendChild(fb);
+      // Always show full correct sentence
+      const corrSent=S.ex.sentence.replace(/___/g,S.ex.answer);
+      const sentBox=el('div');
+      sentBox.style.cssText='background:var(--ok-light);border:1.5px solid var(--ok);border-radius:12px;padding:12px 14px;margin-top:6px;font-size:15px;font-weight:700;color:var(--ok-dark);display:flex;align-items:center;gap:10px';
+      const sentText=el('span');sentText.style.flex='1';sentText.textContent=corrSent;
+      const sentSpk=el('button','spk');sentSpk.textContent='🔊';
+      sentSpk.onclick=()=>speak(corrSent);
+      sentBox.appendChild(sentText);sentBox.appendChild(sentSpk);
+      ew.appendChild(sentBox);
       const nb=el('button','btn bpr bfw');nb.textContent='Дальше →';
       nb.onclick=()=>{S.fillChecked=false;S.fillChosen=null;advance(isOk);};
       ew.appendChild(nb);
