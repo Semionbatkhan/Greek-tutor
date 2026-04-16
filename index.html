@@ -1482,10 +1482,7 @@ function renderAdaptFC(sc){
   };
   br.appendChild(nb);br.appendChild(yb);sc.appendChild(br);
 
-  // Progress dots
-  const prog=el('div');prog.style.cssText='font-size:12px;color:var(--mu);font-weight:700;text-align:center;margin-top:10px';
-  prog.textContent=(S.adaptWordIdx+1)+' / '+words.length;
-  sc.appendChild(prog);
+
 }
 
 function renderAdaptC4(sc){
@@ -1535,21 +1532,6 @@ function renderAdaptC4Word(sc,word,isCollapsedFallback){
       S.answers.push(ok?'ok':'err');S.adaptAnswered++;
       if(!ok&&!S.adaptC4Wrong.includes(word.id))S.adaptC4Wrong.push(word.id);
       render();
-      if(ok){
-        setTimeout(()=>{
-          S._adaptC4Opts=null;S._adaptC4Word=null;S._adaptC4Checked=false;S._adaptC4Chosen=null;
-          if(isCollapsedFallback){
-            S.adaptWordIdx++;
-            const wrongWords=adaptGetWords().filter(w=>S.adaptC4Wrong.includes(w.id));
-            if(S.adaptWordIdx>=wrongWords.length){adaptNextPhase();}
-          } else {
-            S.adaptWordIdx++;
-            const unknownWords=adaptGetWords().filter(w=>S.adaptUnknown.includes(w.id));
-            if(S.adaptWordIdx>=unknownWords.length){adaptNextPhase();}
-          }
-          render();
-        },1000);
-      }
     };
     sc.appendChild(chk);
   }
@@ -1558,8 +1540,8 @@ function renderAdaptC4Word(sc,word,isCollapsedFallback){
     const fb=el('div','fb '+(ok?'fbok':'fber'));
     fb.textContent=ok?'✅ Верно!':'❌ Правильно: '+word.ru;
     sc.appendChild(fb);
-    if(!ok){
-      const nb=el('button','btn bpr bfw');nb.textContent='Дальше →';
+    {
+      const nb=el('button','btn bpr bfw');nb.textContent='Дальше →';nb.style.marginTop='8px';
       nb.onclick=()=>{
         S._adaptC4Opts=null;S._adaptC4Word=null;S._adaptC4Checked=false;S._adaptC4Chosen=null;
         if(isCollapsedFallback){
@@ -1576,11 +1558,6 @@ function renderAdaptC4Word(sc,word,isCollapsedFallback){
       sc.appendChild(nb);
     }
   }
-  // Progress
-  const phaseWords=isCollapsedFallback?adaptGetWords().filter(w=>S.adaptC4Wrong.includes(w.id)):adaptGetWords().filter(w=>S.adaptUnknown.includes(w.id));
-  const prog=el('div');prog.style.cssText='font-size:12px;color:var(--mu);font-weight:700;text-align:center;margin-top:10px';
-  prog.textContent=(S.adaptWordIdx+1)+' / '+phaseWords.length;
-  sc.appendChild(prog);
 }
 
 function renderAdaptCollapsed(sc,word){
@@ -1753,11 +1730,6 @@ function renderAdaptCollapsed(sc,word){
     nb.onclick=()=>adaptCollNext();sc.appendChild(nb);
   }
 
-  // Progress
-  const wrongWords=adaptGetWords().filter(w=>S.adaptC4Wrong.includes(w.id));
-  const prog=el('div');prog.style.cssText='font-size:12px;color:var(--mu);font-weight:700;text-align:center;margin-top:10px';
-  prog.textContent=(S.adaptWordIdx+1)+' / '+wrongWords.length;
-  sc.appendChild(prog);
 }
 
 function adaptCollNext(){
