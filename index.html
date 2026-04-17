@@ -2656,14 +2656,14 @@ function renderEx(){
       // Split answer by ' / ' to fill each blank separately
       const parts=S.ex.answer.split(/\s*\/\s*/);
       let idx=0;
-      const full=S.ex.sentence.replace(/___/g, ()=>parts[idx++]||parts[parts.length-1]);
+      const full=S.ex.sentence.replace(/_{3,}/g, ()=>parts[idx++]||parts[parts.length-1]);
       speak(full);
     };
     sentRow.appendChild(sent);sentRow.appendChild(sentSpk);card.appendChild(sentRow);
     // Translation hint
     const tr=el('div');tr.style.cssText='font-size:13px;color:var(--mu);font-weight:600;margin-bottom:8px';
     // Show full translation - replace ___ with underline placeholder
-    const translationFull = S.ex.translation.replace(/___/g,'_____');
+    const translationFull = S.ex.translation.replace(/_{3,}/g,'_____');
     tr.textContent=translationFull;card.appendChild(tr);
 
     ew.appendChild(card);
@@ -2697,7 +2697,7 @@ function renderEx(){
       fb.textContent=isOk?'✅ Верно!':'❌ Неверно';
       ew.appendChild(fb);
       // Always show full correct sentence
-      const corrSent=S.ex.sentence.replace(/___/g,S.ex.answer);
+      const corrSent=S.ex.sentence.replace(/_{3,}/g,S.ex.answer);
       const sentBox=el('div');
       sentBox.style.cssText='background:var(--ok-light);border:1.5px solid var(--ok);border-radius:12px;padding:12px 14px;margin-top:6px;font-size:15px;font-weight:700;color:var(--ok-dark);display:flex;align-items:center;gap:10px';
       const sentText=el('span');sentText.style.flex='1';sentText.textContent=corrSent;
