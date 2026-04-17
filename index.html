@@ -1203,37 +1203,49 @@ function el(tag,cls,html){const e=document.createElement(tag);if(cls)e.className
 
 // ─── GREEK SYLLABLE SPLITTER ──────────────────────────────
 function splitGreekSyllables(word){
-  const vowels='αεηιοωυάέήίόώύϊϋΐΰ';
-  const isVowel=c=>vowels.includes(c.toLowerCase());
-  // Simple rule: split before consonant+vowel groups
+  const vowels='αεηιοωυάέήίόώύϊϋΐΰΑΕΗΙΟΩΥ';
+  const isVowel=c=>vowels.includes(c);
   const letters=[...word];
-  const syllables=[];
-  let current='';
-  for(let i=0;i<letters.length;i++){
-    current+=letters[i];
-    if(isVowel(letters[i])){
-      // Check if next char is consonant followed by vowel → keep with next
-      if(i+1<letters.length&&!isVowel(letters[i+1])&&i+2<letters.length&&isVowel(letters[i+2])){
-        syllables.push(current);current='';
-      } else if(i+1<letters.length&&isVowel(letters[i+1])){
-        // two vowels: split here unless diphthong
-        syllables.push(current);current='';
-      } else if(i===letters.length-1){
-        syllables.push(current);current='';
-      } else {
-        syllables.push(current);current='';
+  const n=letters.length;
+  if(n===0)return[];
+
+  // Mark vowel positions
+  const vPos=letters.map(isVowel);
+
+  // Find syllable break points
+  // Rule: each syllable has exactly one vowel nucleus
+  // Break before a consonant that starts a new syllable
+  const breaks=[0];
+  for(let i=1;i<n;i++){
+    if(vPos[i]&&!vPos[i-1]){
+      // consonant before vowel — potential break
+      // look back to find where this consonant cluster starts
+      let clusterStart=i-1;
+      while(clusterStart>0&&!vPos[clusterStart-1])clusterStart--;
+      // if cluster has 2+ consonants, split in the middle
+      const clusterLen=i-clusterStart;
+      if(clusterLen>=2){
+        breaks.push(clusterStart+Math.floor(clusterLen/2));
+      } else if(clusterStart>0){
+        breaks.push(clusterStart);
       }
     }
   }
-  if(current)syllables.push(current);
-  // Merge single-char non-vowel syllables with neighbors
-  const merged=[];
-  for(let i=0;i<syllables.length;i++){
-    if(syllables[i].length===1&&!isVowel(syllables[i])&&merged.length){
-      merged[merged.length-1]+=syllables[i];
-    } else {merged.push(syllables[i]);}
+
+  // Build syllables from breaks
+  const uniqueBreaks=[...new Set(breaks)].sort((a,b)=>a-b);
+  const syllables=[];
+  for(let i=0;i<uniqueBreaks.length;i++){
+    const start=uniqueBreaks[i];
+    const end=i+1<uniqueBreaks.length?uniqueBreaks[i+1]:n;
+    const syl=letters.slice(start,end).join('');
+    if(syl)syllables.push(syl);
   }
-  return merged.filter(s=>s.length>0);
+
+  // Filter empty, merge orphan consonants
+  const result=syllables.filter(s=>s.length>0);
+  if(result.length===0)return[word];
+  return result;
 }
 
 // ─── ADAPTIVE UNIT HELPERS ───────────────────────────────
@@ -1425,9 +1437,10 @@ function renderAdaptiveUnit(){
   else if(phase==='collapsed'){
     const word=adaptCurrentWord();
     if(!word){adaptNextPhase();render();return wrap;}
+    // Words with slash, spaces, or too short → C4 fallback
+    const hasSlash=word.greek.includes('/')||word.greek.includes(' ')||word.greek.includes('·');
     const syls=splitGreekSyllables(word.greek);
-    if(word.greek.length<=3||syls.length<2){
-      // Too short — do C4 instead
+    if(word.greek.length<=3||syls.length<2||hasSlash){
       renderAdaptC4Fallback(sc,word);
     } else {
       renderAdaptCollapsed(sc,word);
@@ -1518,7 +1531,7 @@ function renderAdaptC4Word(sc,word,isCollapsedFallback){
     S._adaptC4Chosen=null;
   }
 
-  const chs=el('div','chs');chs.style.marginTop='8px';
+  const chs=el('div','chs');chs.style.cssText='display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px;margin-bottom:12px';
   S._adaptC4Opts.forEach(o=>{
     let cls='cb2';
     if(S._adaptC4Checked){if(o.id===word.id)cls+=' ck';else if(o.id===S._adaptC4Chosen)cls+=' cw';}
@@ -3376,7 +3389,7 @@ function renderPopup(){
       <div style="font-size:36px;margin-bottom:10px">↺</div>
       <div style="font-size:17px;font-weight:900;color:var(--txt);margin-bottom:8px">Сбросить прогресс?</div>
       <div style="font-size:13px;color:var(--mu);font-weight:600;margin-bottom:20px;line-height:1.5">
-        Все упражнения юнита начнутся заново.<br>Прогресс юнита, раздела и учебника обнулится.
+        Все упражнения юнита начнутся заново.<br>Прогресс юнита обнулится.
       </div>
     `;
     const br=el('div','br');
