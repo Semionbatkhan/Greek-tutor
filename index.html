@@ -1160,6 +1160,11 @@ function buildPEx(){
 }
 
 // ─── RENDER ───────────────────────────────────────────────
+function saveAdaptState(){
+  if(!S.activeUnit)return;
+  saveAdaptState();
+}
+
 function render(){
   // Auto-save adaptive state on every render if in summary phase
   if(S.mode==='unit'&&S.activeUnit&&isAdaptiveUnit(S.activeUnit)&&S.adaptPhase==='summary'){
@@ -1318,10 +1323,6 @@ function adaptInitCollapsed(word){
 }
 
 // ─── START ADAPTIVE UNIT ─────────────────────────────────
-function saveAdaptState(){
-  if(!S.activeUnit)return;
-  saveAdaptState();
-}
 
 function startAdaptiveUnit(unit){
   S.activeUnit=unit;
