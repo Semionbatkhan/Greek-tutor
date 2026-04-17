@@ -1166,6 +1166,21 @@ function buildPEx(){
 
 // ─── RENDER ───────────────────────────────────────────────
 function render(){
+  // Auto-save adaptive state on every render if in summary phase
+  if(S.mode==='unit'&&S.activeUnit&&isAdaptiveUnit(S.activeUnit)&&S.adaptPhase==='summary'){
+    LS.set('adaptState',{
+      unitId:S.activeUnit.id,
+      phase:'summary',
+      unknown:S.adaptUnknown,
+      c4wrong:S.adaptC4Wrong,
+      collwrong:S.adaptCollWrong,
+      wordIdx:S.adaptWordIdx,
+      qi:S.qi,
+      answered:S.adaptAnswered,
+      answers:S.answers||[],
+      score:S.score
+    });
+  }
   const app=document.getElementById('app');
   if(S.darkMode){app.classList.add('dark');}else{app.classList.remove('dark');}
 
@@ -1334,7 +1349,13 @@ function startAdaptiveUnit(unit){
     S.score=saved.score||{c:0,w:0,st:0};
     S.errs=[];
     // Rebuild queue for current phase
-    if(saved.phase==='summary'){startAdaptiveSummary();}
+    if(saved.phase==='summary'){
+      startAdaptiveSummary();
+      if(saved.qi&&saved.qi>0){
+        S.qi=Math.min(saved.qi,S.queue.length-1);
+        nextEx();
+      }
+    }
     S.mode='unit';render();return;
   }
   S.adaptPhase='theory';
@@ -1376,6 +1397,7 @@ function renderAdaptiveUnit(){
       c4wrong:S.adaptC4Wrong,
       collwrong:S.adaptCollWrong,
       wordIdx:S.adaptWordIdx,
+      qi:S.qi,
       answered:S.adaptAnswered,
       answers:S.answers||[],
       score:S.score
