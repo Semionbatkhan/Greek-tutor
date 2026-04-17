@@ -2700,7 +2700,9 @@ function renderEx(){
       fb.textContent=isOk?'✅ Верно!':'❌ Неверно';
       ew.appendChild(fb);
       // Always show full correct sentence
-      const corrSent=S.ex.sentence.replace(/_{3,}/g,S.ex.answer);
+      const corrParts=S.ex.answer.split(/\s*\/\s*/);
+      let corrIdx=0;
+      const corrSent=S.ex.sentence.replace(/_{3,}/g,()=>corrParts[corrIdx++]||corrParts[corrParts.length-1]);
       const sentBox=el('div');
       sentBox.style.cssText='background:var(--ok-light);border:1.5px solid var(--ok);border-radius:12px;padding:12px 14px;margin-top:6px;font-size:15px;font-weight:700;color:var(--ok-dark);display:flex;align-items:center;gap:10px';
       const sentText=el('span');sentText.style.flex='1';sentText.textContent=corrSent;
