@@ -1452,8 +1452,8 @@ function renderAdaptiveUnit(){
   else if(phase==='summary_intro'){
     const d=el('div','phase-screen');
     d.innerHTML=`<div class="phase-icon">📋</div>
-      <div class="phase-title">Итоговые упражнения</div>
-      <div class="phase-sub">Сейчас несколько упражнений, которые проверят насколько хорошо усвоились новые слова.</div>`;
+      <div class="phase-title">Упражнения</div>
+      <div class="phase-sub">Сделайте несколько упражнений с незнакомыми словами, чтобы начать их постепенно запоминать.<br><br>После окончания этого юнита перейдите в раздел <b>Практика</b>, где вы сможете делать упражнения и читать тексты с новыми словами до тех пор, пока они не перейдут из короткой памяти в долгую.</div>`;
     const goBtn=el('button','btn bpr bfw');
     goBtn.textContent='Поехали →';
     goBtn.onclick=()=>{S.adaptPhase='summary';S.adaptAnswered++;startAdaptiveSummary();render();};
