@@ -99,7 +99,7 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--txt);min-h
 .g{color:var(--ok)}.r{color:var(--er)}.y{color:var(--acc3)}.b{color:var(--acc)}
 
 /* CARDS */
-.card{background:var(--sur);border-radius:var(--r);padding:24px;border:1.5px solid var(--border);box-shadow:var(--shadow)}
+.card{background:var(--sur);border-radius:var(--r);padding:24px;border:1.5px solid var(--border);box-shadow:var(--shadow);border-color:var(--border)}
 .cc{text-align:center}
 .be{font-size:64px;margin-bottom:10px;line-height:1}
 .bw{font-family:'Nunito',sans-serif;font-size:28px;font-weight:900;line-height:1.3;color:var(--txt)}
@@ -154,7 +154,7 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--txt);min-h
 .ew{display:flex;flex-direction:column;gap:14px}
 
 /* SECTION/UNIT */
-.sb{background:var(--sur);border-radius:var(--r);margin-bottom:14px;overflow:hidden;border:1.5px solid var(--border);box-shadow:var(--shadow)}
+.sb{background:var(--sur);border-radius:var(--r);margin-bottom:14px;overflow:hidden;border:1.5px solid var(--border);box-shadow:var(--shadow);border-color:var(--border)}
 .sh{padding:16px;display:flex;align-items:center;gap:12px;background:var(--sh-grad)}
 .st{font-size:14px;font-weight:900;color:var(--acc)}
 .ss{font-size:12px;color:var(--mu);margin-top:2px;font-weight:600}
@@ -216,7 +216,7 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--txt);min-h
 .phe{font-size:13px;color:var(--mu);font-weight:600}
 
 /* PROGRESS CARDS */
-.prog-card{background:var(--sur);border-radius:var(--r);padding:18px;border:1.5px solid var(--border);box-shadow:var(--shadow);margin-bottom:10px}
+.prog-card{background:var(--sur);border-radius:var(--r);padding:18px;border:1.5px solid var(--border);box-shadow:var(--shadow);margin-bottom:10px;border-color:#4a4a4a}
 .prog-title{font-size:11px;font-weight:800;letter-spacing:2px;color:var(--mu);text-transform:uppercase;margin-bottom:8px}
 .prog-pct{font-size:28px;font-weight:900;color:var(--acc);margin-bottom:6px}
 
@@ -273,7 +273,7 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--txt);min-h
 
 /* Dark mode listen player */
 .dark .listen-player-btn{background:var(--acc)}
-.dark .prog-card{border-color:#4a4a4a}
+.dark 
 /* Dark mode nav active underline */
 .dark .nt.on{color:var(--ok);border-bottom-color:var(--ok)}
 
@@ -337,10 +337,6 @@ function renderWordVisual(word, card){
 
 // No pronunciation map - let Greek TTS handle it natively
 // Single letter articles (η, ο) are spoken naturally by el-GR voice
-function applyPronunciation(text){
-  return text; // pass through unchanged
-}
-
 function stripNonGreek(text){
   return text
     .replace(/[а-яёА-ЯЁ]+/g,'') // remove Cyrillic
@@ -385,7 +381,6 @@ function speakList(texts){
   texts.forEach((text,i)=>{
     const clean=stripNonGreek(text);
     if(!clean)return;
-    const pronounced=applyPronunciation(clean);
     const u=new SpeechSynthesisUtterance(pronounced);
     u.lang='el-GR';u.rate=0.75;u.pitch=1;
     if(greekVoice)u.voice=greekVoice;
@@ -1168,18 +1163,7 @@ function buildPEx(){
 function render(){
   // Auto-save adaptive state on every render if in summary phase
   if(S.mode==='unit'&&S.activeUnit&&isAdaptiveUnit(S.activeUnit)&&S.adaptPhase==='summary'){
-    LS.set('adaptState',{
-      unitId:S.activeUnit.id,
-      phase:'summary',
-      unknown:S.adaptUnknown,
-      c4wrong:S.adaptC4Wrong,
-      collwrong:S.adaptCollWrong,
-      wordIdx:S.adaptWordIdx,
-      qi:S.qi,
-      answered:S.adaptAnswered,
-      answers:S.answers||[],
-      score:S.score
-    });
+    saveAdaptState();
   }
   const app=document.getElementById('app');
   if(S.darkMode){app.classList.add('dark');}else{app.classList.remove('dark');}
@@ -1334,6 +1318,11 @@ function adaptInitCollapsed(word){
 }
 
 // ─── START ADAPTIVE UNIT ─────────────────────────────────
+function saveAdaptState(){
+  if(!S.activeUnit)return;
+  saveAdaptState();
+}
+
 function startAdaptiveUnit(unit){
   S.activeUnit=unit;
   // Try to restore saved progress
@@ -1350,11 +1339,9 @@ function startAdaptiveUnit(unit){
     S.errs=[];
     // Rebuild queue for current phase
     if(saved.phase==='summary'){
-      startAdaptiveSummary();
-      if(saved.qi&&saved.qi>0){
-        S.qi=Math.min(saved.qi,S.queue.length-1);
-        nextEx();
-      }
+      startAdaptiveSummary(true); // build queue but don't call nextEx yet
+      S.qi=Math.min(saved.qi||0, Math.max(0,S.queue.length-1));
+      nextEx(); // load the correct exercise
     }
     S.mode='unit';render();return;
   }
@@ -1390,18 +1377,7 @@ function renderAdaptiveUnit(){
   const back=el('button');back.innerHTML='&#8592;';
   back.style.cssText='background:none;border:none;color:var(--mu);cursor:pointer;font-size:36px;line-height:1;flex-shrink:0;padding:0 4px 2px';
   back.onclick=()=>{
-    LS.set('adaptState',{
-      unitId:S.activeUnit?.id,
-      phase:S.adaptPhase,
-      unknown:S.adaptUnknown,
-      c4wrong:S.adaptC4Wrong,
-      collwrong:S.adaptCollWrong,
-      wordIdx:S.adaptWordIdx,
-      qi:S.qi,
-      answered:S.adaptAnswered,
-      answers:S.answers||[],
-      score:S.score
-    });
+    saveAdaptState();
     S.mode='home';
     LS.set('lastMode','home');
     
@@ -1515,7 +1491,7 @@ function renderAdaptFC(sc){
     S.answers.push('err');S.adaptAnswered++;
     S.adaptWordIdx++;
     if(S.adaptWordIdx>=words.length){adaptNextPhase();}
-    LS.set('adaptState',{unitId:S.activeUnit?.id,phase:S.adaptPhase,unknown:S.adaptUnknown,c4wrong:S.adaptC4Wrong,collwrong:S.adaptCollWrong,wordIdx:S.adaptWordIdx,answered:S.adaptAnswered,answers:S.answers,score:S.score});
+    saveAdaptState();
     render();
   };
   const yb=el('button','btn bok');yb.textContent='✅ Знаю';
@@ -1523,7 +1499,7 @@ function renderAdaptFC(sc){
     S.answers.push('ok');S.adaptAnswered++;
     S.adaptWordIdx++;
     if(S.adaptWordIdx>=words.length){adaptNextPhase();}
-    LS.set('adaptState',{unitId:S.activeUnit?.id,phase:S.adaptPhase,unknown:S.adaptUnknown,c4wrong:S.adaptC4Wrong,collwrong:S.adaptCollWrong,wordIdx:S.adaptWordIdx,answered:S.adaptAnswered,answers:S.answers,score:S.score});
+    saveAdaptState();
     render();
   };
   br.appendChild(nb);br.appendChild(yb);sc.appendChild(br);
@@ -1786,7 +1762,7 @@ function adaptCollNext(){
   render();
 }
 
-function startAdaptiveSummary(){
+function startAdaptiveSummary(skipNextEx){
   // Build summary queue: fill + listen
   const fills=FILL_EXERCISES.filter(f=>f.unitId==='s1u0');
   const listens=LISTEN_EXERCISES.filter(l=>l.unitId==='s1u0');
@@ -1794,7 +1770,7 @@ function startAdaptiveSummary(){
   fills.forEach(f=>queue.push({type:'FILL_SLOT',fillId:f.id}));
   listens.forEach(l=>l.questions.forEach((_,qIdx)=>queue.push({type:'LISTEN_SLOT',listenId:l.id,qIdx})));
   S.queue=queue;S.qi=0;
-  nextEx();
+  if(!skipNextEx)nextEx();
 }
 
 
