@@ -1177,7 +1177,7 @@ function render(){
   [['learn','🎓','Учиться'],['words','📖','Слова'],['practice','⚡','Практика'],['phonics','🔤','Фонетика']].forEach(([id,icon,label])=>{
     const btn=el('button','nt'+(S.tab===id?' on':''));
     btn.innerHTML=`<span class="ni">${icon}</span>${label}`;
-    btn.onclick=()=>{S.tab=id;S.mode='home';LS.set('lastMode','home');sessionStorage.removeItem('inUnit');save();if(id==='practice'&&!S.pEx)buildPEx();render();};
+    btn.onclick=()=>{S.tab=id;S.mode='home';LS.set('lastMode','home');save();if(id==='practice'&&!S.pEx)buildPEx();render();};
     nav.appendChild(btn);
   });
   const dmBtn=el('button','nt');
@@ -1350,7 +1350,7 @@ function startAdaptiveUnit(unit){
   S.queue=theories.map(t=>({type:'THEORY_SLOT',theoryId:t.id}));
   S.qi=0;
   S.mode='unit';
-  sessionStorage.setItem('inUnit','1');
+  
   nextEx();render();
 }
 
@@ -1382,7 +1382,7 @@ function renderAdaptiveUnit(){
     });
     S.mode='home';
     LS.set('lastMode','home');
-    sessionStorage.removeItem('inUnit');
+    
     render();
   };
   ps.appendChild(back);
@@ -1855,7 +1855,7 @@ function renderHome(){
           const errWords=unitErrs.map(id=>ALL_WORDS.find(w=>w.id===id)).filter(Boolean);
           S.activeUnit=u;S.queue=shuffle(errWords);S.qi=0;
           S.score={c:0,w:0,st:0};S.errs=[];S.answers=[];S.mode='unit';
-          sessionStorage.setItem('inUnit','1');
+          
           LS.set('session',null);
           nextEx();render();
         };
@@ -1969,7 +1969,7 @@ function startUnit(unit){
     S.unitQueueLens=S.unitQueueLens||{};
     S.unitQueueLens[unit.id]=mixed.length;
   }
-  S.lastActiveUnitId=S.activeUnit?.id;LS.set('lastActiveUnitId',S.lastActiveUnitId);S.mode='unit';sessionStorage.setItem('inUnit','1');nextEx();render();
+  S.lastActiveUnitId=S.activeUnit?.id;LS.set('lastActiveUnitId',S.lastActiveUnitId);S.mode='unit';nextEx();render();
 }
 
 function prevEx(){
@@ -3536,10 +3536,12 @@ function renderPopup(){
 (function restoreSession(){
   const lastMode=LS.get('lastMode',null);
   const lastUnitId=LS.get('lastUnitId',null);
-  // Only restore if user was actively inside a unit AND session is still alive (not a refresh)
-  const sessionAlive=sessionStorage.getItem('inUnit')==='1';
-  if(lastMode!=='unit'||!lastUnitId||!sessionAlive)return;
-  sessionStorage.setItem('inUnit','1'); // keep alive after restore
+  // Only restore if user was actively inside a unit
+  // Detect refresh: performance.navigation.type===1 means page was refreshed
+  const isRefresh=(performance&&performance.navigation&&performance.navigation.type===1)||
+    (performance&&performance.getEntriesByType&&
+      performance.getEntriesByType('navigation')[0]?.type==='reload');
+  if(lastMode!=='unit'||!lastUnitId||isRefresh)return;
   const unit=SECTIONS.flatMap(s=>s.units).find(u=>u.id===lastUnitId);
   if(!unit)return;
   S.activeUnit=unit;
