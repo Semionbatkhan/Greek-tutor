@@ -1177,7 +1177,7 @@ function render(){
   [['learn','🎓','Учиться'],['words','📖','Слова'],['practice','⚡','Практика'],['phonics','🔤','Фонетика']].forEach(([id,icon,label])=>{
     const btn=el('button','nt'+(S.tab===id?' on':''));
     btn.innerHTML=`<span class="ni">${icon}</span>${label}`;
-    btn.onclick=()=>{S.tab=id;save();if(id==='practice'&&!S.pEx)buildPEx();render();};
+    btn.onclick=()=>{S.tab=id;S.mode='home';LS.set('lastMode','home');save();if(id==='practice'&&!S.pEx)buildPEx();render();};
     nav.appendChild(btn);
   });
   const dmBtn=el('button','nt');
@@ -1379,7 +1379,9 @@ function renderAdaptiveUnit(){
       answers:S.answers||[],
       score:S.score
     });
-    S.mode='home';render();
+    S.mode='home';
+    LS.set('lastMode','home'); // explicitly mark we're on home now
+    render();
   };
   ps.appendChild(back);
 
@@ -3527,50 +3529,46 @@ function renderPopup(){
   LS.set('checked',[...savedChecked]);
 })();
 
-// Restore last open unit if user left mid-session
+// Restore session — only if user was inside a unit when they left
 (function restoreSession(){
   const lastMode=LS.get('lastMode',null);
   const lastUnitId=LS.get('lastUnitId',null);
-  if(lastMode==='unit'&&lastUnitId){
-    const unit=SECTIONS.flatMap(s=>s.units).find(u=>u.id===lastUnitId);
-    if(unit){
-      S.activeUnit=unit;
-      S.mode='unit';
-      if(isAdaptiveUnit(unit)){
-        // Restore adaptive state
-        const saved=LS.get('adaptState',null);
-        if(saved&&saved.unitId===lastUnitId&&saved.phase&&saved.phase!=='theory'){
-          S.adaptPhase=saved.phase;
-          S.adaptUnknown=saved.unknown||[];
-          S.adaptC4Wrong=saved.c4wrong||[];
-          S.adaptCollWrong=saved.collwrong||[];
-          S.adaptWordIdx=saved.wordIdx||0;
-          S.adaptAnswered=saved.answered||0;
-          S.answers=saved.answers||[];
-          S.score=saved.score||{c:0,w:0,st:0};
-          if(saved.phase==='summary'){startAdaptiveSummary();}
-        } else {
-          // Start fresh adaptive
-          startAdaptiveUnit(unit);return;
-        }
-      } else {
-        // Restore regular unit session
-        const sess=LS.get('session',null);
-        if(sess&&sess.unitId===lastUnitId){
-          S.queue=sess.queue.map(item=>{
-            if(!item)return null;
-            if(item.type&&['FILL_SLOT','LISTEN_SLOT','THEORY_SLOT'].includes(item.type))return item;
-            if(item.type&&['FC','C4','WRITE','MATCH'].includes(item.type))return item;
-            return ALL_WORDS.find(w=>w.id===item);
-          }).filter(Boolean);
-          S.qi=sess.qi||0;
-          S.score=sess.score||{c:0,w:0,st:0};
-          S.answers=sess.answers||[];
-          nextEx();
-        } else {
-          startUnit(unit);return;
-        }
-      }
+  // Only restore if user was actively inside a unit (not home/words/practice/phonics)
+  if(lastMode!=='unit'||!lastUnitId)return;
+  const unit=SECTIONS.flatMap(s=>s.units).find(u=>u.id===lastUnitId);
+  if(!unit)return;
+  S.activeUnit=unit;
+  S.mode='unit';
+  if(isAdaptiveUnit(unit)){
+    const saved=LS.get('adaptState',null);
+    if(saved&&saved.unitId===lastUnitId&&saved.phase&&saved.phase!=='theory'){
+      S.adaptPhase=saved.phase;
+      S.adaptUnknown=saved.unknown||[];
+      S.adaptC4Wrong=saved.c4wrong||[];
+      S.adaptCollWrong=saved.collwrong||[];
+      S.adaptWordIdx=saved.wordIdx||0;
+      S.adaptAnswered=saved.answered||0;
+      S.answers=saved.answers||[];
+      S.score=saved.score||{c:0,w:0,st:0};
+      if(saved.phase==='summary'){startAdaptiveSummary();}
+    } else {
+      startAdaptiveUnit(unit);
+    }
+  } else {
+    const sess=LS.get('session',null);
+    if(sess&&sess.unitId===lastUnitId){
+      S.queue=sess.queue.map(item=>{
+        if(!item)return null;
+        if(item.type&&['FILL_SLOT','LISTEN_SLOT','THEORY_SLOT'].includes(item.type))return item;
+        if(item.type&&['FC','C4','WRITE','MATCH'].includes(item.type))return item;
+        return ALL_WORDS.find(w=>w.id===item);
+      }).filter(Boolean);
+      S.qi=sess.qi||0;
+      S.score=sess.score||{c:0,w:0,st:0};
+      S.answers=sess.answers||[];
+      nextEx();
+    } else {
+      startUnit(unit);
     }
   }
 })();
