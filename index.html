@@ -3536,12 +3536,8 @@ function renderPopup(){
 (function restoreSession(){
   const lastMode=LS.get('lastMode',null);
   const lastUnitId=LS.get('lastUnitId',null);
-  // Only restore if user was actively inside a unit
-  // Detect refresh: performance.navigation.type===1 means page was refreshed
-  const isRefresh=(performance&&performance.navigation&&performance.navigation.type===1)||
-    (performance&&performance.getEntriesByType&&
-      performance.getEntriesByType('navigation')[0]?.type==='reload');
-  if(lastMode!=='unit'||!lastUnitId||isRefresh)return;
+  // Restore if user was inside a unit — both on refresh AND on return from another app
+  if(lastMode!=='unit'||!lastUnitId)return;
   const unit=SECTIONS.flatMap(s=>s.units).find(u=>u.id===lastUnitId);
   if(!unit)return;
   S.activeUnit=unit;
