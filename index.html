@@ -1068,6 +1068,7 @@ let S={
   collSyllables:[],    // current collapsed syllable arrangement
   collPlaced:[],       // placed syllables in order
   collDragging:null,   // currently dragging syllable index
+  collapsedSections:{},  // sectionId -> bool
   toast:null,
   darkMode:LS.get('darkMode',false),
   genText:LS.get('genText',null),      // {greek, russian, loading}
@@ -1778,24 +1779,45 @@ function renderHome(){
 
   // Book progress
   const bc=el('div','prog-card');
+  bc.style.position='relative';
+  const bookInfoBtn=el('button');
+  bookInfoBtn.style.cssText='position:absolute;top:12px;right:12px;background:var(--spk-bg);border:none;border-radius:50%;width:22px;height:22px;font-size:12px;font-weight:900;color:var(--acc);cursor:pointer;display:flex;align-items:center;justify-content:center';
+  bookInfoBtn.textContent='ℹ';
+  bookInfoBtn.onclick=()=>{S.popup={type:'bookInfo'};render();};
   bc.innerHTML=`
     <div class="prog-title">📚 Учебник — общий прогресс</div>
     <div class="prog-pct">${bookPct}%</div>
     <div class="pb-wrap"><div class="pb-fill" style="width:${bookPct}%"></div></div>
   `;
+  bc.appendChild(bookInfoBtn);
   sc.appendChild(bc);
 
   SECTIONS.forEach(sec=>{
     const secPct=sectionProgress(sec);
+    const isCollapsed=S.collapsedSections[sec.id]===true;
     const sb=el('div','sb');
-    sb.innerHTML=`<div class="sh">
+    
+    // Section header — clickable dropdown
+    const sh=el('div','sh');
+    sh.style.cssText='cursor:pointer;user-select:none;';
+    sh.innerHTML=`
       <div style="font-size:26px">📖</div>
       <div style="flex:1">
         <div class="st">${sec.title}</div>
-        <div class="ss">${sec.subtitle} · ${sec.units.length} юнитов</div>
+        <div class="ss" style="margin-top:2px">${sec.subtitle} · ${sec.units.length} юнитов</div>
       </div>
-      <div style="font-size:15px;font-weight:900;color:var(--acc)">${secPct}%</div>
-    </div>`;
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="font-size:15px;font-weight:900;color:var(--acc)">${secPct}%</div>
+        <div style="font-size:18px;color:var(--mu);transition:transform .25s;transform:rotate(${isCollapsed?'-90':'0'}deg)">▾</div>
+      </div>
+    `;
+    sh.onclick=()=>{
+      S.collapsedSections[sec.id]=!S.collapsedSections[sec.id];
+      render();
+    };
+    sb.appendChild(sh);
+    
+    if(isCollapsed){sc.appendChild(sb);return;}
 
     sec.units.forEach(u=>{
       const upct=unitProgress(u.id);
@@ -1803,7 +1825,9 @@ function renderHome(){
       const ur=el('div','ur'+(isLastUnit?' last-unit':''));
       const totalEx=unitTotalItems(u.id);
       const showCount=u.id!=='s1u0';
+      const uIdx=sec.units.indexOf(u)+1;
       ur.innerHTML=`
+        <div style="display:flex;align-items:center;justify-content:center;width:22px;height:22px;background:var(--acc-light);border-radius:50%;font-size:11px;font-weight:900;color:var(--acc);flex-shrink:0">${uIdx}</div>
         <div class="ue">${u.emoji}</div>
         <div class="ui">
           <div class="ut">${u.title}</div>
@@ -3426,6 +3450,20 @@ function renderPopup(){
     po.appendChild(pb);return po;
   }
 
+  if(S.popup.type==='bookInfo'){
+    pb.style.cssText='background:var(--sur);border-radius:20px;padding:22px;width:310px;border:2px solid var(--border);box-shadow:0 8px 32px rgba(0,0,0,.2)';
+    pb.innerHTML=`
+      <div style="font-size:17px;font-weight:900;color:var(--acc);margin-bottom:14px">📚 Как пользоваться учебником</div>
+      <div style="font-size:14px;color:var(--txt);font-weight:600;line-height:1.7">
+        Все слова, которые вы встретите в юнитах ниже, по умолчанию добавлены в раздел <b>Практика</b>. После окончания каждого юнита заходите в раздел <b>Практика</b>, чтобы «добить» те слова, которые плохо запомнились — с помощью текстов и упражнений.<br><br>
+        <b>Важно:</b> Все юниты в разделе «Учиться» не предназначены для запоминания слов, а только для первоначального ознакомления с ними. Вся отработка по запоминанию подразумевается в разделе «Практика».
+      </div>
+    `;
+    const cb=el('button','btn bpr bfw');cb.style.marginTop='16px';cb.textContent='Понятно';
+    cb.onclick=()=>{S.popup=null;render();};pb.appendChild(cb);
+    po.appendChild(pb);return po;
+  }
+
   if(S.popup.type==='matchInfo'){
     pb.style.cssText='background:var(--sur);border-radius:20px;padding:22px;width:310px;border:2px solid #333;box-shadow:0 8px 32px rgba(0,0,0,.7)';
     pb.innerHTML=`
@@ -3488,6 +3526,55 @@ function renderPopup(){
   S.checked=savedChecked;
   LS.set('checked',[...savedChecked]);
 })();
+
+// Restore last open unit if user left mid-session
+(function restoreSession(){
+  const lastMode=LS.get('lastMode',null);
+  const lastUnitId=LS.get('lastUnitId',null);
+  if(lastMode==='unit'&&lastUnitId){
+    const unit=SECTIONS.flatMap(s=>s.units).find(u=>u.id===lastUnitId);
+    if(unit){
+      S.activeUnit=unit;
+      S.mode='unit';
+      if(isAdaptiveUnit(unit)){
+        // Restore adaptive state
+        const saved=LS.get('adaptState',null);
+        if(saved&&saved.unitId===lastUnitId&&saved.phase&&saved.phase!=='theory'){
+          S.adaptPhase=saved.phase;
+          S.adaptUnknown=saved.unknown||[];
+          S.adaptC4Wrong=saved.c4wrong||[];
+          S.adaptCollWrong=saved.collwrong||[];
+          S.adaptWordIdx=saved.wordIdx||0;
+          S.adaptAnswered=saved.answered||0;
+          S.answers=saved.answers||[];
+          S.score=saved.score||{c:0,w:0,st:0};
+          if(saved.phase==='summary'){startAdaptiveSummary();}
+        } else {
+          // Start fresh adaptive
+          startAdaptiveUnit(unit);return;
+        }
+      } else {
+        // Restore regular unit session
+        const sess=LS.get('session',null);
+        if(sess&&sess.unitId===lastUnitId){
+          S.queue=sess.queue.map(item=>{
+            if(!item)return null;
+            if(item.type&&['FILL_SLOT','LISTEN_SLOT','THEORY_SLOT'].includes(item.type))return item;
+            if(item.type&&['FC','C4','WRITE','MATCH'].includes(item.type))return item;
+            return ALL_WORDS.find(w=>w.id===item);
+          }).filter(Boolean);
+          S.qi=sess.qi||0;
+          S.score=sess.score||{c:0,w:0,st:0};
+          S.answers=sess.answers||[];
+          nextEx();
+        } else {
+          startUnit(unit);return;
+        }
+      }
+    }
+  }
+})();
+
 render();
 </script>
 </body>
