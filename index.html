@@ -3375,7 +3375,7 @@ function renderPhonics(){
 function renderPopup(){
   // Safety: if popup has no recognized type and no word, clear it
   if(!S.popup)return null;
-  const knownTypes=['adaptInfo','genInfo','resetUnit','bookInfo','matchInfo'];
+  const knownTypes=['adaptInfo','genInfo','resetUnit','bookInfo','matchInfo','moveAllToLearned'];
   if(!knownTypes.includes(S.popup.type)&&!S.popup.word){S.popup=null;return null;}
   const po=el('div','po');
   po.onclick=()=>{S.popup=null;render();};
