@@ -3527,18 +3527,23 @@ function renderPopup(){
 // Version migration: preserve user progress across updates
 // We never wipe localStorage - only add new words to checked
 (function migrate(){
-  const currentIds=new Set(ALL_IDS);
-  const savedChecked=new Set(LS.get('checked',null)||ALL_IDS);
-  // Add any new word IDs that weren't in previous version
-  ALL_IDS.forEach(id=>{
-    if(!savedChecked.has(id)){savedChecked.add(id);}
-  });
-  S.checked=savedChecked;
-  LS.set('checked',[...savedChecked]);
+  try {
+    const currentIds=new Set(ALL_IDS);
+    const savedChecked=new Set(LS.get('checked',null)||ALL_IDS);
+    ALL_IDS.forEach(id=>{
+      if(!savedChecked.has(id)){savedChecked.add(id);}
+    });
+    S.checked=savedChecked;
+    LS.set('checked',[...savedChecked]);
+  } catch(e) {
+    console.warn('Migration error, clearing localStorage:', e);
+    try { localStorage.clear(); } catch(e2) {}
+    S.checked=new Set(ALL_IDS);
+  }
 })();
 
 // Restore session — only if user was inside a unit when they left
-(function restoreSession(){
+(function restoreSession(){try{
   const lastMode=LS.get('lastMode',null);
   const lastUnitId=LS.get('lastUnitId',null);
   // Restore if user was inside a unit — both on refresh AND on return from another app
@@ -3585,9 +3590,9 @@ function renderPopup(){
       startUnit(unit);
     }
   }
-})();
+} catch(e){console.warn('Restore error:',e);S.mode='home';}})();
 
-render();
+try{render();}catch(e){console.error('Render error:',e);localStorage.clear();location.reload();}
 </script>
 </body>
 </html>
