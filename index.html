@@ -1166,8 +1166,8 @@ function saveAdaptState(){
 }
 
 function render(){
-  // Auto-save adaptive state on every render if in summary phase
-  if(S.mode==='unit'&&S.activeUnit&&isAdaptiveUnit(S.activeUnit)&&S.adaptPhase==='summary'){
+  // Auto-save adaptive state on every render (all phases)
+  if(S.mode==='unit'&&S.activeUnit&&isAdaptiveUnit(S.activeUnit)&&S.adaptPhase!=='theory'){
     saveAdaptState();
   }
   const app=document.getElementById('app');
@@ -2857,7 +2857,7 @@ function renderPractice(){
     // Long press to remove
     card.onmousedown=()=>{lpTimer=setTimeout(()=>{S.popup={word,fromPractice:true};render();},650);};
     card.onmouseup=card.onmouseleave=()=>clearTimeout(lpTimer);
-    card.ontouchstart=e=>{lpTimer=setTimeout(()=>{S.popup={word,fromPractice:true};render();},650);};
+    card.ontouchstart=e=>{if(S.adaptPhase==='fc')return;lpTimer=setTimeout(()=>{S.popup={word,fromPractice:true};render();},650);};
     card.ontouchend=()=>clearTimeout(lpTimer);
 
     renderWordVisual(word, card);
@@ -3368,6 +3368,10 @@ function renderPhonics(){
 
 // ─── POPUP ────────────────────────────────────────────────
 function renderPopup(){
+  // Safety: if popup has no recognized type and no word, clear it
+  if(!S.popup)return null;
+  const knownTypes=['adaptInfo','genInfo','resetUnit','bookInfo','matchInfo'];
+  if(!knownTypes.includes(S.popup.type)&&!S.popup.word){S.popup=null;return null;}
   const po=el('div','po');
   po.onclick=()=>{S.popup=null;render();};
   const pb=el('div','pb2');pb.onclick=e=>e.stopPropagation();
