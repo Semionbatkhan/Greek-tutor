@@ -1166,8 +1166,8 @@ function saveAdaptState(){
 }
 
 function render(){
-  // Auto-save adaptive state on every render (all phases)
-  if(S.mode==='unit'&&S.activeUnit&&isAdaptiveUnit(S.activeUnit)&&S.adaptPhase!=='theory'){
+  // Auto-save adaptive state on every render (all phases including theory)
+  if(S.mode==='unit'&&S.activeUnit&&isAdaptiveUnit(S.activeUnit)){
     saveAdaptState();
   }
   const app=document.getElementById('app');
@@ -2855,9 +2855,9 @@ function renderPractice(){
     const isGR=S.pEx.dir==='grToRu';
     const card=el('div','card cc');
     // Long press to remove
-    card.onmousedown=()=>{lpTimer=setTimeout(()=>{S.popup={word,fromPractice:true};render();},650);};
+    card.onmousedown=()=>{if(S.adaptPhase==='fc'||S.adaptPhase==='theory')return;lpTimer=setTimeout(()=>{S.popup={word,fromPractice:true};render();},650);};
     card.onmouseup=card.onmouseleave=()=>clearTimeout(lpTimer);
-    card.ontouchstart=e=>{if(S.adaptPhase==='fc')return;lpTimer=setTimeout(()=>{S.popup={word,fromPractice:true};render();},650);};
+    card.ontouchstart=e=>{if(S.adaptPhase==='fc'||S.adaptPhase==='theory')return;lpTimer=setTimeout(()=>{S.popup={word,fromPractice:true};render();},650);};
     card.ontouchend=()=>clearTimeout(lpTimer);
 
     renderWordVisual(word, card);
@@ -3549,7 +3549,7 @@ function renderPopup(){
   S.mode='unit';
   if(isAdaptiveUnit(unit)){
     const saved=LS.get('adaptState',null);
-    if(saved&&saved.unitId===lastUnitId&&saved.phase&&saved.phase!=='theory'){
+    if(saved&&saved.unitId===lastUnitId&&saved.phase){
       S.adaptPhase=saved.phase;
       S.adaptUnknown=saved.unknown||[];
       S.adaptC4Wrong=saved.c4wrong||[];
@@ -3558,7 +3558,13 @@ function renderPopup(){
       S.adaptAnswered=saved.answered||0;
       S.answers=saved.answers||[];
       S.score=saved.score||{c:0,w:0,st:0};
-      if(saved.phase==='summary'){startAdaptiveSummary();}
+      if(saved.phase==='theory'){
+        // Rebuild theory queue and restore qi position
+        const theories=THEORY_CARDS.filter(t=>t.unitId===unit.id);
+        S.queue=theories.map(t=>({type:'THEORY_SLOT',theoryId:t.id}));
+        S.qi=Math.min(saved.qi||0, Math.max(0,S.queue.length-1));
+        nextEx();
+      } else if(saved.phase==='summary'){startAdaptiveSummary();}
     } else {
       startAdaptiveUnit(unit);
     }
