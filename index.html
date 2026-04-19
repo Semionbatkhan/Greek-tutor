@@ -3340,7 +3340,7 @@ function renderLearnedWords(wrap){
   // Button: move all practiced words to learned
   const moveAllBtn=el('button');
   moveAllBtn.style.cssText='margin-left:auto;background:var(--acc);border:none;border-radius:10px;padding:6px 12px;font-size:12px;font-weight:800;color:#fff;cursor:pointer;white-space:nowrap';
-  moveAllBtn.textContent='⭐ Все → Выученные';
+  moveAllBtn.textContent='⭐ Все в выученные';
   moveAllBtn.onclick=()=>{S.popup={type:'moveAllToLearned'};render();};
   sar.appendChild(moveAllBtn);
   wrap.appendChild(sar);
@@ -3480,7 +3480,9 @@ function renderPopup(){
   }
 
   if(S.popup.type==='moveAllToLearned'){
-    const count=S.checked.size;
+    // Only words in checked but NOT already in learned
+    const toMove=[...S.checked].filter(id=>!S.learned.has(id));
+    const count=toMove.length;
     pb.style.cssText='background:var(--sur);border-radius:20px;padding:22px;width:290px;border:2px solid var(--border);text-align:center;box-shadow:0 8px 32px rgba(0,0,0,.2)';
     pb.innerHTML=`
       <div style="font-size:36px;margin-bottom:10px">⭐</div>
@@ -3494,8 +3496,7 @@ function renderPopup(){
     nb.onclick=()=>{S.popup=null;render();};
     const yb=el('button','btn bok');yb.textContent='⭐ Перенести';
     yb.onclick=()=>{
-      S.checked.forEach(id=>S.learned.add(id));
-      S.checked.clear();
+      toMove.forEach(id=>{S.learned.add(id);S.checked.delete(id);});
       S.popup=null;
       save();
       showToast(`⭐ ${count} слов перенесено в выученные!`);
