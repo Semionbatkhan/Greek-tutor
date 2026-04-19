@@ -1066,6 +1066,7 @@ let S={
   collDragging:null,   // currently dragging syllable index
   collapsedSections:{},  // sectionId -> bool
   toast:null,
+  verbSearch:'',  // search in verbs tab
   darkMode:LS.get('darkMode',false),
   genText:LS.get('genText',null),      // {greek, russian, loading}
   genTextShown:LS.get('genTextShown',false),
@@ -1179,7 +1180,7 @@ function render(){
   const focusedVal=document.activeElement?.value;
   app.innerHTML='';
   const nav=el('div','nav');
-  [['learn','🎓','Учиться'],['words','📖','Слова'],['practice','⚡','Практика'],['phonics','🔤','Фонетика']].forEach(([id,icon,label])=>{
+  [['learn','🎓','Учиться'],['words','📖','Слова'],['practice','⚡','Практика'],['phonics','🔤','Фонетика'],['verbs','📝','Глаголы']].forEach(([id,icon,label])=>{
     const btn=el('button','nt'+(S.tab===id?' on':''));
     btn.innerHTML=`<span class="ni">${icon}</span>${label}`;
     btn.onclick=()=>{S.tab=id;S.mode='home';LS.set('lastMode','home');save();if(id==='practice'&&!S.pEx)buildPEx();render();};
@@ -1196,6 +1197,7 @@ function render(){
   if(S.tab==='words')app.appendChild(renderWords());
   if(S.tab==='practice')app.appendChild(renderPractice());
   if(S.tab==='phonics')app.appendChild(renderPhonics());
+  if(S.tab==='verbs')app.appendChild(renderVerbs());
   if(S.popup)app.appendChild(renderPopup());
   if(S.toast){const t=el('div','toast');t.textContent=S.toast;app.appendChild(t);}
   // Restore focus to search inputs
@@ -3363,7 +3365,236 @@ function renderLearnedWords(wrap){
   return wrap;
 }
 
+const VERBS = [
+  {
+    id:"v1", greek:"είμαι", ru:"быть",
+    present:["είμαι","είσαι","είναι","είμαστε","είστε","είναι"],
+    past:["ήμουν","ήσουν","ήταν","ήμαστε","ήσαστε","ήταν"],
+    future:["θα είμαι","θα είσαι","θα είναι","θα είμαστε","θα είστε","θα είναι"],
+    note:"Неправильный глагол. Самый важный в греческом — учи отдельно."
+  },
+  {
+    id:"v2", greek:"έχω", ru:"иметь",
+    present:["έχω","έχεις","έχει","έχουμε","έχετε","έχουν"],
+    past:["είχα","είχες","είχε","είχαμε","είχατε","είχαν"],
+    future:["θα έχω","θα έχεις","θα έχει","θα έχουμε","θα έχετε","θα έχουν"],
+    note:""
+  },
+  {
+    id:"v3", greek:"πάω", ru:"идти/ехать",
+    present:["πάω","πας","πάει","πάμε","πάτε","πάνε"],
+    past:["πήγα","πήγες","πήγε","πήγαμε","πήγατε","πήγαν"],
+    future:["θα πάω","θα πας","θα πάει","θα πάμε","θα πάτε","θα πάνε"],
+    note:"Неправильный глагол."
+  },
+  {
+    id:"v4", greek:"θέλω", ru:"хотеть",
+    present:["θέλω","θέλεις","θέλει","θέλουμε","θέλετε","θέλουν"],
+    past:["ήθελα","ήθελες","ήθελε","θέλαμε","θέλατε","ήθελαν"],
+    future:["θα θέλω","θα θέλεις","θα θέλει","θα θέλουμε","θα θέλετε","θα θέλουν"],
+    note:""
+  },
+  {
+    id:"v5", greek:"τρώω", ru:"есть (кушать)",
+    present:["τρώω","τρως","τρώει","τρώμε","τρώτε","τρώνε"],
+    past:["έφαγα","έφαγες","έφαγε","φάγαμε","φάγατε","έφαγαν"],
+    future:["θα φάω","θα φας","θα φάει","θα φάμε","θα φάτε","θα φάνε"],
+    note:"Настоящее от τρώω, прошедшее и будущее от φάω — неправильный."
+  },
+  {
+    id:"v6", greek:"πίνω", ru:"пить",
+    present:["πίνω","πίνεις","πίνει","πίνουμε","πίνετε","πίνουν"],
+    past:["ήπια","ήπιες","ήπιε","ήπιαμε","ήπιατε","ήπιαν"],
+    future:["θα πιω","θα πιεις","θα πιει","θα πιούμε","θα πιείτε","θα πιουν"],
+    note:"Неправильный глагол."
+  },
+  {
+    id:"v7", greek:"αγοράζω", ru:"покупать",
+    present:["αγοράζω","αγοράζεις","αγοράζει","αγοράζουμε","αγοράζετε","αγοράζουν"],
+    past:["αγόρασα","αγόρασες","αγόρασε","αγοράσαμε","αγοράσατε","αγόρασαν"],
+    future:["θα αγοράσω","θα αγοράσεις","θα αγοράσει","θα αγοράσουμε","θα αγοράσετε","θα αγοράσουν"],
+    note:""
+  },
+  {
+    id:"v8", greek:"βλέπω", ru:"видеть/смотреть",
+    present:["βλέπω","βλέπεις","βλέπει","βλέπουμε","βλέπετε","βλέπουν"],
+    past:["είδα","είδες","είδε","είδαμε","είδατε","είδαν"],
+    future:["θα δω","θα δεις","θα δει","θα δούμε","θα δείτε","θα δουν"],
+    note:"Неправильный: прошедшее и будущее от корня δ-."
+  },
+  {
+    id:"v9", greek:"μένω", ru:"жить/оставаться",
+    present:["μένω","μένεις","μένει","μένουμε","μένετε","μένουν"],
+    past:["έμεινα","έμεινες","έμεινε","μείναμε","μείνατε","έμειναν"],
+    future:["θα μείνω","θα μείνεις","θα μείνει","θα μείνουμε","θα μείνετε","θα μείνουν"],
+    note:""
+  },
+  {
+    id:"v10", greek:"μιλάω", ru:"говорить",
+    present:["μιλάω","μιλάς","μιλάει","μιλάμε","μιλάτε","μιλάνε"],
+    past:["μίλησα","μίλησες","μίλησε","μιλήσαμε","μιλήσατε","μίλησαν"],
+    future:["θα μιλήσω","θα μιλήσεις","θα μιλήσει","θα μιλήσουμε","θα μιλήσετε","θα μιλήσουν"],
+    note:"Глагол на -άω/-ώ — особое спряжение в настоящем."
+  },
+  {
+    id:"v11", greek:"δουλεύω", ru:"работать",
+    present:["δουλεύω","δουλεύεις","δουλεύει","δουλεύουμε","δουλεύετε","δουλεύουν"],
+    past:["δούλεψα","δούλεψες","δούλεψε","δουλέψαμε","δουλέψατε","δούλεψαν"],
+    future:["θα δουλέψω","θα δουλέψεις","θα δουλέψει","θα δουλέψουμε","θα δουλέψετε","θα δουλέψουν"],
+    note:""
+  },
+  {
+    id:"v12", greek:"ξέρω", ru:"знать",
+    present:["ξέρω","ξέρεις","ξέρει","ξέρουμε","ξέρετε","ξέρουν"],
+    past:["ήξερα","ήξερες","ήξερε","ξέραμε","ξέρατε","ήξεραν"],
+    future:["θα ξέρω","θα ξέρεις","θα ξέρει","θα ξέρουμε","θα ξέρετε","θα ξέρουν"],
+    note:"Прошедшее — имперфект (длительное прошедшее). Аориста нет."
+  },
+  {
+    id:"v13", greek:"λέω", ru:"говорить/сказать",
+    present:["λέω","λες","λέει","λέμε","λέτε","λένε"],
+    past:["είπα","είπες","είπε","είπαμε","είπατε","είπαν"],
+    future:["θα πω","θα πεις","θα πει","θα πούμε","θα πείτε","θα πουν"],
+    note:"Неправильный: три разных корня λεγ-/ειπ-/π-."
+  },
+  {
+    id:"v14", greek:"παίζω", ru:"играть",
+    present:["παίζω","παίζεις","παίζει","παίζουμε","παίζετε","παίζουν"],
+    past:["έπαιξα","έπαιξες","έπαιξε","παίξαμε","παίξατε","έπαιξαν"],
+    future:["θα παίξω","θα παίξεις","θα παίξει","θα παίξουμε","θα παίξετε","θα παίξουν"],
+    note:""
+  },
+  {
+    id:"v15", greek:"ταξιδεύω", ru:"путешествовать",
+    present:["ταξιδεύω","ταξιδεύεις","ταξιδεύει","ταξιδεύουμε","ταξιδεύετε","ταξιδεύουν"],
+    past:["ταξίδεψα","ταξίδεψες","ταξίδεψε","ταξιδέψαμε","ταξιδέψατε","ταξίδεψαν"],
+    future:["θα ταξιδέψω","θα ταξιδέψεις","θα ταξιδέψει","θα ταξιδέψουμε","θα ταξιδέψετε","θα ταξιδέψουν"],
+    note:""
+  },
+  {
+    id:"v16", greek:"παίρνω", ru:"брать/принимать",
+    present:["παίρνω","παίρνεις","παίρνει","παίρνουμε","παίρνετε","παίρνουν"],
+    past:["πήρα","πήρες","πήρε","πήραμε","πήρατε","πήραν"],
+    future:["θα πάρω","θα πάρεις","θα πάρει","θα πάρουμε","θα πάρετε","θα πάρουν"],
+    note:"Неправильный: прошедшее и будущее от πήρ-/πάρ-."
+  },
+  {
+    id:"v17", greek:"ακούω", ru:"слышать/слушать",
+    present:["ακούω","ακούς","ακούει","ακούμε","ακούτε","ακούνε"],
+    past:["άκουσα","άκουσες","άκουσε","ακούσαμε","ακούσατε","άκουσαν"],
+    future:["θα ακούσω","θα ακούσεις","θα ακούσει","θα ακούσουμε","θα ακούσετε","θα ακούσουν"],
+    note:""
+  },
+  {
+    id:"v18", greek:"διαβάζω", ru:"читать/учиться",
+    present:["διαβάζω","διαβάζεις","διαβάζει","διαβάζουμε","διαβάζετε","διαβάζουν"],
+    past:["διάβασα","διάβασες","διάβασε","διαβάσαμε","διαβάσατε","διάβασαν"],
+    future:["θα διαβάσω","θα διαβάσεις","θα διαβάσει","θα διαβάσουμε","θα διαβάσετε","θα διαβάσουν"],
+    note:""
+  },
+  {
+    id:"v19", greek:"γράφω", ru:"писать",
+    present:["γράφω","γράφεις","γράφει","γράφουμε","γράφετε","γράφουν"],
+    past:["έγραψα","έγραψες","έγραψε","γράψαμε","γράψατε","έγραψαν"],
+    future:["θα γράψω","θα γράψεις","θα γράψει","θα γράψουμε","θα γράψετε","θα γράψουν"],
+    note:""
+  },
+  {
+    id:"v20", greek:"ξοδεύω", ru:"тратить (деньги)",
+    present:["ξοδεύω","ξοδεύεις","ξοδεύει","ξοδεύουμε","ξοδεύετε","ξοδεύουν"],
+    past:["ξόδεψα","ξόδεψες","ξόδεψε","ξοδέψαμε","ξοδέψατε","ξόδεψαν"],
+    future:["θα ξοδέψω","θα ξοδέψεις","θα ξοδέψει","θα ξοδέψουμε","θα ξοδέψετε","θα ξοδέψουν"],
+    note:""
+  },
+];
+
+
+const VERB_PERSONS=['εγώ','εσύ','αυτός/ή/ό','εμείς','εσείς','αυτοί/ές/ά'];
+
 // ─── PHONICS ──────────────────────────────────────────────
+// ─── VERBS ───────────────────────────────────────────────
+function renderVerbs(){
+  const wrap=el('div','sc');
+  const hdr=el('div');
+  hdr.style.cssText='display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap';
+  const title=el('div');
+  title.style.cssText='font-size:11px;font-weight:900;letter-spacing:2px;color:var(--mu);text-transform:uppercase;flex:1';
+  title.textContent='ГЛАГОЛЫ — СПРЯЖЕНИЯ';
+  const cnt=el('div');
+  cnt.style.cssText='background:var(--acc-light);border-radius:99px;padding:3px 10px;font-size:12px;font-weight:800;color:var(--acc)';
+  cnt.textContent=VERBS.length+' глаголов';
+  hdr.appendChild(title);hdr.appendChild(cnt);
+  wrap.appendChild(hdr);
+  const srch=el('input');
+  srch.placeholder='Поиск глагола...';
+  srch.value=S.verbSearch||'';
+  srch.style.cssText='width:100%;padding:10px 14px;background:var(--card);border:1.5px solid var(--border);border-radius:12px;font-family:\'Nunito\',sans-serif;font-size:14px;color:var(--txt);outline:none;margin-bottom:14px';
+  srch.oninput=e=>{S.verbSearch=e.target.value;render();};
+  wrap.appendChild(srch);
+  const q=(S.verbSearch||'').toLowerCase();
+  const filtered=VERBS.filter(v=>!q||v.greek.toLowerCase().includes(q)||v.ru.toLowerCase().includes(q));
+  filtered.forEach((v,i)=>{
+    const card=el('div');
+    card.style.cssText='background:var(--card);border-radius:var(--r);border:1.5px solid var(--border);margin-bottom:12px;overflow:hidden;box-shadow:var(--shadow)';
+    const head=el('div');
+    head.style.cssText='display:flex;align-items:center;gap:10px;padding:14px 16px;cursor:pointer;background:var(--sh-grad)';
+    const num=el('div');
+    num.style.cssText='width:24px;height:24px;background:var(--acc);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;color:#fff;flex-shrink:0';
+    num.textContent=i+1;
+    const gw=el('div');
+    gw.style.cssText='font-family:\'Unbounded\',sans-serif;font-size:16px;font-weight:900;color:var(--acc);flex:1';
+    gw.textContent=v.greek;
+    const ru=el('div');
+    ru.style.cssText='font-size:13px;color:var(--mu);font-weight:700';
+    ru.textContent=v.ru;
+    const spkBtn=el('button','spk');spkBtn.innerHTML='🔊';
+    spkBtn.onclick=e=>{e.stopPropagation();speak(v.greek);};
+    const arrow=el('div');
+    arrow.style.cssText='font-size:14px;color:var(--mu);transition:transform .2s;flex-shrink:0';
+    const isOpen=S['vOpen_'+v.id];
+    arrow.textContent=isOpen?'▲':'▼';
+    head.appendChild(num);head.appendChild(gw);head.appendChild(ru);head.appendChild(spkBtn);head.appendChild(arrow);
+    head.onclick=()=>{S['vOpen_'+v.id]=!S['vOpen_'+v.id];render();};
+    card.appendChild(head);
+    if(isOpen){
+      const body=el('div');body.style.cssText='padding:14px 16px';
+      [{label:'Настоящее',key:'present',color:'var(--acc)'},{label:'Прошедшее',key:'past',color:'var(--er)'},{label:'Будущее',key:'future',color:'var(--ok)'}].forEach(t=>{
+        const tsec=el('div');tsec.style.cssText='margin-bottom:14px';
+        const tlbl=el('div');
+        tlbl.style.cssText='font-size:10px;font-weight:900;letter-spacing:2px;text-transform:uppercase;color:'+t.color+';margin-bottom:8px;padding-bottom:4px;border-bottom:2px solid '+t.color+'33';
+        tlbl.textContent=t.label;tsec.appendChild(tlbl);
+        const rows=el('div');rows.style.cssText='display:grid;grid-template-columns:1fr 1fr;gap:4px';
+        VERB_PERSONS.forEach((person,pi)=>{
+          const row=el('div');
+          row.style.cssText='display:flex;gap:6px;align-items:baseline;padding:4px 6px;border-radius:8px;background:var(--sur2)';
+          const pr=el('span');pr.style.cssText='font-size:11px;color:var(--mu);font-weight:700;white-space:nowrap';pr.textContent=person;
+          const form=el('span');form.style.cssText='font-family:\'Unbounded\',sans-serif;font-size:13px;font-weight:700;color:var(--txt)';
+          form.textContent=v[t.key][pi]||'—';
+          const spk2=el('button');
+          spk2.style.cssText='background:none;border:none;font-size:12px;cursor:pointer;color:var(--mu);padding:0 2px;margin-left:auto';
+          spk2.textContent='🔊';spk2.onclick=()=>speak(v[t.key][pi]);
+          row.appendChild(pr);row.appendChild(form);row.appendChild(spk2);
+          rows.appendChild(row);
+        });
+        tsec.appendChild(rows);body.appendChild(tsec);
+      });
+      if(v.note){
+        const note=el('div');
+        note.style.cssText='margin-top:4px;padding:10px 12px;background:var(--hint-bg);border-radius:10px;font-size:12px;font-weight:700;color:var(--hint-txt);line-height:1.6';
+        note.textContent='💡 '+v.note;body.appendChild(note);
+      }
+      card.appendChild(body);
+    }
+    wrap.appendChild(card);
+  });
+  if(!filtered.length){
+    const empty=el('div');
+    empty.style.cssText='text-align:center;padding:40px;color:var(--mu);font-size:14px;font-weight:700';
+    empty.textContent='Глаголы не найдены';wrap.appendChild(empty);
+  }
+  return wrap;
+}
+
 function renderPhonics(){
   const sc=el('div','sc');
   PHONICS.forEach(p=>{
