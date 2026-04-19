@@ -1164,7 +1164,18 @@ function buildPEx(){
 // ─── RENDER ───────────────────────────────────────────────
 function saveAdaptState(){
   if(!S.activeUnit)return;
-  saveAdaptState();
+  LS.set('adaptState',{
+    unitId:S.activeUnit.id,
+    phase:S.adaptPhase,
+    unknown:S.adaptUnknown,
+    c4wrong:S.adaptC4Wrong,
+    collwrong:S.adaptCollWrong,
+    wordIdx:S.adaptWordIdx,
+    qi:S.qi,
+    answered:S.adaptAnswered,
+    answers:S.answers||[],
+    score:S.score
+  });
 }
 
 function render(){
@@ -1842,6 +1853,9 @@ function renderHome(){
         <button class="sb2">▶</button>
       `;
       ur.onclick=()=>startUnit(u);
+      // Ensure sb2 button also triggers startUnit
+      const sb2btn=ur.querySelector('.sb2');
+      if(sb2btn)sb2btn.onclick=e=>{e.stopPropagation();startUnit(u);};
       sb.appendChild(ur);
       // Show retry errors button if unit has saved errors
       const sess=LS.get('session',null);
