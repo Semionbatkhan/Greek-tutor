@@ -1174,7 +1174,9 @@ function saveAdaptState(){
     qi:S.qi,
     answered:S.adaptAnswered,
     answers:S.answers||[],
-    score:S.score
+    score:S.score,
+    fillChosen:S.fillChosen,
+    fillChecked:S.fillChecked
   });
 }
 
@@ -1784,8 +1786,9 @@ function startAdaptiveSummary(skipNextEx){
   const queue=[];
   fills.forEach(f=>queue.push({type:'FILL_SLOT',fillId:f.id}));
   listens.forEach(l=>l.questions.forEach((_,qIdx)=>queue.push({type:'LISTEN_SLOT',listenId:l.id,qIdx})));
-  S.queue=queue;S.qi=0;
-  if(!skipNextEx)nextEx();
+  S.queue=queue;
+  if(!skipNextEx){S.qi=0;nextEx();}
+  // If skipNextEx, qi will be set by caller
 }
 
 
@@ -3843,6 +3846,8 @@ function renderPopup(){
       S.adaptAnswered=saved.answered||0;
       S.answers=saved.answers||[];
       S.score=saved.score||{c:0,w:0,st:0};
+      S.fillChosen=saved.fillChosen||null;
+      S.fillChecked=saved.fillChecked||false;
       if(saved.phase==='theory'){
         // Rebuild theory queue and restore qi position
         const theories=THEORY_CARDS.filter(t=>t.unitId===unit.id);
