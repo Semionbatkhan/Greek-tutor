@@ -3154,6 +3154,7 @@ async function generateText(){
 - НЕ добавляй названия стран и городов которых нет в списке студента
 - Используй только греческие имена: Анна, Мария, Элени, Янис, Петрос, Никос
 - Дополняй только базовыми А1 словами: είμαι, έχω, πάω, θέλω, τρώω, πίνω, αγοράζω, βλέπω, артикли, предлоги, союзы
+- ВАЖНО: вставляй слово студента ТОЛЬКО если оно звучит естественно в данной сцене — лучше пропустить слово совсем, чем вставить его неуместно
 
 Если жанр ДИАЛОГ — верни JSON:
 {"genre": "Диалог", "lines": [{"speaker": "Анна", "greek": "реплика", "russian": "перевод"}, {"speaker": "Янис", "greek": "реплика", "russian": "перевод"}], "usedWords": ["слова"]}
@@ -3650,23 +3651,13 @@ function renderPopup(){
 
   // ── Info popup: generate text ──
   if(S.popup.type==='genInfo'){
-    pb.style.cssText='background:var(--sur);border-radius:20px;padding:22px;width:310px;border:2px solid #333;box-shadow:0 8px 32px rgba(0,0,0,.7);max-height:80vh;overflow-y:auto';
-    pb.innerHTML=`
-      <div style="font-size:18px;font-weight:900;color:var(--acc);margin-bottom:12px">✨ Как генерируется текст</div>
-      <div style="font-size:13px;font-weight:700;color:var(--txt);line-height:1.7;margin-bottom:10px">
-        Берётся до 65 случайных слов из твоих <b>выученных</b>. Claude составляет связный текст (65–100 слов), органично вписывая их. Одна сцена, одно место. Если слов не хватает — добавляются только базовые слова А1. Никаких посторонних стран и городов.
-      </div>
-      <div style="font-size:12px;font-weight:800;color:var(--mu);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">Жанры по очереди:</div>
-      <div style="font-size:13px;font-weight:700;color:var(--txt);line-height:1.8">
-        📔 <b>Дневник</b> — от первого лица, один день<br>
-        💬 <b>Диалог</b> — разговор двух людей, каждый своим голосом<br>
-        📖 <b>История</b> — рассказ от третьего лица
-      </div>
-      <div style="font-size:13px;font-weight:700;color:var(--txt);line-height:1.7;margin-top:10px">
-        Выученные слова <b style="color:var(--acc)">подсвечены синим</b>. Диалог озвучивается двумя голосами — мужским и женским.
-      </div>
-      <div style="font-size:12px;color:var(--mu);margin-top:10px;font-weight:600">Текст сохраняется — он останется даже если выйти из браузера.</div>
-    `;
+    pb.style.cssText='background:var(--sur);border-radius:20px;padding:22px;width:310px;border:2px solid var(--border);box-shadow:0 8px 32px rgba(0,0,0,.2);max-height:80vh;overflow-y:auto';
+    pb.innerHTML='<div style="font-size:18px;font-weight:900;color:var(--acc);margin-bottom:12px">✨ Как работает генерация</div>'
+      +'<div style="font-size:13px;font-weight:700;color:var(--txt);line-height:1.8">'
+      +'Берётся до 65 случайных слов из твоих <b>Выученных</b>. Claude составляет текст 65–100 слов.<br><br>'
+      +'<b>Жанры чередуются:</b> Дневник → Диалог → История.<br><br>'
+      +'<b>Правила:</b> одна сцена, максимум один плавный переход. Слова вставляются только если звучат естественно — иначе пропускаются.<br><br>'
+      +'<b>Синяя подсветка</b> — слова из твоего словаря найденные в тексте.</div>';
     const cb=el('button','btn bpr bfw');cb.style.marginTop='14px';cb.textContent='Понятно';
     cb.onclick=()=>{S.popup=null;render();};pb.appendChild(cb);
     po.appendChild(pb);return po;
