@@ -1328,6 +1328,7 @@ function adaptNextPhase(){
     S.adaptPhase='summary_intro';
   } else if(S.adaptPhase==='summary_intro'){
     S.adaptPhase='summary';
+    startAdaptiveSummary(true);S.qi=0;nextEx();
   }
 }
 
@@ -1473,7 +1474,7 @@ function renderAdaptiveUnit(){
       <div class="phase-sub">Сделайте несколько упражнений с незнакомыми словами, чтобы начать их постепенно запоминать.<br><br>После окончания этого юнита перейдите в раздел <b>Практика</b>, где вы сможете делать упражнения и читать тексты с новыми словами до тех пор, пока они не перейдут из короткой памяти в долгую.</div>`;
     const goBtn=el('button','btn bpr bfw');
     goBtn.textContent='Поехали →';
-    goBtn.onclick=()=>{S.adaptPhase='summary';S.adaptAnswered++;startAdaptiveSummary();render();};
+    goBtn.onclick=()=>{S.adaptPhase='summary';S.adaptAnswered++;startAdaptiveSummary(true);S.qi=0;nextEx();render();};
     d.appendChild(goBtn);sc.appendChild(d);
   }
   else if(phase==='summary'){
