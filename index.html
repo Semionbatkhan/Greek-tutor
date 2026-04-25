@@ -2088,6 +2088,10 @@ function advance(ok){
   }
   S.qi++;
   save();
+  // Explicitly save adaptive state after advancing in summary phase
+  if(S.adaptPhase==='summary'&&S.activeUnit&&isAdaptiveUnit(S.activeUnit)){
+    saveAdaptState();
+  }
   if(S.qi<S.queue.length){nextEx();render();}
   else{
     const pct=Math.round((S.score.c/(S.score.c+S.score.w||1))*100);
@@ -3849,7 +3853,11 @@ function renderPopup(){
         S.queue=theories.map(t=>({type:'THEORY_SLOT',theoryId:t.id}));
         S.qi=Math.min(saved.qi||0, Math.max(0,S.queue.length-1));
         nextEx();
-      } else if(saved.phase==='summary'){startAdaptiveSummary();}
+      } else if(saved.phase==='summary'){
+        startAdaptiveSummary(true);
+        S.qi=Math.min(saved.qi||0, Math.max(0,S.queue.length-1));
+        nextEx();
+      }
     } else {
       startAdaptiveUnit(unit);
     }
