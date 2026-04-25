@@ -1164,6 +1164,7 @@ function buildPEx(){
 // ─── RENDER ───────────────────────────────────────────────
 function saveAdaptState(){
   if(!S.activeUnit)return;
+  console.log('[SAVE] phase='+S.adaptPhase+' qi='+S.qi+' ex='+(S.ex?S.ex.type+':'+S.ex.fillId:'null'));
   LS.set('adaptState',{
     unitId:S.activeUnit.id,
     phase:S.adaptPhase,
@@ -1357,9 +1358,12 @@ function startAdaptiveUnit(unit){
     S.errs=[];
     // Rebuild queue for current phase
     if(saved.phase==='summary'){
+      console.log('[RESTORE] summary, saved.qi='+saved.qi);
       startAdaptiveSummary(true); // build queue but don't call nextEx yet
       S.qi=Math.min(saved.qi||0, Math.max(0,S.queue.length-1));
+      console.log('[RESTORE] set S.qi='+S.qi+', queue.length='+S.queue.length);
       nextEx(); // load the correct exercise
+      console.log('[RESTORE] after nextEx, S.ex='+(S.ex?S.ex.type+':'+S.ex.fillId:'null'));
     }
     S.mode='unit';render();return;
   }
