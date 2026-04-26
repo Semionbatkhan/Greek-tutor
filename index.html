@@ -1481,8 +1481,27 @@ function renderAdaptiveUnit(){
     d.appendChild(goBtn);sc.appendChild(d);
   }
   else if(phase==='summary'){
-    if(!S.ex){sc.appendChild(el('div'));wrap.appendChild(sc);return wrap;}
-    sc.appendChild(renderEx());
+    if(!S.ex||S.qi>=S.queue.length){
+      // All summary exercises done - show completion screen
+      const pct=Math.round((S.score.c/(S.score.c+S.score.w||1))*100);
+      const d=el('div','phase-screen');
+      d.innerHTML=`<div class="phase-icon">🏆</div>
+        <div class="phase-title" style="color:var(--ok)">Юнит завершён!</div>
+        <div style="font-size:42px;font-weight:900;color:var(--acc);margin:10px 0">${pct}%</div>
+        <div class="phase-sub">Отличная работа! Теперь загляни в раздел <b>Практика</b> — там новые слова ждут отработки.</div>`;
+      const homeBtn=el('button','btn bpr bfw');homeBtn.textContent='← На главную';
+      homeBtn.onclick=()=>{
+        S.adaptPhase='theory';
+        S.mode='home';
+        LS.set('lastMode','home');
+        LS.set('adaptState',null);
+        render();
+      };
+      d.appendChild(homeBtn);
+      sc.appendChild(d);
+    } else {
+      sc.appendChild(renderEx());
+    }
   }
 
   wrap.appendChild(sc);return wrap;
