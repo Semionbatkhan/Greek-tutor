@@ -1915,6 +1915,7 @@ function renderAdaptFC(sc){
     if(!S.adaptUnknown.includes(word.id))S.adaptUnknown.push(word.id);
     S.answers.push('err');S.adaptAnswered++;
     S.adaptWordIdx++;
+    S.fcRev=false;
     if(S.adaptWordIdx>=words.length){adaptNextPhase();}
     saveAdaptState();render();
   };
@@ -1922,6 +1923,7 @@ function renderAdaptFC(sc){
   yb.onclick=()=>{
     S.answers.push('ok');S.adaptAnswered++;
     S.adaptWordIdx++;
+    S.fcRev=false;
     if(S.adaptWordIdx>=words.length){adaptNextPhase();}
     saveAdaptState();render();
   };
