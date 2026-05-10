@@ -332,7 +332,7 @@ function hasRealEmoji(emoji){
 }
 function renderWordVisual(word, card){
   // s2u1, s2u2 use text-based learning, no images/emoji in exercise cards
-  if(S&&S.activeUnit&&(S.activeUnit.id==='s2u1'||S.activeUnit.id==='s2u2')) return false;
+  if(S&&S.activeUnit&&(S.activeUnit.id==='s2u1'||S.activeUnit.id==='s2u2'||S.activeUnit.id==='s2u3')) return false;
   if(CUSTOM_IMGS[word.id]){
     const img=document.createElement('img');
     img.src=CUSTOM_IMGS[word.id];
@@ -530,6 +530,23 @@ const THEORY_CARDS = [
       {label:"Τρία χρόνια αργότερα έναν γιο — три года спустя сын", example:""},
       {label:"Ο Τζον έδωσε στην κόρη το όνομα της μητέρας του, Ευαγγελία — дочь назвали в честь его матери", example:""},
       {label:"💡 Ключевые слова: παντρεύτηκε (женился), μετά (после), αργότερα (позже), έδωσε (дал)", example:""},
+    ]
+  },
+  {
+    id:"t4_1", unitId:"s2u3",
+    title:"Η Εύα και ο Κρις",
+    titleEn:"Дети семьи Папас",
+    emoji:"👫",
+    rows:[
+      {label:"Η Εύα είναι τώρα είκοσι χρονών — Еве сейчас двадцать лет", example:""},
+      {label:"Σπουδάζει αρχαιολογία — она изучает археологию", example:""},
+      {label:"Είναι ένα πραγματικά όμορφο κορίτσι — она действительно красивая девушка", example:""},
+      {label:"Ο Κρις πήρε το όνομά του από τον παππού του τον Χριστόφορο — Крис взял имя от дедушки Христофора", example:""},
+      {label:"Είναι δεκαεφτά χρονών — ему семнадцать лет", example:""},
+      {label:"Φέτος τελειώνει το σχολείο — в этом году он заканчивает школу", example:""},
+      {label:"Η οικογένεια Πάπας μένει σ' ένα μεγάλο σπίτι με κήπο — семья Папас живёт в большом доме с садом", example:""},
+      {label:"Στο Λονγκ Άιλαντ — на Лонг-Айленде", example:""},
+      {label:"💡 Ключевые слова: σπουδάζει (учится), τελειώνει (заканчивает), μένει (живёт), πήρε (взял)", example:""},
     ]
   }
 ];
@@ -737,13 +754,97 @@ const FILL_EXERCISES = [
    options:["είκοσι","τριάντα","δέκα","πενήντα"],
    translation:"Джон женился двадцать два года назад.",
    emoji:"📅"},
-  {id:"f3l",unitId:"s2u2",
+  {id:"f3l",unitId:"s2u3",
    sentence:"Η κόρη του Τζον λέγεται ___.",
    hint:"Это греческое имя — имя матери Джона",
    answer:"Ευαγγελία",
    options:["Ευαγγελία","Φράνσις","Μαρία","Ελένη"],
    translation:"Дочь Джона зовут Евангелия.",
    emoji:"👧"},
+  {id:"f4a",unitId:"s2u3",
+   sentence:"Η Εύα σπουδάζει ___.",
+   hint:"Что она изучает? Копают землю...",
+   answer:"αρχαιολογία",
+   options:["αρχαιολογία","ιατρική","νομική","φιλολογία"],
+   translation:"Ева изучает археологию.",
+   emoji:"🏺"},
+  {id:"f4b",unitId:"s2u3",
+   sentence:"Η Εύα είναι τώρα ___ χρονών.",
+   hint:"Сколько ей лет? Двадцать",
+   answer:"είκοσι",
+   options:["είκοσι","δεκαεφτά","τριάντα","δεκαπέντε"],
+   translation:"Еве сейчас двадцать лет.",
+   emoji:"🎂"},
+  {id:"f4c",unitId:"s2u3",
+   sentence:"Η Εύα είναι ένα πραγματικά ___ κορίτσι.",
+   hint:"Красивая — как по-гречески?",
+   answer:"όμορφο",
+   options:["όμορφο","μεγάλο","μικρό","έξυπνο"],
+   translation:"Ева — действительно красивая девушка.",
+   emoji:"✨"},
+  {id:"f4d",unitId:"s2u3",
+   sentence:"Ο Κρις ___ το όνομά του από τον παππού του.",
+   hint:"Взял — прошедшее время глагола παίρνω",
+   answer:"πήρε",
+   options:["πήρε","έδωσε","είπε","έκανε"],
+   translation:"Крис взял своё имя от дедушки.",
+   emoji:"🎁"},
+  {id:"f4e",unitId:"s2u3",
+   sentence:"Ο παππούς του Κρις λέγεται ___.",
+   hint:"Христофор — полное греческое имя",
+   answer:"Χριστόφορος",
+   options:["Χριστόφορος","Γιώργος","Νίκος","Τζον"],
+   translation:"Дедушку Криса зовут Христофор.",
+   emoji:"👴"},
+  {id:"f4f",unitId:"s2u3",
+   sentence:"Ο Κρις είναι ___ χρονών.",
+   hint:"Семнадцать лет",
+   answer:"δεκαεφτά",
+   options:["δεκαεφτά","είκοσι","δεκαπέντε","δεκαοκτώ"],
+   translation:"Крису семнадцать лет.",
+   emoji:"🔢"},
+  {id:"f4g",unitId:"s2u3",
+   sentence:"Φέτος ο Κρις τελειώνει το ___.",
+   hint:"Что он заканчивает? Не универ...",
+   answer:"σχολείο",
+   options:["σχολείο","πανεπιστήμιο","γραφείο","σπίτι"],
+   translation:"В этом году Крис заканчивает школу.",
+   emoji:"🏫"},
+  {id:"f4h",unitId:"s2u3",
+   sentence:"Η οικογένεια Πάπας μένει σ' ένα μεγάλο ___ με κήπο.",
+   hint:"Большой... с садом",
+   answer:"σπίτι",
+   options:["σπίτι","γραφείο","εταιρεία","σχολείο"],
+   translation:"Семья Папас живёт в большом доме с садом.",
+   emoji:"🏠"},
+  {id:"f4i",unitId:"s2u3",
+   sentence:"Η οικογένεια Πάπας μένει στο ___.",
+   hint:"Это место в Нью-Йорке",
+   answer:"Λονγκ Άιλαντ",
+   options:["Λονγκ Άιλαντ","Μανχάταν","Μπρούκλιν","Νιου Τζέρσεϊ"],
+   translation:"Семья Папас живёт на Лонг-Айленде.",
+   emoji:"🗺️"},
+  {id:"f4j",unitId:"s2u3",
+   sentence:"Το σπίτι της οικογένειας Πάπας έχει ___.",
+   hint:"Что есть у дома? Сад!",
+   answer:"κήπο",
+   options:["κήπο","πισίνα","γκαράζ","βεράντα"],
+   translation:"У дома семьи Папас есть сад.",
+   emoji:"🌳"},
+  {id:"f4k",unitId:"s2u3",
+   sentence:"Η Εύα ___ αρχαιολογία στο πανεπιστήμιο.",
+   hint:"Изучает — какой глагол?",
+   answer:"σπουδάζει",
+   options:["σπουδάζει","διδάσκει","τελειώνει","μένει"],
+   translation:"Ева изучает археологию в университете.",
+   emoji:"🎓"},
+  {id:"f4l",unitId:"s2u3",
+   sentence:"Η οικογένεια Πάπας ___ σ' ένα μεγάλο σπίτι.",
+   hint:"Живёт — какой глагол?",
+   answer:"μένει",
+   options:["μένει","σπουδάζει","τελειώνει","δουλεύει"],
+   translation:"Семья Папас живёт в большом доме.",
+   emoji:"🏠"},
 ];
 
 // ─── LISTEN EXERCISES ─────────────────────────────────────
@@ -1159,6 +1260,33 @@ const SECTIONS=[{
       {id:818,greek:"παντρεύομαι",ru:"жениться/выходить замуж",emoji:"💍",cat:"Глаголы"},
       {id:819,greek:"δίνω",ru:"давать",emoji:"🎁",cat:"Глаголы"},
     ]
+  },{
+    id:"s2u3",title:"Η Εύα και ο Κρις",titleRu:"Ева и Крис",emoji:"👫",
+    words:[
+      {id:820,greek:"η Εύα",ru:"Ева (имя)",emoji:"👧",cat:"Люди"},
+      {id:821,greek:"τώρα",ru:"сейчас/теперь",emoji:"⏱️",cat:"Время"},
+      {id:822,greek:"είκοσι",ru:"двадцать",emoji:"🔢",cat:"Числа"},
+      {id:823,greek:"σπουδάζει",ru:"учится в университете",emoji:"🎓",cat:"Глаголы"},
+      {id:824,greek:"η αρχαιολογία",ru:"археология",emoji:"🏺",cat:"Учёба"},
+      {id:825,greek:"πραγματικά",ru:"действительно/по-настоящему",emoji:"💯",cat:"Наречия"},
+      {id:826,greek:"όμορφο",ru:"красивый/красивое",emoji:"✨",cat:"Прилагательные"},
+      {id:827,greek:"το κορίτσι",ru:"девушка/девочка",emoji:"👧",cat:"Люди"},
+      {id:828,greek:"ο Κρις",ru:"Крис (имя)",emoji:"👦",cat:"Люди"},
+      {id:829,greek:"πήρε",ru:"взял/получил",emoji:"🎁",cat:"Глаголы"},
+      {id:830,greek:"ο παππούς",ru:"дедушка",emoji:"👴",cat:"Семья"},
+      {id:831,greek:"ο Χριστόφορος",ru:"Христофор (имя)",emoji:"👴",cat:"Люди"},
+      {id:832,greek:"δεκαεφτά",ru:"семнадцать",emoji:"🔢",cat:"Числа"},
+      {id:833,greek:"φέτος",ru:"в этом году",emoji:"📅",cat:"Время"},
+      {id:834,greek:"τελειώνει",ru:"заканчивает",emoji:"🏁",cat:"Глаголы"},
+      {id:835,greek:"το σχολείο",ru:"школа",emoji:"🏫",cat:"Учёба"},
+      {id:836,greek:"η οικογένεια",ru:"семья",emoji:"👨‍👩‍👧‍👦",cat:"Семья"},
+      {id:837,greek:"μένει",ru:"живёт/остаётся",emoji:"🏠",cat:"Глаголы"},
+      {id:838,greek:"ο κήπος",ru:"сад",emoji:"🌳",cat:"Место"},
+      {id:839,greek:"το Λονγκ Άιλαντ",ru:"Лонг-Айленд",emoji:"🗺️",cat:"Место"},
+      {id:840,greek:"σπουδάζω",ru:"учиться (в универе)",emoji:"🎓",cat:"Глаголы"},
+      {id:841,greek:"τελειώνω",ru:"заканчивать",emoji:"🏁",cat:"Глаголы"},
+      {id:842,greek:"μένω",ru:"жить/оставаться",emoji:"🏠",cat:"Глаголы"},
+    ]
   }]
 }];
 
@@ -1202,7 +1330,7 @@ function unitTotalItems(uid) {
 }
 
 // Increment this number every time you add new exercises to existing units
-const APP_VERSION = 13;
+const APP_VERSION = 14;
 
 // Clear localStorage if version changed
 (function checkVersion(){
@@ -1253,6 +1381,7 @@ let S={
   listenChecked:false,
   listenQIdx:0,
   errs:[],
+  isRetry:false,
   fcRev:false,chosen:null,wv:'',ws:null,
   mSelGr:null,mSelRu:null,mDone:[],mWrong:[],mDoneAll:false,
   wlPage:LS.get('wlPage',0),
@@ -1490,7 +1619,7 @@ function splitGreekSyllables(word){
 }
 
 // ─── ADAPTIVE UNIT HELPERS ───────────────────────────────
-function isAdaptiveUnit(unit){return unit&&(unit.id==='s1u0'||unit.id==='s2u1'||unit.id==='s2u2');}
+function isAdaptiveUnit(unit){return unit&&(unit.id==='s1u0'||unit.id==='s2u1'||unit.id==='s2u2'||unit.id==='s2u3');}
 
 function adaptGetWords(){
   return S.activeUnit?S.activeUnit.words:[];
@@ -2399,19 +2528,42 @@ function renderUnitEx(){
     const pct=Math.round((S.score.c/(S.score.c+S.score.w||1))*100);
     const sc=el('div','sc');
     const card=el('div','card cc');card.style.marginTop='20px';
+
+    // Retry mode — errors remain → loop; no errors → success screen
+    if(S.isRetry){
+      if(S.errs.length>0){
+        // Still have errors — loop again
+        const errsCopy=S.errs.slice();
+        S.errs=[];S.score={c:0,w:0,st:0};S.answers=[];
+        S.queue=errsCopy;S.qi=0;nextEx();render();return wrap;
+      }
+      // All done correctly!
+      card.innerHTML=`
+        <div style="font-size:60px">🌟</div>
+        <div style="font-size:20px;font-weight:900;margin:14px 0 8px">Работа над ошибками завершена!</div>
+        <div style="font-size:30px;color:var(--ok);font-weight:900;margin-bottom:8px">Отлично! ✅</div>
+        <div style="font-size:14px;color:var(--mu);margin-bottom:18px;font-weight:700">Все ошибки исправлены</div>
+      `;
+      S.isRetry=false;
+      const hb=el('button','btn bpr bfw');hb.textContent='← К юнитам';
+      hb.onclick=()=>{S.mode='home';render();};
+      card.appendChild(hb);
+      sc.appendChild(card);wrap.appendChild(sc);return wrap;
+    }
+    // Normal completion screen
     card.innerHTML=`
       <div style="font-size:60px">🏆</div>
       <div style="font-size:20px;font-weight:900;margin:14px 0 8px">Юнит пройден!</div>
       <div style="font-size:36px;color:var(--acc);font-weight:900;margin-bottom:8px">${pct}%</div>
       <div style="font-size:14px;color:var(--mu);margin-bottom:18px;font-weight:700">✅ ${S.score.c} верно · ❌ ${S.score.w} ошибок</div>
     `;
-    if(S.errs.length){
+    if(S.errs.length>0){
       const rb=el('button','btn ber bfw');rb.style.marginBottom='10px';
       rb.textContent=`🔁 Повторить ошибки (${S.errs.length})`;
       rb.onclick=()=>{
-        // Replay exact failed exercises in order
         const errsCopy=S.errs.slice();
         S.errs=[];S.score={c:0,w:0,st:0};S.answers=[];
+        S.isRetry=true;
         S.queue=errsCopy;
         S.qi=0;nextEx();render();};
       card.appendChild(rb);
@@ -3077,7 +3229,7 @@ function handleMGr(gr){
   if(S.mSelGr===gr){S.mSelGr=null;render();return;}
   if(S.mSelRu){
     const pair=S.ex.pairs.find(p=>p.greek===gr);
-    if(pair&&pair.ru===S.mSelRu){S.mDone=[...S.mDone,gr];S.mSelGr=null;S.mSelRu=null;if(S.mDone.length===S.ex.pairs.length)S.mDoneAll=true;}
+    if(pair&&pair.ru===S.mSelRu){S.mDone=[...S.mDone,gr];S.mSelGr=null;S.mSelRu=null;if(S.mDone.length===S.ex.pairs.length)S.mDoneAll=true;render();}
     else{S.mWrongCount=(S.mWrongCount||0)+1;S.mWrong=[gr,S.mSelRu];setTimeout(()=>{S.mWrong=[];S.mSelGr=null;S.mSelRu=null;render();},700);}
   }else S.mSelGr=gr;render();
 }
@@ -3087,7 +3239,7 @@ function handleMRu(ru){
   if(S.mSelRu===ru){S.mSelRu=null;render();return;}
   if(S.mSelGr){
     const pair=S.ex.pairs.find(p=>p.greek===S.mSelGr);
-    if(pair&&pair.ru===ru){S.mDone=[...S.mDone,S.mSelGr];S.mSelGr=null;S.mSelRu=null;if(S.mDone.length===S.ex.pairs.length)S.mDoneAll=true;}
+    if(pair&&pair.ru===ru){S.mDone=[...S.mDone,S.mSelGr];S.mSelGr=null;S.mSelRu=null;if(S.mDone.length===S.ex.pairs.length)S.mDoneAll=true;render();}
     else{S.mWrongCount=(S.mWrongCount||0)+1;S.mWrong=[S.mSelGr,ru];setTimeout(()=>{S.mWrong=[];S.mSelGr=null;S.mSelRu=null;render();},700);}
   }else S.mSelRu=ru;render();
 }
@@ -3880,6 +4032,27 @@ const VERBS = [
     past:["έδωσα","έδωσες","έδωσε","δώσαμε","δώσατε","έδωσαν"],
     future:["θα δώσω","θα δώσεις","θα δώσει","θα δώσουμε","θα δώσετε","θα δώσουν"],
     note:"Ο Τζον έδωσε στην κόρη του το όνομα — Джон дал дочери имя. Неправильное прошедшее: έδωσα."
+  },
+  {
+    id:"v25", greek:"σπουδάζω", ru:"учиться (в университете)",
+    present:["σπουδάζω","σπουδάζεις","σπουδάζει","σπουδάζουμε","σπουδάζετε","σπουδάζουν"],
+    past:["σπούδασα","σπούδασες","σπούδασε","σπουδάσαμε","σπουδάσατε","σπούδασαν"],
+    future:["θα σπουδάσω","θα σπουδάσεις","θα σπουδάσει","θα σπουδάσουμε","θα σπουδάσετε","θα σπουδάσουν"],
+    note:"Η Εύα σπουδάζει αρχαιολογία — Ева изучает археологию. Используется для учёбы в вузе."
+  },
+  {
+    id:"v26", greek:"τελειώνω", ru:"заканчивать",
+    present:["τελειώνω","τελειώνεις","τελειώνει","τελειώνουμε","τελειώνετε","τελειώνουν"],
+    past:["τελείωσα","τελείωσες","τελείωσε","τελειώσαμε","τελειώσατε","τελείωσαν"],
+    future:["θα τελειώσω","θα τελειώσεις","θα τελειώσει","θα τελειώσουμε","θα τελειώσετε","θα τελειώσουν"],
+    note:"Φέτος τελειώνει το σχολείο — в этом году заканчивает школу."
+  },
+  {
+    id:"v27", greek:"μένω", ru:"жить / оставаться",
+    present:["μένω","μένεις","μένει","μένουμε","μένετε","μένουν"],
+    past:["έμεινα","έμεινες","έμεινε","μείναμε","μείνατε","έμειναν"],
+    future:["θα μείνω","θα μείνεις","θα μείνει","θα μείνουμε","θα μείνετε","θα μείνουν"],
+    note:"Η οικογένεια μένει στο Λονγκ Άιλαντ — семья живёт на Лонг-Айленде. Неправильное прошедшее: έμεινα."
   },
 ];
 
