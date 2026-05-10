@@ -1340,11 +1340,19 @@ function unitTotalItems(uid) {
 // Increment this number every time you add new exercises to existing units
 const APP_VERSION = 14;
 
-// Clear localStorage if version changed
+// Clear localStorage if version changed, but preserve user progress
 (function checkVersion(){
   const saved = localStorage.getItem('appVersion');
   if(saved !== String(APP_VERSION)){
+    // Preserve data that belongs to the user, not the app structure
+    const keep = {};
+    const preserve = ['learned','checked','fcTapCount','unitScores','unitErrs_','unitTotalItems_'];
+    for(let i=0;i<localStorage.length;i++){
+      const k=localStorage.key(i);
+      if(preserve.some(p=>k.startsWith(p))) keep[k]=localStorage.getItem(k);
+    }
     localStorage.clear();
+    Object.entries(keep).forEach(([k,v])=>localStorage.setItem(k,v));
     localStorage.setItem('appVersion', String(APP_VERSION));
   }
 })();
