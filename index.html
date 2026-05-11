@@ -518,6 +518,7 @@ const THEORY_CARDS = [
     titleEn:"Знакомство с текстом",
     emoji:"👔",
     greekText:"Η ώρα είναι οχτώ το βράδυ. Ο ελληνοαμερικάνος επιχειρηματίας Τζον Πάπας είναι στο γραφείο του σπιτιού του και μιλάει στο τηλέφωνο με τον διευθυντή της τράπεζάς του. Είναι ένας ψηλός άντρας, πενήντα δύο χρονών, με έξυπνα καστανά μάτια και κοντά, γκρίζα μαλλιά. Η βαλίτσα του είναι ήδη έτοιμη από την προηγούμενη μέρα. Κάθε φορά που ταξιδεύει και ταξιδεύει συχνά, την ετοιμάζει μόνος του. Έτσι είναι σίγουρος ότι όλα είναι σωστά, όπως λέει. Ο Τζον δούλεψε πολύ από μικρός σε διάφορες δουλειές. Σήμερα έχει μια μεγάλη εταιρεία που πουλάει έπιπλα σ' όλο τον κόσμο.",
+    ruText:"Сейчас восемь вечера. Грекоамериканский бизнесмен Джон Папас находится в домашнем кабинете и разговаривает по телефону с директором своего банка. Это высокий мужчина пятидесяти двух лет с умными каштановыми глазами и короткими серыми волосами. Его чемодан уже готов с прошлого дня. Каждый раз когда он путешествует, а путешествует он часто, он собирает его сам. Так он уверен, что всё правильно, как он говорит. Джон много работал с детства на разных работах. Сегодня у него большая компания, которая продаёт мебель по всему миру.",
     rows:[
       {label:"Джон Папас — грекоамериканский бизнесмен (ελληνοαμερικάνος επιχειρηματίας)", example:""},
       {label:"Он работает в домашнем кабинете (γραφείο) и говорит по телефону с директором банка (τράπεζα)", example:""},
@@ -534,6 +535,7 @@ const THEORY_CARDS = [
     titleEn:"Знакомство с текстом",
     emoji:"👩",
     greekText:"Πριν από είκοσι δύο χρόνια παντρεύτηκε τη Φράνσις Πίτερς, από μητέρα Ελληνίδα αυτή, που ήταν γραμματέας στην εταιρεία. Η Φράνσις είναι σήμερα σαράντα πέντε χρονών. Δύο χρόνια μετά τον γάμο τους έκαναν μια κόρη και τρία χρόνια αργότερα έναν γιο. Ο Τζον έδωσε στην κόρη του το όνομα της μητέρας του, Ευαγγελία, και στον γιο του το όνομα του πατέρα του.",
+    ruText:"Двадцать два года назад он женился на Франсис Питерс, у которой мама — гречанка, и которая работала секретарём в компании. Сегодня Франсис сорок пять лет. Через два года после свадьбы у них родилась дочь, а ещё через три года — сын. Джон дал дочери имя своей матери — Евангелия, а сыну — имя своего отца.",
     rows:[
       {label:"Τζον παντρεύτηκε τη Φράνσις Πίτερς πριν από είκοσι δύο χρόνια — Джон женился на Франсис Питерс двадцать два года назад", example:""},
       {label:"Η Φράνσις είναι από μητέρα Ελληνίδα — у Франсис мама-гречанка", example:""},
@@ -551,6 +553,7 @@ const THEORY_CARDS = [
     titleEn:"Дети семьи Папас",
     emoji:"👫",
     greekText:"Η Εύα, που τώρα είναι είκοσι χρονών, σπουδάζει αρχαιολογία. Είναι ένα πραγματικά όμορφο κορίτσι. Ο Κρις, που πήρε το όνομά του από τον παππού του τον Χριστόφορο, είναι δεκαεφτά χρονών και φέτος τελειώνει το σχολείο. Η οικογένεια Πάπας μένει σ' ένα μεγάλο σπίτι με κήπο στο Λονγκ Άιλαντ.",
+    ruText:"Ева, которой сейчас двадцать лет, изучает археологию. Она действительно красивая девушка. Крис, который взял своё имя от дедушки Христофора, ему семнадцать лет, и в этом году он заканчивает школу. Семья Папас живёт в большом доме с садом на Лонг-Айленде.",
     rows:[
       {label:"Η Εύα είναι τώρα είκοσι χρονών — Еве сейчас двадцать лет", example:""},
       {label:"Σπουδάζει αρχαιολογία — она изучает археологию", example:""},
@@ -1004,6 +1007,123 @@ const LISTEN_EXERCISES = [
   },
 ];
 
+// ─── Q4 COMPREHENSION QUESTIONS ──────────────────────────
+const Q4_EXERCISES = [
+  // s2u1 — Джон Папас
+  {id:"q1a",unitId:"s2u1",
+   question:"Πού είναι ο Τζον Πάπας στην αρχή της ιστορίας;",
+   questionRu:"Где находится Джон Папас в начале истории?",
+   answer:"Στο γραφείο του σπιτιού του",
+   options:["Στο γραφείο του σπιτιού του","Στο αεροδρόμιο","Στην τράπεζα","Στο εστιατόριο"],
+   answerRu:"В домашнем кабинете"},
+  {id:"q1b",unitId:"s2u1",
+   question:"Πόσων χρονών είναι ο Τζον;",
+   questionRu:"Сколько лет Джону?",
+   answer:"Πενήντα δύο χρονών",
+   options:["Πενήντα δύο χρονών","Σαράντα πέντε χρονών","Εξήντα χρονών","Τριάντα οκτώ χρονών"],
+   answerRu:"Пятьдесят два года"},
+  {id:"q1c",unitId:"s2u1",
+   question:"Τι πουλάει η εταιρεία του Τζον;",
+   questionRu:"Что продаёт компания Джона?",
+   answer:"Έπιπλα",
+   options:["Έπιπλα","Ρούχα","Αυτοκίνητα","Τρόφιμα"],
+   answerRu:"Мебель"},
+  {id:"q1d",unitId:"s2u1",
+   question:"Ποιος ετοιμάζει τη βαλίτσα του Τζον;",
+   questionRu:"Кто собирает чемодан Джона?",
+   answer:"Ο ίδιος μόνος του",
+   options:["Ο ίδιος μόνος του","Η γυναίκα του","Η γραμματέας του","Ο οδηγός του"],
+   answerRu:"Он сам"},
+  {id:"q1e",unitId:"s2u1",
+   question:"Τι χρώμα είναι τα μαλλιά του Τζον;",
+   questionRu:"Какого цвета волосы у Джона?",
+   answer:"Γκρίζα",
+   options:["Γκρίζα","Μαύρα","Καστανά","Ξανθά"],
+   answerRu:"Серые"},
+  {id:"q1f",unitId:"s2u1",
+   question:"Με ποιον μιλάει ο Τζον στο τηλέφωνο;",
+   questionRu:"С кем разговаривает Джон по телефону?",
+   answer:"Με τον διευθυντή της τράπεζας",
+   options:["Με τον διευθυντή της τράπεζας","Με τη γυναίκα του","Με τον γιο του","Με έναν πελάτη"],
+   answerRu:"С директором банка"},
+
+  // s2u2 — Франсис Питерс
+  {id:"q2a",unitId:"s2u2",
+   question:"Πριν από πόσα χρόνια παντρεύτηκε ο Τζον τη Φράνσις;",
+   questionRu:"Сколько лет назад Джон женился на Франсис?",
+   answer:"Πριν από είκοσι δύο χρόνια",
+   options:["Πριν από είκοσι δύο χρόνια","Πριν από δέκα χρόνια","Πριν από τριάντα χρόνια","Πριν από πέντε χρόνια"],
+   answerRu:"Двадцать два года назад"},
+  {id:"q2b",unitId:"s2u2",
+   question:"Τι δουλειά έκανε η Φράνσις πριν;",
+   questionRu:"Кем раньше работала Франсис?",
+   answer:"Γραμματέας",
+   options:["Γραμματέας","Διευθύντρια","Γιατρός","Δασκάλα"],
+   answerRu:"Секретарём"},
+  {id:"q2c",unitId:"s2u2",
+   question:"Πόσων χρονών είναι σήμερα η Φράνσις;",
+   questionRu:"Сколько лет сегодня Франсис?",
+   answer:"Σαράντα πέντε χρονών",
+   options:["Σαράντα πέντε χρονών","Τριάντα οκτώ χρονών","Πενήντα χρονών","Είκοσι πέντε χρονών"],
+   answerRu:"Сорок пять лет"},
+  {id:"q2d",unitId:"s2u2",
+   question:"Πώς λέγεται η κόρη του Τζον;",
+   questionRu:"Как зовут дочь Джона?",
+   answer:"Ευαγγελία",
+   options:["Ευαγγελία","Φράνσις","Μαρία","Ελένη"],
+   answerRu:"Евангелия"},
+  {id:"q2e",unitId:"s2u2",
+   question:"Από πού είναι η μητέρα της Φράνσις;",
+   questionRu:"Откуда родом мать Франсис?",
+   answer:"Είναι Ελληνίδα",
+   options:["Είναι Ελληνίδα","Είναι Αμερικανίδα","Είναι Ιταλίδα","Είναι Γαλλίδα"],
+   answerRu:"Она гречанка"},
+  {id:"q2f",unitId:"s2u2",
+   question:"Πόσα χρόνια μετά τον γάμο έκαναν κόρη;",
+   questionRu:"Через сколько лет после свадьбы родилась дочь?",
+   answer:"Δύο χρόνια μετά",
+   options:["Δύο χρόνια μετά","Αμέσως μετά","Πέντε χρόνια μετά","Τρία χρόνια μετά"],
+   answerRu:"Через два года"},
+
+  // s2u3 — Ева и Крис
+  {id:"q3a",unitId:"s2u3",
+   question:"Τι σπουδάζει η Εύα;",
+   questionRu:"Что изучает Ева?",
+   answer:"Αρχαιολογία",
+   options:["Αρχαιολογία","Ιατρική","Νομική","Φιλολογία"],
+   answerRu:"Археологию"},
+  {id:"q3b",unitId:"s2u3",
+   question:"Από ποιον πήρε ο Κρις το όνομά του;",
+   questionRu:"От кого Крис получил своё имя?",
+   answer:"Από τον παππού του τον Χριστόφορο",
+   options:["Από τον παππού του τον Χριστόφορο","Από τον πατέρα του","Από έναν φίλο της οικογένειας","Από τον θείο του"],
+   answerRu:"От дедушки Христофора"},
+  {id:"q3c",unitId:"s2u3",
+   question:"Πόσων χρονών είναι ο Κρις;",
+   questionRu:"Сколько лет Крису?",
+   answer:"Δεκαεφτά χρονών",
+   options:["Δεκαεφτά χρονών","Είκοσι χρονών","Δεκαπέντε χρονών","Δεκαοκτώ χρονών"],
+   answerRu:"Семнадцать лет"},
+  {id:"q3d",unitId:"s2u3",
+   question:"Τι τελειώνει ο Κρις φέτος;",
+   questionRu:"Что заканчивает Крис в этом году?",
+   answer:"Το σχολείο",
+   options:["Το σχολείο","Το πανεπιστήμιο","Μια δουλειά","Ένα ταξίδι"],
+   answerRu:"Школу"},
+  {id:"q3e",unitId:"s2u3",
+   question:"Πού μένει η οικογένεια Πάπας;",
+   questionRu:"Где живёт семья Папас?",
+   answer:"Στο Λονγκ Άιλαντ",
+   options:["Στο Λονγκ Άιλαντ","Στη Νέα Υόρκη","Στην Αθήνα","Στο Μανχάταν"],
+   answerRu:"На Лонг-Айленде"},
+  {id:"q3f",unitId:"s2u3",
+   question:"Τι έχει το σπίτι της οικογένειας Πάπας;",
+   questionRu:"Что есть у дома семьи Папас?",
+   answer:"Κήπο",
+   options:["Κήπο","Πισίνα","Γκαράζ","Βεράντα"],
+   answerRu:"Сад"},
+];
+
 const SECTIONS=[{
   id:"s1",title:"Εισαγωγική Ενότητα",subtitle:"Вводный раздел",
   units:[
@@ -1219,7 +1339,7 @@ const SECTIONS=[{
       {id:310,greek:"ομπρέλα",ru:"зонт",emoji:"☂️",cat:"Одежда"},
       {id:311,greek:"πουκάμισο",ru:"рубашка",emoji:"👔",cat:"Одежда"},
       {id:312,greek:"σεντόνι",ru:"простыня",emoji:"🛏️",cat:"Дом"},
-      {id:313,greek:"πετσέτα",ru:"полотенце",emoji:"🧺",cat:"Дом"},
+      {id:313,greek:"πετσέτα",ru:"полотенце",emoji:"🛁",cat:"Дом"},
       {id:314,greek:"τηλέφωνο",ru:"телефон",emoji:"📞",cat:"Дом"},
       {id:315,greek:"πορτοφόλι",ru:"кошелёк",emoji:"👛",cat:"Другое"},
       {id:316,greek:"όνομα",ru:"имя",emoji:"🪪",cat:"Другое"},
@@ -1482,6 +1602,9 @@ let S={
   errs:[],
   isRetry:false,
   fcTapCount:LS.get('fcTapCount',0),
+  q4chosen:null,
+  q4checked:false,
+  genTopic:LS.get('genTopic','Любая тема'),
   fcRev:false,chosen:null,wv:'',ws:null,
   mSelGr:null,mSelRu:null,mDone:[],mWrong:[],mDoneAll:false,
   wlPage:LS.get('wlPage',0),
@@ -1519,6 +1642,7 @@ let S={
   darkMode:LS.get('darkMode',false),
   genText:LS.get('genText',null),      // {greek, russian, loading}
   genTextShown:LS.get('genTextShown',false),
+  genTopic:LS.get('genTopic','Любая'),
   genCount:LS.get('genCount',0),
   lastActiveUnitId:LS.get('lastActiveUnitId',null),
 };
@@ -1537,7 +1661,7 @@ function save(){
   if(S.mode==='unit'&&S.activeUnit){
     const queueSave=S.queue.map(item=>{
       if(!item)return null;
-      if(item.type==='FILL_SLOT'||item.type==='LISTEN_SLOT'||item.type==='THEORY_SLOT')return item;
+      if(item.type==='FILL_SLOT'||item.type==='LISTEN_SLOT'||item.type==='THEORY_SLOT'||item.type==='Q4_SLOT')return item;
       if(item.type&&['FC','C4','WRITE','MATCH'].includes(item.type))return item;
       return item.id;
     });
@@ -1962,14 +2086,15 @@ function renderAdaptiveUnit(){
   }
   else if(phase==='text_reading'){
     const theory=THEORY_CARDS.find(t=>t.unitId===S.activeUnit.id);
-    const d=el('div','phase-screen');d.style.cssText='align-items:stretch;padding:0 4px';
+    const d=el('div','phase-screen');
+    d.style.cssText='align-items:stretch;padding:0 4px;text-align:left;justify-content:flex-start';
     const title=el('div');title.style.cssText='font-size:15px;font-weight:900;color:var(--acc);text-align:center;margin-bottom:16px;text-transform:uppercase;letter-spacing:1px';
     title.textContent='📖 Текст';d.appendChild(title);
 
     const fullGreek=theory&&theory.greekText||'';
 
     // Greek text card
-    const textCard=el('div','card');textCard.style.cssText='margin-bottom:12px;line-height:1.9;font-size:16px;font-weight:600;color:var(--txt);text-align:center';
+    const textCard=el('div','card');textCard.style.cssText='margin-bottom:12px;line-height:1.9;font-size:16px;font-weight:600;color:var(--txt)';
     textCard.textContent=fullGreek;
     d.appendChild(textCard);
 
@@ -1994,13 +2119,19 @@ function renderAdaptiveUnit(){
     playerWrap.appendChild(playBtn);playerWrap.appendChild(playerLabel);
     d.appendChild(playerWrap);
 
-    // Translation rows
+    const trCard=el('div','card');trCard.style.cssText='margin-bottom:16px;font-size:14px;color:var(--mu);font-weight:600;line-height:1.8;text-align:left';
     const rows=theory&&(theory.rows||theory.content)||[];
-    const trCard=el('div','card');trCard.style.cssText='margin-bottom:16px;font-size:13px;color:var(--mu);font-weight:600;line-height:1.7';
-    rows.filter(r=>!r.label.startsWith('💡')).forEach(r=>{
-      const p=el('div');p.style.cssText='margin-bottom:6px;padding-bottom:6px;border-bottom:1px solid var(--border)';
-      p.textContent=r.label;trCard.appendChild(p);
-    });
+    const ruText=theory&&theory.ruText;
+    if(ruText){
+      trCard.textContent=ruText;
+    } else {
+      // Fallback: extract Russian parts from rows
+      rows.filter(r=>!r.label.startsWith('💡')).forEach(r=>{
+        const parts=r.label.split(/\s*[—–]\s*/);
+        const ru=parts.length>1?parts.slice(1).join(' '):r.label;
+        const p=el('div');p.style.marginBottom='6px';p.textContent=ru;trCard.appendChild(p);
+      });
+    }
     d.appendChild(trCard);
 
     const goBtn=el('button','btn bpr bfw');goBtn.textContent='К упражнениям →';
@@ -2315,15 +2446,18 @@ function adaptCollNext(){
 }
 
 function startAdaptiveSummary(skipNextEx){
-  // Build summary queue: fill + listen
   const fills=FILL_EXERCISES.filter(f=>f.unitId===S.activeUnit.id);
   const listens=LISTEN_EXERCISES.filter(l=>l.unitId===S.activeUnit.id);
   const queue=[];
   fills.forEach(f=>queue.push({type:'FILL_SLOT',fillId:f.id}));
   listens.forEach(l=>l.questions.forEach((_,qIdx)=>queue.push({type:'LISTEN_SLOT',listenId:l.id,qIdx})));
-  S.queue=queue;
+  // Add Q4 comprehension questions for s2 units, shuffled between fills
+  if(['s2u1','s2u2','s2u3'].includes(S.activeUnit.id)){
+    const q4s=Q4_EXERCISES.filter(q=>q.unitId===S.activeUnit.id);
+    q4s.forEach(q=>queue.push({type:'Q4_SLOT',q4Id:q.id}));
+  }
+  S.queue=shuffle(queue);
   if(!skipNextEx){S.qi=0;nextEx();}
-  // If skipNextEx, qi will be set by caller
 }
 
 
@@ -2428,7 +2562,7 @@ function startUnit(unit){
     // Restore mixed queue (words + fill slots)
     S.queue=sess.queue.map(item=>{
       if(!item)return null;
-      if(item.type==='FILL_SLOT'||item.type==='LISTEN_SLOT'||item.type==='THEORY_SLOT')return item;
+      if(item.type==='FILL_SLOT'||item.type==='LISTEN_SLOT'||item.type==='THEORY_SLOT'||item.type==='Q4_SLOT')return item;
       if(item.type&&['FC','C4','WRITE','MATCH'].includes(item.type))return item;
       return ALL_WORDS.find(w=>w.id===item);
     }).filter(Boolean);
@@ -2608,6 +2742,13 @@ function nextEx(){
     const t=THEORY_CARDS.find(x=>x.id===item.theoryId);
     if(t){S.ex={type:'THEORY',theory:t};}
     else{S.qi++;nextEx();return;}
+  } else if(item&&item.type==='Q4_SLOT'){
+    const q=Q4_EXERCISES.find(x=>x.id===item.q4Id);
+    if(q){
+      S.ex={type:'Q4',q4Id:q.id,question:q.question,questionRu:q.questionRu,
+        answer:q.answer,options:shuffle([...q.options]),answerRu:q.answerRu};
+    } else {S.qi++;nextEx();return;}
+    S.q4chosen=null;S.q4checked=false;
   } else if(item&&item.type==='FILL_SLOT'){
     const f=FILL_EXERCISES.find(x=>x.id===item.fillId);
     if(f){
@@ -3349,6 +3490,48 @@ function renderEx(){
     }
   }
 
+  else if(type==='Q4'){
+    const lbl=el('div','ex');lbl.textContent='ВОПРОС ПО ТЕКСТУ';ew.appendChild(lbl);
+    const card=el('div','card');
+    // Question
+    const qEl=el('div');qEl.style.cssText='font-size:17px;font-weight:800;line-height:1.5;color:var(--txt);margin-bottom:6px';
+    qEl.textContent=S.ex.question;card.appendChild(qEl);
+    const qRuEl=el('div');qRuEl.style.cssText='font-size:13px;color:var(--mu);font-weight:600;margin-bottom:12px';
+    qRuEl.textContent=S.ex.questionRu;card.appendChild(qRuEl);
+    ew.appendChild(card);
+    // Options
+    const chs=el('div','chs');
+    (S.ex.options||[]).forEach(opt=>{
+      let cls='cb2';
+      if(S.q4checked){
+        if(opt===S.ex.answer)cls+=' ck';
+        else if(opt===S.q4chosen&&opt!==S.ex.answer)cls+=' cw';
+      } else if(S.q4chosen===opt) cls+=' ms';
+      const b=el('button',cls);b.textContent=opt;
+      if(S.q4checked)b.disabled=true;
+      b.onclick=()=>{
+        if(S.q4checked)return;
+        S.q4chosen=opt;render();
+      };
+      chs.appendChild(b);
+    });
+    ew.appendChild(chs);
+    if(S.q4chosen&&!S.q4checked){
+      const chk=el('button','btn bpr bfw');chk.textContent='Проверить';
+      chk.onclick=()=>{
+        S.q4checked=true;
+        const ok=S.q4chosen===S.ex.answer;
+        render();
+        setTimeout(()=>advance(ok),1200);
+      };
+      ew.appendChild(chk);
+    }
+    if(S.q4checked){
+      const fb=el('div','fb '+(S.q4chosen===S.ex.answer?'fbok':'fber'));
+      fb.textContent=S.q4chosen===S.ex.answer?'✅ Верно! '+S.ex.answerRu:'❌ Правильно: '+S.ex.answerRu;
+      ew.appendChild(fb);
+    }
+  }
   else if(type==='FILL'){
     if(!S.ex.sentence||!S.ex.options){
       setTimeout(()=>{S.qi++;nextEx();render();},0);
@@ -3514,7 +3697,7 @@ function renderWords(){
       const wg=el('div','wg');wg.textContent=w.greek;
       const wru=el('div','wru');wru.textContent=w.ru;
       const wsp=el('button','wsp');wsp.textContent='🔊';wsp.onclick=()=>speak(w.greek);
-      wr.appendChild(wc);wr.appendChild(we);wr.appendChild(wg);wr.appendChild(wru);wr.appendChild(wsp);
+      wr.appendChild(wc);wr.appendChild(wg);wr.appendChild(wru);wr.appendChild(wsp);
       sc.appendChild(wr);
     });
   });
@@ -3822,10 +4005,12 @@ async function generateText(){
   render();
 
   const learnedWords=ALL_WORDS.filter(w=>S.learned.has(w.id));
-
-  // Pick up to 65 random learned words
   const sample=shuffle(learnedWords).slice(0,65);
   const wordList=sample.map(w=>w.greek+' ('+w.ru+')').join(', ');
+  const selectedTopic=S.genTopic||'Любая тема';
+  const topicInstruction=selectedTopic==='Любая тема'
+    ? 'Выбери любую простую тему для истории (дом, кафе, рынок, парк, школа).'
+    : 'ТЕМА текста: '+selectedTopic+'. Вся история должна быть именно на эту тему.';
 
   // Cycle through 3 genres
   const genres=['ДНЕВНИК: текст написан от первого лица, как личный дневник или заметка о дне — "Сегодня я...", естественный разговорный стиль',
@@ -3849,7 +4034,9 @@ async function generateText(){
 
 ЖАНР: ${genre}
 
-ШАГ 1 — придумай простую, логичную мини-историю. Одна сцена, одно место (дом, кафе, рынок, парк, школа). Никаких путешествий между странами, никаких экзотических локаций.
+${topicInstruction}
+
+ШАГ 1 — придумай простую, логичную мини-историю. Одна сцена, одно место. Никаких путешествий между странами, никаких экзотических локаций.
 
 ШАГ 2 — естественно впиши слова студента туда, где они реально подходят. Не вставляй слово насильно.
 
@@ -3939,9 +4126,23 @@ function renderLearnedWords(wrap){
   const learnedWords=ALL_WORDS.filter(w=>S.learned.has(w.id));
   const q=S.lwSearch.toLowerCase();
   const filtered=learnedWords.filter(w=>!q||w.greek.toLowerCase().includes(q)||w.ru.toLowerCase().includes(q));
+  // Topic selector
+  const topicWrap=el('div');topicWrap.style.cssText='margin-bottom:10px;background:var(--sur);border-radius:12px;padding:12px 14px;border:1.5px solid var(--border)';
+  const topicTitle=el('div');topicTitle.style.cssText='font-size:12px;font-weight:900;color:var(--mu);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px';
+  topicTitle.textContent='Тема текста:';topicWrap.appendChild(topicTitle);
+  const topics=['Любая тема','Семья','Работа и бизнес','Путешествия','Еда и кафе','Город и магазины','Учёба','Природа и погода','Дом и быт'];
+  const topicGrid=el('div');topicGrid.style.cssText='display:flex;flex-wrap:wrap;gap:6px';
+  topics.forEach(t=>{
+    const tb=el('button');
+    const isSel=S.genTopic===t;
+    tb.style.cssText='padding:5px 11px;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;border:1.5px solid '+(isSel?'var(--acc)':'var(--border)')+';background:'+(isSel?'var(--acc-light)':'var(--sur)')+';color:'+(isSel?'var(--acc)':'var(--mu)')+';font-family:inherit';
+    tb.textContent=t;
+    tb.onclick=()=>{S.genTopic=t;LS.set('genTopic',t);render();};
+    topicGrid.appendChild(tb);
+  });
+  topicWrap.appendChild(topicGrid);
+  wrap.appendChild(topicWrap);
 
-  // ── Generate text button ──
-  // Gen button — full width with info icon inside
   const genBtn=el('button','gen-btn');
   genBtn.style.cssText='width:100%;margin-bottom:0;display:flex;align-items:center;justify-content:space-between;padding:14px 18px;gap:10px';
   const genBtnLeft=el('span');genBtnLeft.style.cssText='flex:1;text-align:center;font-size:15px;font-weight:800';
@@ -4082,12 +4283,11 @@ function renderLearnedWords(wrap){
     const row=el('div','lw-row');
     const wc=el('input');wc.type='checkbox';wc.className='cb3';wc.checked=false;
     wc.onchange=()=>{S.learned.delete(w.id);S.checked.add(w.id);save();showToast(`${w.greek} возвращено в практику`);};
-    const we=el('div','we');we.textContent=w.emoji;
     const wg=el('div','wg');wg.textContent=w.greek;
     const wru=el('div','wru');wru.textContent=w.ru;
     const badge=el('div','lw-badge');badge.textContent='✓ выучено';
     const wsp=el('button','wsp');wsp.textContent='🔊';wsp.onclick=()=>speak(w.greek);
-    row.appendChild(wc);row.appendChild(we);row.appendChild(wg);row.appendChild(wru);row.appendChild(badge);row.appendChild(wsp);
+    row.appendChild(wc);row.appendChild(wg);row.appendChild(wru);row.appendChild(badge);row.appendChild(wsp);
     wrap.appendChild(row);
   });
   return wrap;
