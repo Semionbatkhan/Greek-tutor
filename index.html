@@ -1786,10 +1786,19 @@ function render(){
   if(S.tab==='verbs')app.appendChild(renderVerbs());
   if(S.popup)app.appendChild(renderPopup());
   if(S.toast){const t=el('div','toast');t.textContent=S.toast;app.appendChild(t);}
-  // Restore focus to search inputs
+  // Restore focus to search inputs after render
   if(focusedId){
     const el2=document.querySelector(`[data-persist="${focusedId}"]`);
-    if(el2){el2.focus();if(focusedVal!==undefined){el2.value=focusedVal;el2.setSelectionRange(focusedVal.length,focusedVal.length);}}
+    if(el2){
+      // requestAnimationFrame ensures DOM is fully painted before focusing
+      requestAnimationFrame(()=>{
+        el2.focus();
+        if(focusedVal!==undefined){
+          el2.value=focusedVal;
+          el2.setSelectionRange(focusedVal.length,focusedVal.length);
+        }
+      });
+    }
   }
 }
 
@@ -1854,12 +1863,15 @@ function adaptCalcTotal(){
   const nWords=words.length;
   const nUnknown=S.adaptUnknown.length;
   const nC4Wrong=S.adaptC4Wrong.length;
-  const theories=THEORY_CARDS.filter(t=>t.unitId===S.activeUnit?.id).length;
-  const fills=FILL_EXERCISES.filter(f=>f.unitId===S.activeUnit?.id).length;
-  const listenQs=LISTEN_EXERCISES.filter(l=>l.unitId===S.activeUnit?.id).reduce((a,l)=>a+l.questions.length,0);
-  // theory + fc_intro(1) + fc(nWords) + c4(nUnknown) + collapsed(c4wrong) + summary_intro(1) + fill+listen
-  let total=theories+1+nWords+nUnknown+nC4Wrong+1+fills+listenQs;
-  return total;
+  const uid=S.activeUnit?.id;
+  const theories=THEORY_CARDS.filter(t=>t.unitId===uid).length;
+  const fills=FILL_EXERCISES.filter(f=>f.unitId===uid).length;
+  const listenQs=LISTEN_EXERCISES.filter(l=>l.unitId===uid).reduce((a,l)=>a+l.questions.length,0);
+  const q4s=Q4_EXERCISES.filter(q=>q.unitId===uid).length;
+  // +1 for text_reading screen on s2 units
+  const textReading=['s2u1','s2u2','s2u3'].includes(uid)?1:0;
+  // theory + fc_intro(1) + fc(nWords) + c4(nUnknown) + collapsed(c4wrong) + text_reading + summary_intro(1) + fill+listen+q4
+  return theories+1+nWords+nUnknown+nC4Wrong+textReading+1+fills+listenQs+q4s;
 }
 
 function adaptCurrentWord(){
@@ -3670,7 +3682,20 @@ function renderWords(){
 
   const wlt=el('div','wlt');
   const inp=el('input','wls');inp.placeholder='Поиск...';inp.value=S.wlSearch;inp.dataset.persist='wl-search';
-  inp.oninput=e=>{S.wlSearch=e.target.value;S.wlPage=0;render();};
+  inp.oninput=e=>{
+    S.wlSearch=e.target.value;S.wlPage=0;
+    const q2=S.wlSearch.toLowerCase();
+    wrap.querySelectorAll('[data-word-id]').forEach(row=>{
+      const gr=row.dataset.wordGreek||'';
+      const ru=row.dataset.wordRu||'';
+      row.style.display=(!q2||gr.includes(q2)||ru.includes(q2))?'':'none';
+    });
+    // Also show/hide category headers
+    wrap.querySelectorAll('.cl').forEach(cl=>{
+      const next=cl.nextElementSibling;
+      if(next)cl.style.display=next&&next.style.display!=='none'?'':'none';
+    });
+  };
   wlt.appendChild(inp);
   const eb=el('button','wleb');eb.textContent='↓ Конец';
   eb.onclick=()=>document.getElementById('wl-end')?.scrollIntoView({behavior:'smooth'});
@@ -3691,6 +3716,9 @@ function renderWords(){
     const cl=el('div','cl');cl.textContent=`${cat} (${words.length})`;sc.appendChild(cl);
     words.forEach(w=>{
       const wr=el('div','wr');
+      wr.dataset.wordId=w.id;
+      wr.dataset.wordGreek=w.greek.toLowerCase();
+      wr.dataset.wordRu=w.ru.toLowerCase();
       const wc=el('input');wc.type='checkbox';wc.className='cb3';wc.checked=S.checked.has(w.id);
       wc.onchange=()=>{S.checked.has(w.id)?S.checked.delete(w.id):S.checked.add(w.id);save();render();};
       const we=el('div','we');we.textContent=w.emoji;
@@ -4505,14 +4533,32 @@ function renderVerbs(){
   const srch=el('input');
   srch.placeholder='Поиск глагола...';
   srch.value=S.verbSearch||'';
+  srch.dataset.persist='verbSearch';
   srch.style.cssText='width:100%;padding:10px 14px;background:var(--card);border:1.5px solid var(--border);border-radius:12px;font-family:\'Nunito\',sans-serif;font-size:14px;color:var(--txt);outline:none;margin-bottom:14px';
-  srch.oninput=e=>{S.verbSearch=e.target.value;render();};
+  srch.oninput=e=>{
+    S.verbSearch=e.target.value;
+    // Filter without re-render to keep focus
+    const q2=(S.verbSearch||'').toLowerCase();
+    wrap.querySelectorAll('[data-verb-id]').forEach(card=>{
+      const greek=card.dataset.verbGreek||'';
+      const ru=card.dataset.verbRu||'';
+      const match=!q2||greek.toLowerCase().includes(q2)||ru.toLowerCase().includes(q2);
+      card.style.display=match?'':'none';
+    });
+  };
   wrap.appendChild(srch);
   const q=(S.verbSearch||'').toLowerCase();
-  const filtered=VERBS.filter(v=>!q||v.greek.toLowerCase().includes(q)||v.ru.toLowerCase().includes(q));
-  filtered.forEach((v,i)=>{
+  // Show all verbs, filtering handled by oninput via data attributes
+  VERBS.forEach((v,i)=>{
     const card=el('div');
-    card.style.cssText='background:var(--card);border-radius:var(--r);border:1.5px solid var(--border);margin-bottom:12px;overflow:hidden;box-shadow:var(--shadow)';
+    card.dataset.verbId=v.id;
+    card.dataset.verbGreek=v.greek;
+    card.dataset.verbRu=v.ru;
+    // Apply initial filter
+    if(q&&!v.greek.toLowerCase().includes(q)&&!v.ru.toLowerCase().includes(q)){
+      card.style.display='none';
+    }
+    card.style.cssText=(card.style.cssText||'')+'background:var(--card);border-radius:var(--r);border:1.5px solid var(--border);margin-bottom:12px;overflow:hidden;box-shadow:var(--shadow)';
     const head=el('div');
     head.style.cssText='display:flex;align-items:center;gap:10px;padding:14px 16px;cursor:pointer;background:var(--sh-grad)';
     const num=el('div');
