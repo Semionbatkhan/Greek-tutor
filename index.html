@@ -1601,6 +1601,8 @@ let S={
   listenQIdx:0,
   errs:[],
   isRetry:false,
+  retryTotal:0,
+  retryCorrect:0,
   fcTapCount:LS.get('fcTapCount',0),
   q4chosen:null,
   q4checked:false,
@@ -1643,6 +1645,7 @@ let S={
   genText:LS.get('genText',null),      // {greek, russian, loading}
   genTextShown:LS.get('genTextShown',false),
   genTopic:LS.get('genTopic','Любая'),
+  genGenre:LS.get('genGenre','Любой жанр'),
   genCount:LS.get('genCount',0),
   lastActiveUnitId:LS.get('lastActiveUnitId',null),
 };
@@ -2791,10 +2794,18 @@ function advance(ok){
   S.score.c+=ok?1:0;S.score.w+=ok?0:1;S.score.st=ok?S.score.st+1:0;
   if(!S.answers)S.answers=[];
   S.answers.push(ok?'ok':'err');
-  if(!ok){
-    // Save the full exercise object so we can replay it exactly
+  if(S.isRetry){
+    if(ok){
+      // Correct — count it, remove from queue (just advance)
+      S.retryCorrect=(S.retryCorrect||0)+1;
+    } else {
+      // Wrong — put this exercise at the END of remaining queue
+      const failedEx={...S.ex};
+      // Insert after current position in queue
+      S.queue.splice(S.qi+1,0,failedEx);
+    }
+  } else if(!ok){
     if(S.ex) S.errs.push({...S.ex});
-    // Also add word to checked for practice
     if(S.ex?.word && !S.checked.has(S.ex.word.id)){
       S.checked.add(S.ex.word.id);
     }
@@ -2835,20 +2846,13 @@ function renderUnitEx(){
 
     // Retry mode — errors remain → loop; no errors → success screen
     if(S.isRetry){
-      if(S.errs.length>0){
-        // Still have errors — loop again
-        const errsCopy=S.errs.slice();
-        S.errs=[];S.score={c:0,w:0,st:0};S.answers=[];
-        S.queue=errsCopy;S.qi=0;nextEx();render();return wrap;
-      }
-      // All done correctly!
       card.innerHTML=`
         <div style="font-size:60px">🌟</div>
         <div style="font-size:20px;font-weight:900;margin:14px 0 8px">Работа над ошибками завершена!</div>
-        <div style="font-size:30px;color:var(--ok);font-weight:900;margin-bottom:8px">Отлично! ✅</div>
-        <div style="font-size:14px;color:var(--mu);margin-bottom:18px;font-weight:700">Все ошибки исправлены</div>
+        <div style="font-size:36px;color:var(--ok);font-weight:900;margin-bottom:8px">${S.retryTotal||0}/${S.retryTotal||0}</div>
+        <div style="font-size:14px;color:var(--mu);margin-bottom:18px;font-weight:700">Все ошибки исправлены ✅</div>
       `;
-      S.isRetry=false;
+      S.isRetry=false;S.retryTotal=0;S.retryCorrect=0;
       const hb=el('button','btn bpr bfw');hb.textContent='← К юнитам';
       hb.onclick=()=>{S.mode='home';render();};
       card.appendChild(hb);
@@ -2868,6 +2872,8 @@ function renderUnitEx(){
         const errsCopy=S.errs.slice();
         S.errs=[];S.score={c:0,w:0,st:0};S.answers=[];
         S.isRetry=true;
+        S.retryTotal=errsCopy.length;
+        S.retryCorrect=0;
         S.queue=errsCopy;
         S.qi=0;nextEx();render();};
       card.appendChild(rb);
@@ -2919,29 +2925,42 @@ function renderUnitEx(){
   // Counter - pushed to right
   const pnum=el('div');
   pnum.style.cssText='font-size:13px;font-weight:800;color:var(--mu);flex-shrink:0;white-space:nowrap';
-  pnum.textContent=`${S.qi+1}/${S.queue.length}`;
+  if(S.isRetry){
+    pnum.textContent=`${S.retryCorrect||0}/${S.retryTotal||0}`;
+    pnum.style.color='var(--ok)';
+  } else {
+    pnum.textContent=`${S.qi+1}/${S.queue.length}`;
+  }
   ps.appendChild(pnum);
 
   wrap.appendChild(ps);
 
-  // Progress bar on own strip below navigation
-  const total2=S.queue.length||1;
-  const answers2=S.answers||[];
-  const segGap2=0;
+  // Progress bar
+  const total2=S.isRetry?(S.retryTotal||1):S.queue.length||1;
+  const answered2=S.isRetry?(S.retryCorrect||0):S.qi;
   const progStrip=el('div');progStrip.style.cssText='background:var(--sur);padding:5px 12px 7px;border-bottom:1px solid var(--border);flex-shrink:0';
-  const segWrap2=el('div');segWrap2.style.cssText=`display:flex;gap:${segGap2}px;height:8px;border-radius:99px;overflow:hidden;background:var(--spk-bg);width:100%`;
-  for(let i=0;i<total2;i++){
-    const seg=el('div');seg.style.cssText='flex:1;height:100%;border-radius:2px;';
-    if(i<answers2.length){
-      if(answers2[i]==='theory')seg.style.background='var(--seg-ok)';
-      else if(answers2[i]==='ok')seg.style.background='var(--seg-ok)';
-      else seg.style.background='var(--seg-er)';
-    } else if(i===S.qi){
-      seg.style.background='var(--seg-cur)';
-    } else {
-      seg.style.background='var(--seg-empty)';
+  const segWrap2=el('div');segWrap2.style.cssText='display:flex;gap:0px;height:8px;border-radius:99px;overflow:hidden;background:var(--spk-bg);width:100%';
+  if(S.isRetry){
+    // Show correct/total as filled bar
+    const correct=S.retryCorrect||0;
+    for(let i=0;i<total2;i++){
+      const seg=el('div');seg.style.cssText='flex:1;height:100%;';
+      seg.style.background=i<correct?'var(--seg-ok)':i===correct?'var(--seg-cur)':'var(--seg-empty)';
+      segWrap2.appendChild(seg);
     }
-    segWrap2.appendChild(seg);
+  } else {
+    const answers2=S.answers||[];
+    for(let i=0;i<total2;i++){
+      const seg=el('div');seg.style.cssText='flex:1;height:100%;';
+      if(i<answers2.length){
+        seg.style.background=answers2[i]==='ok'||answers2[i]==='theory'?'var(--seg-ok)':'var(--seg-er)';
+      } else if(i===S.qi){
+        seg.style.background='var(--seg-cur)';
+      } else {
+        seg.style.background='var(--seg-empty)';
+      }
+      segWrap2.appendChild(seg);
+    }
   }
   progStrip.appendChild(segWrap2);
   wrap.appendChild(progStrip);
@@ -3534,7 +3553,6 @@ function renderEx(){
         S.q4checked=true;
         const ok=S.q4chosen===S.ex.answer;
         render();
-        setTimeout(()=>advance(ok),1200);
       };
       ew.appendChild(chk);
     }
@@ -3542,6 +3560,13 @@ function renderEx(){
       const fb=el('div','fb '+(S.q4chosen===S.ex.answer?'fbok':'fber'));
       fb.textContent=S.q4chosen===S.ex.answer?'✅ Верно! '+S.ex.answerRu:'❌ Правильно: '+S.ex.answerRu;
       ew.appendChild(fb);
+      const nb=el('button','btn bpr bfw');nb.textContent='Дальше →';
+      nb.onclick=()=>{
+        const ok=S.q4chosen===S.ex.answer;
+        S.q4checked=false;S.q4chosen=null;
+        advance(ok);
+      };
+      ew.appendChild(nb);
     }
   }
   else if(type==='FILL'){
@@ -4033,20 +4058,26 @@ async function generateText(){
   render();
 
   const learnedWords=ALL_WORDS.filter(w=>S.learned.has(w.id));
-  const sample=shuffle(learnedWords).slice(0,65);
+  const sample=shuffle(learnedWords).slice(0,200);
   const wordList=sample.map(w=>w.greek+' ('+w.ru+')').join(', ');
   const selectedTopic=S.genTopic||'Любая тема';
-  const topicInstruction=selectedTopic==='Любая тема'
+  const topicInstruction=selectedTopic==='Любая тема'||selectedTopic==='Любая'
     ? 'Выбери любую простую тему для истории (дом, кафе, рынок, парк, школа).'
     : 'ТЕМА текста: '+selectedTopic+'. Вся история должна быть именно на эту тему.';
 
-  // Cycle through 3 genres
-  const genres=['ДНЕВНИК: текст написан от первого лица, как личный дневник или заметка о дне — "Сегодня я...", естественный разговорный стиль',
+  // Genre — user selected or cycle
+  const genreDefs=['ДНЕВНИК: текст написан от первого лица, как личный дневник или заметка о дне — "Сегодня я...", естественный разговорный стиль',
     'ДИАЛОГ: короткий живой разговор между двумя людьми (Анна и Янис, или покупатель и продавец, или друзья)',
     'ИСТОРИЯ: маленький рассказ от третьего лица про конкретного персонажа и что с ним произошло'];
-  if(!S.genCount)S.genCount=0;
-  const genre=genres[S.genCount%3];
-  S.genCount++;LS.set('genCount',S.genCount);
+  const genreMap={'Дневник':genreDefs[0],'Диалог':genreDefs[1],'История':genreDefs[2]};
+  let genre;
+  if(S.genGenre&&S.genGenre!=='Любой жанр'){
+    genre=genreMap[S.genGenre]||genreDefs[0];
+  } else {
+    if(!S.genCount)S.genCount=0;
+    genre=genreDefs[S.genCount%3];
+    S.genCount++;LS.set('genCount',S.genCount);
+  }
 
   const learnedCount=learnedWords.length;
 
@@ -4171,15 +4202,30 @@ function renderLearnedWords(wrap){
   topicWrap.appendChild(topicGrid);
   wrap.appendChild(topicWrap);
 
+  // Genre selector
+  const genreWrap=el('div');genreWrap.style.cssText='margin-bottom:10px;background:var(--sur);border-radius:12px;padding:12px 14px;border:1.5px solid var(--border)';
+  const genreTitle=el('div');genreTitle.style.cssText='font-size:12px;font-weight:900;color:var(--mu);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px';
+  genreTitle.textContent='Жанр текста:';genreWrap.appendChild(genreTitle);
+  const genreGrid=el('div');genreGrid.style.cssText='display:flex;flex-wrap:wrap;gap:6px';
+  [
+    {key:'Любой жанр',icon:'🎲'},
+    {key:'Дневник',icon:'📔'},
+    {key:'Диалог',icon:'💬'},
+    {key:'История',icon:'📖'},
+  ].forEach(({key,icon})=>{
+    const gb=el('button');
+    const isSel=(S.genGenre||'Любой жанр')===key;
+    gb.style.cssText='padding:5px 11px;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;border:1.5px solid '+(isSel?'var(--acc)':'var(--border)')+';background:'+(isSel?'var(--acc-light)':'var(--sur)')+';color:'+(isSel?'var(--acc)':'var(--mu)')+';font-family:inherit';
+    gb.textContent=icon+' '+key;
+    gb.onclick=()=>{S.genGenre=key;LS.set('genGenre',key);render();};
+    genreGrid.appendChild(gb);
+  });
+  genreWrap.appendChild(genreGrid);
+  wrap.appendChild(genreWrap);
+
   const genBtn=el('button','gen-btn');
-  genBtn.style.cssText='width:100%;margin-bottom:0;display:flex;align-items:center;justify-content:space-between;padding:14px 18px;gap:10px';
-  const genBtnLeft=el('span');genBtnLeft.style.cssText='flex:1;text-align:center;font-size:15px;font-weight:800';
-  genBtnLeft.textContent='✨ Сгенерировать текст из выученных слов';
-  const genBtnInfo=el('span');
-  genBtnInfo.style.cssText='background:rgba(255,255,255,0.25);border-radius:50%;width:26px;height:26px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:900;flex-shrink:0';
-  genBtnInfo.textContent='ℹ';
-  genBtnInfo.onclick=e=>{e.stopPropagation();S.popup={type:'genInfo'};render();};
-  genBtn.appendChild(genBtnLeft);genBtn.appendChild(genBtnInfo);
+  genBtn.style.cssText='width:100%;margin-bottom:0;padding:14px 18px;text-align:center;font-size:15px;font-weight:800';
+  genBtn.textContent='✨ Сгенерировать текст';
   genBtn.onclick=()=>generateText();
   wrap.appendChild(genBtn);
 
@@ -4195,14 +4241,20 @@ function renderLearnedWords(wrap){
     } else {
       // Greek text with learned words highlighted
       let greekHtml=highlightLearnedInText(S.genText.greek||'');
-      // Genre label
-      if(S.genText.genre){
-        const gl=el('div');
-        gl.style.cssText='font-size:11px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:var(--acc);margin-bottom:10px';
-        const icons={'Диалог':'💬','Дневник':'📔','История':'📖'};
-        const icon=Object.entries(icons).find(([k])=>S.genText.genre.includes(k));
-        gl.textContent=(icon?icon[1]:'📖')+' '+S.genText.genre;
-        gc.appendChild(gl);
+      // Info chips: genre, topic, words used
+      {
+        const chips=el('div');chips.style.cssText='display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px';
+        const genreIcons={'Диалог':'💬','Дневник':'📔','История':'📖'};
+        const genreIcon=Object.entries(genreIcons).find(([k])=>(S.genText.genre||'').includes(k));
+        const genreLabel=(genreIcon?genreIcon[1]+' ':'')+( S.genText.genre||'Текст');
+        const topicLabel='📍 '+(S.genTopic&&S.genTopic!=='Любая'&&S.genTopic!=='Любая тема'?S.genTopic:'Свободная тема');
+        const wordsLabel='📚 '+( S.genText.usedWords?.length||0)+' слов из словаря';
+        [genreLabel,topicLabel,wordsLabel].forEach(txt=>{
+          const chip=el('div');
+          chip.style.cssText='padding:4px 10px;border-radius:20px;font-size:11px;font-weight:800;background:var(--acc-light);color:var(--acc);border:1.5px solid var(--acc)';
+          chip.textContent=txt;chips.appendChild(chip);
+        });
+        gc.appendChild(chips);
       }
 
       if(S.genText.isDialogue && S.genText.lines){
