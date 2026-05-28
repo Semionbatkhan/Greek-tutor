@@ -2332,8 +2332,9 @@ function renderAdaptiveUnit(){
   const phase=S.adaptPhase;
 
   if(phase==='theory'){
-    const isS2=S.activeUnit&&['s2u1','s2u2','s2u3'].includes(S.activeUnit.id);
-    if(isS2){
+    const isTextUnit=S.activeUnit&&['s2u1','s2u2','s2u3'].includes(S.activeUnit.id);
+    const isVocabUnit=S.activeUnit&&['s3u1'].includes(S.activeUnit.id);
+    if(isTextUnit){
       // For s2 units: show intro screen explaining the flow
       const unitTitles={'s2u1':'Семья Папас','s2u2':'Франсис Питерс','s2u3':'Ева и Крис'};
       const d=el('div','phase-screen');
@@ -2348,9 +2349,28 @@ function renderAdaptiveUnit(){
         </div>`;
       const btn=el('button','btn bpr bfw');btn.textContent='Начать →';
       btn.onclick=()=>{
-        // Skip theory card, go directly to fc_intro
         S.adaptPhase='fc_intro';
         S.qi=THEORY_CARDS.filter(t=>t.unitId===S.activeUnit.id).length;
+        saveAdaptState();render();
+      };
+      d.appendChild(btn);sc.appendChild(d);
+    } else if(isVocabUnit){
+      // For vocabulary units (s3u1 etc): simple intro screen
+      const d=el('div','phase-screen');
+      d.innerHTML=`<div class="phase-icon">${S.activeUnit.emoji||'📚'}</div>
+        <div class="phase-title">${S.activeUnit.titleRu}</div>
+        <div class="phase-sub" style="text-align:left;max-width:320px">
+          В этом юните новая лексика по теме:<br><br>
+          <b>1.</b> 🃏 Карточки — знаю / не знаю<br>
+          <b>2.</b> 🎯 Выбор правильного перевода<br>
+          <b>3.</b> 🔤 Собери слово по слогам<br>
+          <b>4.</b> ✍️ Заполни пропуски в предложениях<br>
+          <b>5.</b> ❓ Вопросы по теме
+        </div>`;
+      const btn=el('button','btn bpr bfw');btn.textContent='Начать →';
+      btn.onclick=()=>{
+        S.adaptPhase='fc_intro';
+        S.qi=0;
         saveAdaptState();render();
       };
       d.appendChild(btn);sc.appendChild(d);
