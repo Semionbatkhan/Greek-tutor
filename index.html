@@ -663,10 +663,10 @@ const FILL_EXERCISES = [
    emoji:"🔤"},
   {id:"f0c",unitId:"s1u0",
    sentence:"Η Άννα ___ πάει στην Αθήνα. ___ μένει στο σπίτι.",
-   hint:"Отрицание по-гречески",
-   answer:"δεν / Αλλά",
-   options:["δεν / Αλλά","ναι / Και","όχι / Για","από / Με"],
-   translation:"Анна не едет в Афины. Но остаётся дома.",
+   hint:"Отрицание и местоимение",
+   answer:"δεν / Αυτή",
+   options:["δεν / Αυτή","ναι / Και","όχι / Για","από / Με"],
+   translation:"Анна не едет в Афины. Она остаётся дома.",
    emoji:"❌"},
   {id:"f11",unitId:"s1u6",
    sentence:"Στην τάξη έχουμε ___.",
@@ -3131,6 +3131,8 @@ function nextEx(){
 }
 
 function advance(ok){
+  // Stop any playing audio when advancing
+  try{if(window.speechSynthesis)speechSynthesis.cancel();}catch(e){}
   S.score.c+=ok?1:0;S.score.w+=ok?0:1;S.score.st=ok?S.score.st+1:0;
   if(!S.answers)S.answers=[];
   S.answers.push(ok?'ok':'err');
@@ -3648,8 +3650,15 @@ function renderEx(){
     const playerFill=el('div');
     playerFill.style.cssText='position:absolute;top:0;left:60px;height:100%;background:rgba(255,255,255,0.3);width:0%;pointer-events:none';
     const playerIcon=el('div');
-    playerIcon.style.cssText='position:absolute;inset:0;z-index:2;display:flex;align-items:center;justify-content:center;font-size:28px;color:#fff';
-    playerIcon.textContent='▶';
+    playerIcon.style.cssText='position:absolute;left:0;top:0;width:60px;height:64px;z-index:2;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.15);border-radius:12px 0 0 12px';
+
+    const svgPlay='<svg width="18" height="20" viewBox="0 0 18 20" fill="none"><polygon points="2,1 17,10 2,19" fill="white"/></svg>';
+    const svgPause='<svg width="18" height="20" viewBox="0 0 18 20" fill="none"><rect x="1" y="1" width="5" height="18" rx="2" fill="white"/><rect x="11" y="1" width="5" height="18" rx="2" fill="white"/></svg>';
+    playerIcon.innerHTML=svgPlay;
+
+    function refreshIcon(){
+      playerIcon.innerHTML=isPlaying?svgPause:svgPlay;
+    }
     playerWrap.appendChild(playerFill);
     playerWrap.appendChild(playerIcon);
 
@@ -3694,11 +3703,6 @@ function renderEx(){
       try{speechSynthesis.speak(u);}catch(e){}
     }
 
-    function refreshIcon(){
-      const pct=parseFloat(playerFill.style.width)||0;
-      playerIcon.style.color='#fff';
-    }
-
     function startProgress(){
       // Time remaining = (1 - scrubPct) * totalDur
       const remaining=(1-scrubPct)*totalDur;
@@ -3719,7 +3723,7 @@ function renderEx(){
       stopProgress(); // make sure interval is cleared
       playerFill.style.width='0%';
       playerIcon.style.opacity='1';
-      playerIcon.textContent='▶';refreshIcon();
+      refreshIcon();
     }
 
     let isDragging=false;
@@ -3749,7 +3753,7 @@ function renderEx(){
         isDragging=false;
         playerIcon.style.opacity='1';
         // Resume from scrubbed position
-        playerIcon.textContent='⏸';refreshIcon();
+        refreshIcon();
         isPlaying=true;
         speakFrom(scrubPct);
         startProgress();
@@ -3760,13 +3764,13 @@ function renderEx(){
       if(isDragging)return;
       if(!isPlaying){
         isPlaying=true;
-        playerIcon.textContent='⏸';refreshIcon();
+        refreshIcon();
         speakFrom(scrubPct);
         startProgress();
       } else {
         isPlaying=false;
         scrubPct=parseFloat(playerFill.style.width)/100||0;
-        playerIcon.textContent='▶';refreshIcon();
+        refreshIcon();
         speechSynthesis.cancel();
         stopProgress();
       }
