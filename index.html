@@ -405,7 +405,7 @@ function speakList(texts){
   texts.forEach((text,i)=>{
     const clean=stripNonGreek(text);
     if(!clean)return;
-    const u=new SpeechSynthesisUtterance(pronounced);
+    const u=new SpeechSynthesisUtterance(clean);
     u.lang='el-GR';u.rate=0.75;u.pitch=1;
     if(greekVoice)u.voice=greekVoice;
     speechSynthesis.speak(u);
