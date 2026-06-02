@@ -360,14 +360,15 @@ function renderWordVisual(word, card){
 // No pronunciation map - let Greek TTS handle it natively
 // Single letter articles (η, ο) are spoken naturally by el-GR voice
 function stripNonGreek(text){
+  // Replace standalone uppercase Greek vowel (interjection like "Α,") with doubled lowercase
+  text = text.replace(/(?<![\w])([ΑΕΗΙΟΥΩ])(?=[,!\s]|$)/g, function(m,c){return c.toLowerCase()+c.toLowerCase();});
   return text
-    .replace(/(?<![\w])[ΑΕΗΙΟΥΩΆΈΉΊΌΎΏ](?=[,!\s])/g, c=>c.toLowerCase()) // single uppercase Greek letter as interjection → lowercase
-    .replace(/[а-яёА-ЯЁ]+/g,'') // remove Cyrillic
-    .replace(/_+/g,'')            // remove underscores
-    .replace(/\([^)]*\)/g,'')   // remove parentheses content
-    .replace(/→/g,'')             // remove arrows
-    .replace(/—/g,'')             // remove dashes
-    .replace(/\s+/g,' ')         // normalize spaces
+    .replace(/[а-яёА-ЯЁ]+/g,'')
+    .replace(/_+/g,'')
+    .replace(/\([^)]*\)/g,'')
+    .replace(/→/g,'')
+    .replace(/—/g,'')
+    .replace(/\s+/g,' ')
     .trim();
 }
 
@@ -954,11 +955,11 @@ const FILL_EXERCISES = [
    translation:"У меня болит горло — не могу говорить.",
    emoji:"🫁"},
   {id:"f5c",unitId:"s3u1",
-   sentence:"Έχω ___ — χρειάζομαι αντιβιοτικό.",
-   hint:"Вирусная инфекция",
+   sentence:"Έχω ___ — το αντιβιοτικό δεν βοηθάει.",
+   hint:"Вирусная инфекция — антибиотик не помогает",
    answer:"ίωση",
-   options:["ίωση","ζαλάδες","ρίγη","εξάνθημα"],
-   translation:"У меня вирус — нужен антибиотик.",
+   options:["ίωση","γρίπη","αμυγδαλίτιδα","ωτίτιδα"],
+   translation:"У меня вирус — антибиотик не поможет.",
    emoji:"🦠"},
   {id:"f5d",unitId:"s3u1",
    sentence:"Παίρνω ___ για τον πονοκέφαλο.",
@@ -993,7 +994,7 @@ const FILL_EXERCISES = [
    hint:"Красные пятна на коже",
    answer:"εξάνθημα",
    options:["εξάνθημα","ζαλάδα","ρίγος","εμετό"],
-   translation:"У меня сыпь — кожа красная.",
+   translation:"У меня сыпь — моя кожа красная.",
    emoji:"🔴"},
   {id:"f5i",unitId:"s3u1",
    sentence:"Πάω στο ___ για να αγοράσω φάρμακα.",
@@ -1066,11 +1067,11 @@ const FILL_EXERCISES = [
    translation:"От боли в горле пью сироп с мёдом.",
    emoji:"🍶"},
   {id:"f5s",unitId:"s3u1",
-   sentence:"Για τη μύτη μου χρησιμοποιώ ___ κάθε πρωί.",
-   hint:"Брызгают в нос",
+   sentence:"Χρησιμοποιώ ___ κάθε πρωί.",
+   hint:"Брызгают в нос при насморке",
    answer:"σπρέι για τη μύτη",
    options:["σπρέι για τη μύτη","σιρόπι","κάψουλες","αλοιφή"],
-   translation:"Для носа использую спрей каждое утро.",
+   translation:"Использую спрей для носа каждое утро.",
    emoji:"👃"},
   {id:"f5t",unitId:"s3u1",
    sentence:"Ο ___ μας είδε και είπε ότι είμαστε καλά.",
@@ -1341,7 +1342,7 @@ const SECTIONS=[{
       {id:621,greek:"δεν",ru:"не (отрицание)",emoji:"❌",cat:"Грамматика"},
       {id:622,greek:"τι",ru:"что / какой",emoji:"❓",cat:"Вопросительные"},
       {id:623,greek:"πού",ru:"где / куда",emoji:"❓",cat:"Вопросительные"},
-      {id:624,greek:"πότε",ru:"когда",emoji:"❓",cat:"Вопросительные"},
+      {id:624,greek:"πότε",ru:"когда? (вопрос: Πότε είναι η συνάντησή μας; — Когда наша встреча?)",emoji:"❓",cat:"Вопросительные"},
       {id:625,greek:"ποιος / ποια",ru:"кто / который",emoji:"❓",cat:"Вопросительные"},
       {id:626,greek:"πόσο",ru:"сколько",emoji:"❓",cat:"Вопросительные"},
       {id:627,greek:"ναι",ru:"да",emoji:"✅",cat:"Грамматика"},
@@ -1697,7 +1698,7 @@ const SECTIONS=[{
       {id:900,greek:"άρρωστος / άρρωστη",ru:"больной / больная",emoji:"🤒",cat:"Состояние"},
       {id:901,greek:"συναχωμένος / συναχωμένη",ru:"простуженный / простуженная",emoji:"🤧",cat:"Состояние"},
       {id:902,greek:"το συνάχι",ru:"насморк",emoji:"👃",cat:"Симптомы"},
-      {id:903,greek:"φυσάω τη μύτη μου",ru:"сморкаюсь",emoji:"🤧",cat:"Действия"},
+      {id:903,greek:"φυσάω τη μύτη μου",ru:"сморкаю нос",emoji:"🤧",cat:"Действия"},
       {id:904,greek:"ο πονόλαιμος",ru:"боль в горле",emoji:"🫁",cat:"Симптомы"},
       {id:905,greek:"πονάει ο λαιμός μου",ru:"у меня болит горло",emoji:"🫁",cat:"Фразы"},
       {id:906,greek:"το ρίγος",ru:"озноб",emoji:"🥶",cat:"Симптомы"},
@@ -1778,7 +1779,7 @@ const SECTIONS=[{
       {id:981,greek:"να ντυθείς ζεστά",ru:"тепло одеться",emoji:"🧥",cat:"Советы"},
       {id:982,greek:"περαστικά",ru:"выздоравливай",emoji:"🌸",cat:"Фразы"},
       {id:983,greek:"αρρωσταίνω",ru:"болеть (заболевать)",emoji:"🤒",cat:"Глаголы"},
-      {id:984,greek:"όταν",ru:"когда",emoji:"⏰",cat:"Служебные"},
+      {id:984,greek:"όταν",ru:"когда (в придаточном: Όταν έρθεις, θα μιλήσουμε — Когда придёшь, поговорим)",emoji:"⏰",cat:"Служебные"},
       {id:985,greek:"γρήγορα",ru:"быстро",emoji:"⚡",cat:"Наречия"},
       {id:986,greek:"απαντώ",ru:"отвечать",emoji:"✍️",cat:"Глаголы"},
       {id:987,greek:"η ερώτηση",ru:"вопрос",emoji:"❓",cat:"Учёба"},
@@ -1945,6 +1946,7 @@ let S={
   genTopic:LS.get('genTopic','Любая'),
   genGenre:LS.get('genGenre','Любой жанр'),
   genCount:LS.get('genCount',0),
+  pracTapCount:LS.get('pracTapCount',0),
   lastActiveUnitId:LS.get('lastActiveUnitId',null),
 };
 let lpTimer=null;
@@ -2021,13 +2023,32 @@ function buildPEx(){
   if(!pw.length){S.pEx=null;return;}
   const word=pw[Math.floor(Math.random()*pw.length)];
   const others=pw.filter(w=>w.id!==word.id);
-  // MATCH if 2+ words available (min 2 pairs)
   const canMatch=pw.length>=2;
+  // Find FILL exercises for words in practice
+  const pracIds=new Set(pw.map(w=>w.id));
+  const fillPool=FILL_EXERCISES.filter(f=>f.options&&f.answer&&f.options.some(o=>
+    pw.some(w=>w.greek===o||w.ru===o||o===f.answer)));
+  const canFill=fillPool.length>0;
+  // Collapsed (syllables) - only for words with 4+ chars
+  const collWords=pw.filter(w=>w.greek.replace(/\s.*$/,'').length>=4);
+  const canColl=collWords.length>0;
+
   const r=Math.random();
-  if(!canMatch||r<0.5){
+  if(canFill&&r<0.2){
+    // FILL exercise
+    const f=fillPool[Math.floor(Math.random()*fillPool.length)];
+    S.pEx={t:'FILL',fill:f};
+    S.fillChosen=null;S.fillChecked=false;
+  } else if(canColl&&r<0.35){
+    // COLL - build syllables for a word
+    const cword=collWords[Math.floor(Math.random()*collWords.length)];
+    const rawSyls=splitGreekSyllables(cword.greek.replace(/\s.*$/,''));
+    const syls=rawSyls.length>=2?rawSyls:[...cword.greek.replace(/\s.*$/,'')];
+    S.pEx={t:'COLL',word:cword,syls,correct:syls};
+    S.collPlaced=[];S.collSyllables=shuffle([...syls]);S._collChecked=false;S._collUserAnswer=null;
+  } else if(!canMatch||r<0.6){
     S.pEx={t:'FC',word,dir:Math.random()>.5?'grToRu':'ruToGr'};S.pFcRev=false;
   } else {
-    // MATCH with 2-4 pairs depending on how many practice words available
     const pairCount=Math.min(pw.length,4);
     const pairs=shuffle([word,...pick(others,pairCount-1)]).slice(0,pairCount);
     S.pEx={t:'MA',word,pairs,ll:shuffle(pairs.map(p=>p.greek)),rl:shuffle(pairs.map(p=>p.ru))};
@@ -2485,11 +2506,12 @@ function renderAdaptiveUnit(){
   else if(phase==='summary'){
     if(!S.ex||S.qi>=S.queue.length){
       // All summary exercises done - show completion screen
-      const pct=Math.round((S.score.c/(S.score.c+S.score.w||1))*100);
+      const total=adaptCalcTotal();
+      const done=Math.min(S.adaptAnswered,total);
       const d=el('div','phase-screen');
       d.innerHTML=`<div class="phase-icon">🏆</div>
         <div class="phase-title" style="color:var(--ok)">Юнит завершён!</div>
-        <div style="font-size:42px;font-weight:900;color:var(--acc);margin:10px 0">${pct}%</div>
+        <div style="font-size:42px;font-weight:900;color:var(--acc);margin:10px 0">${done}/${total}</div>
         <div class="phase-sub">Отличная работа! Теперь загляни в раздел <b>Практика</b> — там новые слова ждут отработки.</div>`;
       const homeBtn=el('button','btn bpr bfw');homeBtn.textContent='← На главную';
       homeBtn.onclick=()=>{
@@ -3299,8 +3321,8 @@ function renderUnitEx(){
 }
 
 // ─── FC FLIP HELPER ───────────────────────────────────────
-function renderFCFlip({frontEl, backEl, isRevealed, onFlip, buttons}){
-  const showHint = S.fcTapCount < 5;
+function renderFCFlip({frontEl, backEl, isRevealed, onFlip, buttons, showHintOverride}){
+  const showHint = showHintOverride !== undefined ? showHintOverride : S.fcTapCount < 5;
 
   // Outer wrap — flex column, vertically centered
   const wrap = el('div');
@@ -4112,9 +4134,13 @@ function renderPractice(){
   }
   // Long-press hint
   const hint=el('div');
-  hint.style.cssText='display:flex;align-items:center;gap:8px;background:var(--acc-light);border-radius:12px;padding:10px 14px;margin-bottom:14px;font-size:13px;font-weight:700;color:var(--acc)';
+  hint.style.cssText='display:flex;align-items:center;gap:8px;background:var(--acc-light);border-radius:12px;padding:10px 14px;margin-bottom:8px;font-size:13px;font-weight:700;color:var(--acc)';
   hint.innerHTML='👆 Удержи слово — отметить как выученное';
   wrap.appendChild(hint);
+  const loopHint=el('div');
+  loopHint.style.cssText='font-size:11px;color:var(--mu);text-align:center;margin-bottom:12px;font-weight:700';
+  loopHint.textContent='🔄 Упражнения крутятся бесконечно пока слова в практике';
+  wrap.appendChild(loopHint);
   if(!S.pEx)buildPEx();
   if(!S.pEx)return wrap;
 
@@ -4125,7 +4151,6 @@ function renderPractice(){
 
     // Front
     const frontEl=el('div');
-    renderWordVisual(word,frontEl);
     if(isGR){
       const row=el('div');row.style.cssText='display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:4px';
       const w=el('div','bw');w.textContent=word.greek;
@@ -4137,7 +4162,6 @@ function renderPractice(){
 
     // Back
     const backEl=el('div');
-    renderWordVisual(word,backEl);
     if(isGR){
       const row=el('div');row.style.cssText='display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:4px';
       const w=el('div','bw');w.textContent=word.greek;
@@ -4164,8 +4188,14 @@ function renderPractice(){
     const flipWrap=renderFCFlip({
       frontEl, backEl,
       isRevealed: S.pFcRev,
-      onFlip:()=>{S.pFcRev=true;render();},
-      buttons:[nb,lb]
+      onFlip:()=>{
+        S.pFcRev=true;
+        S.pracTapCount=Math.min((S.pracTapCount||0)+1,99);
+        LS.set('pracTapCount',S.pracTapCount);
+        render();
+      },
+      buttons:[nb,lb],
+      showHintOverride: (S.pracTapCount||0) < 5
     });
     // Add long-press on the scene element
     const scene=flipWrap.querySelector('.fc-scene');
@@ -4218,6 +4248,101 @@ function renderPractice(){
       mg.appendChild(d);
     });
     wrap.appendChild(mg);
+  }
+
+  // FILL exercise in practice
+  else if(S.pEx.t==='FILL'){
+    const f=S.pEx.fill;
+    const lbl=el('div','ex');lbl.textContent='ЗАПОЛНИ ПРОПУСК';wrap.appendChild(lbl);
+    const card=el('div','card');
+    const sent=el('div');sent.style.cssText='font-size:18px;font-weight:800;line-height:1.6;color:var(--txt);margin-bottom:10px';
+    sent.textContent=f.sentence;card.appendChild(sent);
+    const trBtn=el('button');
+    trBtn.style.cssText='font-size:12px;color:var(--mu);background:none;border:1px solid var(--border);border-radius:8px;padding:4px 10px;cursor:pointer;font-weight:700;margin-bottom:8px';
+    trBtn.textContent='👁 Показать перевод';
+    const trDiv=el('div');trDiv.style.cssText='font-size:13px;color:var(--mu);font-weight:600;margin-top:4px;display:none';
+    trDiv.textContent=f.translation;
+    trBtn.onclick=()=>{trDiv.style.display='block';trBtn.style.display='none';};
+    card.appendChild(trBtn);card.appendChild(trDiv);
+    wrap.appendChild(card);
+    const chs=el('div','chs');
+    (f.options||[]).forEach(opt=>{
+      let cls='cb2';
+      if(S.fillChecked){if(opt===f.answer)cls+=' ck';else if(opt===S.fillChosen&&opt!==f.answer)cls+=' cw';}
+      else if(S.fillChosen===opt)cls+=' ms';
+      const b=el('button',cls);b.textContent=opt;
+      if(S.fillChecked)b.disabled=true;
+      b.onclick=()=>{if(S.fillChecked)return;S.fillChosen=opt;render();};
+      chs.appendChild(b);
+    });
+    wrap.appendChild(chs);
+    if(S.fillChosen&&!S.fillChecked){
+      const chk=el('button','btn bpr bfw');chk.textContent='Проверить';
+      chk.onclick=()=>{S.fillChecked=true;render();};
+      wrap.appendChild(chk);
+    }
+    if(S.fillChecked){
+      const ok=S.fillChosen===f.answer;
+      const fb=el('div','fb '+(ok?'fbok':'fber'));
+      fb.textContent=ok?'✅ Верно!':'❌ Правильно: '+f.answer;
+      wrap.appendChild(fb);
+      const nb=el('button','btn bpr bfw');nb.textContent='Дальше →';
+      nb.onclick=()=>{S.fillChosen=null;S.fillChecked=false;buildPEx();render();};
+      wrap.appendChild(nb);
+    }
+  }
+
+  // COLL (syllables) exercise in practice
+  else if(S.pEx.t==='COLL'){
+    const word=S.pEx.word;
+    const syls=S.pEx.syls;
+    const lbl=el('div','ex');lbl.textContent='СОСТАВЬ СЛОВО ПО СЛОГАМ';wrap.appendChild(lbl);
+    const card=el('div','card cc');card.style.marginBottom='10px';
+    const ru=el('div','bw bwr');ru.textContent=word.ru.split('(')[0].trim();card.appendChild(ru);
+    wrap.appendChild(card);
+    // Target zone
+    const target=el('div');
+    const isCorrect=S._collChecked&&S.collPlaced.join('')===syls.join('');
+    target.style.cssText='min-height:52px;border-radius:12px;display:flex;align-items:center;flex-wrap:wrap;gap:4px;padding:10px 14px;margin:8px 0;font-size:22px;font-weight:900;'+(S._collChecked?(isCorrect?'background:var(--ok-light);border:2px solid var(--ok);color:var(--ok-dark)':'background:var(--er-light);border:2px solid var(--er);color:var(--er)'):'background:var(--sur2);border:2px dashed var(--border);color:var(--acc)');
+    if(S.collPlaced.length===0&&!S._collChecked){
+      const ph=el('span');ph.style.cssText='color:var(--mu);font-size:14px;font-weight:700';ph.textContent='Нажимай на слоги';target.appendChild(ph);
+    }
+    S.collPlaced.forEach((syl,i)=>{
+      if(S._collChecked){const sp=el('span');sp.textContent=syl;target.appendChild(sp);}
+      else{
+        const sp=el('button');sp.style.cssText='cursor:pointer;padding:4px 10px;border-radius:8px;font-size:22px;font-weight:900;background:var(--acc-light);border:2px solid var(--acc);color:var(--acc);font-family:inherit';
+        sp.textContent=syl;
+        sp.onclick=()=>{const pi=S.collSyllables.indexOf('__used_'+i);if(pi>=0)S.collSyllables[pi]=syl;S.collPlaced.splice(i,1);S.collSyllables=S.collSyllables.map(s=>typeof s==='string'&&s.startsWith('__used_')&&parseInt(s.replace('__used_',''))>i?'__used_'+(parseInt(s.replace('__used_',''))-1):s);render();};
+        target.appendChild(sp);
+      }
+    });
+    wrap.appendChild(target);
+    if(!S._collChecked){
+      const pool=el('div','syllable-pool');
+      S.collSyllables.forEach((syl,i)=>{
+        const used=typeof syl==='string'&&syl.startsWith('__used_');
+        const d=el('button','syllable'+(used?' used':''));
+        d.style.fontFamily='inherit';d.textContent=used?'':syl;d.disabled=used;
+        if(!used){d.onclick=()=>{S.collPlaced.push(syl);S.collSyllables[i]='__used_'+(S.collPlaced.length-1);render();};}
+        pool.appendChild(d);
+      });
+      wrap.appendChild(pool);
+      if(S.collPlaced.length===syls.length){
+        const chk=el('button','btn bpr bfw');chk.textContent='Проверить';
+        chk.onclick=()=>{S._collUserAnswer=[...S.collPlaced];S._collChecked=true;render();};
+        wrap.appendChild(chk);
+      }
+      const gu=el('button','btn bot bfw');gu.style.marginTop='6px';gu.textContent='🏳️ Сдаюсь';
+      gu.onclick=()=>{S._collUserAnswer=[...S.collPlaced];S.collPlaced=[...syls];S._collChecked=true;render();};
+      wrap.appendChild(gu);
+    } else {
+      const fb=el('div','fb '+(isCorrect?'fbok':'fber'));
+      fb.textContent=isCorrect?'✅ Верно! '+word.greek:'❌ Правильно: '+syls.join('');
+      wrap.appendChild(fb);
+      const nb=el('button','btn bpr bfw');nb.textContent='Дальше →';
+      nb.onclick=()=>{S._collChecked=false;S._collUserAnswer=null;S.collPlaced=[];S.collSyllables=[];buildPEx();render();};
+      wrap.appendChild(nb);
+    }
   }
 
   return wrap;
@@ -4313,7 +4438,7 @@ function buildMiniPlayer(playFnOrText, rawText){
         return;
       }
       const seg=segments[i];
-      const clean=seg.text.replace(/[а-яёА-ЯЁ]/g,'').trim();
+      const clean=stripNonGreek(seg.text).trim();
       if(!clean){speakSeg(i+1);return;}
       currentSeg=i;
       segStartTime=Date.now();
@@ -4510,7 +4635,7 @@ function renderLearnedWords(wrap){
   const topicWrap=el('div');topicWrap.style.cssText='margin-bottom:10px;background:var(--sur);border-radius:12px;padding:12px 14px;border:1.5px solid var(--border)';
   const topicTitle=el('div');topicTitle.style.cssText='font-size:12px;font-weight:900;color:var(--mu);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px';
   topicTitle.textContent='Тема текста:';topicWrap.appendChild(topicTitle);
-  const topics=['Любая тема','Бизнес','Стройка','Встреча двух друзей','Магазин','Отель','Знакомство','Конфликт','Покупка машины','Аэропорт'];
+  const topics=['Любая тема','Бизнес','Стройка','Встреча двух друзей','Магазин','Отель','Знакомство','Конфликт','Покупка машины','Аэропорт','У доктора'];
   const topicGrid=el('div');topicGrid.style.cssText='display:flex;flex-wrap:wrap;gap:6px';
   topics.forEach(t=>{
     const tb=el('button');
@@ -4983,7 +5108,8 @@ function renderVerbs(){
     }
     wrap.appendChild(card);
   });
-  if(!filtered.length){
+  const shownVerbs=VERBS.filter(v=>!q||v.greek.toLowerCase().includes(q)||v.ru.toLowerCase().includes(q));
+  if(!shownVerbs.length){
     const empty=el('div');
     empty.style.cssText='text-align:center;padding:40px;color:var(--mu);font-size:14px;font-weight:700';
     empty.textContent='Глаголы не найдены';wrap.appendChild(empty);
