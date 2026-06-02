@@ -753,18 +753,18 @@ const FILL_EXERCISES = [
    emoji:"👶"},
   {id:"f2k",unitId:"s2u1",
    sentence:"Τι ώρα είναι στην αρχή της ιστορίας;",
-   hint:"Восемь вечера",
+   hint:"Посмотри в начало текста",
    answer:"Οχτώ το βράδυ",
    options:["Οχτώ το βράδυ","Δύο το μεσημέρι","Έξι το πρωί","Δέκα το βράδυ"],
-   translation:"В начале истории — восемь часов вечера.",
+   translation:"Который час в начале истории?",
    emoji:"🕗"},
   {id:"f2l",unitId:"s2u1",
-   sentence:"Τι πουλάει η εταιρεία του Τζον;",
-   hint:"Мебель!",
-   answer:"Έπιπλα",
-   options:["Έπιπλα","Βιβλία","Ρούχα","Τρόφιμα"],
-   translation:"Компания Джона продаёт мебель.",
-   emoji:"🛋️"},
+   sentence:"Ο Τζον είναι ___ επιχειρηματίας.",
+   hint:"Он греко-американский",
+   answer:"ελληνοαμερικάνος",
+   options:["ελληνοαμερικάνος","γάλλος","ρώσος","ισπανός"],
+   translation:"Джон — грекоамериканский бизнесмен.",
+   emoji:"🇬🇷"},
   {id:"f2m",unitId:"s2u1",
    sentence:"Ο Τζον έχει ___ μάτια.",
    hint:"Цвет глаз — каштановые",
@@ -1840,7 +1840,7 @@ function unitTotalItems(uid) {
 }
 
 // Increment this number every time you add new exercises to existing units
-const APP_VERSION = 15;
+const APP_VERSION = 16;
 
 // Clear localStorage if version changed, but preserve user progress
 (function checkVersion(){
@@ -1927,7 +1927,8 @@ let S={
     return scores;
   })(),
   // Adaptive unit state (s1u0)
-  adaptPhase:'theory', // theory|fc_intro|fc|c4|collapsed_intro|collapsed|summary_intro|summary
+  adaptPhase:'theory', // theory|fc_intro|fc|c4_all|match_all|c4|collapsed|text_reading|summary_intro|summary
+  adaptHistory:[],  // stack of {phase, wordIdx, c4AllIdx, matchPage, fcRev}
   adaptUnknown:[],     // word ids marked as unknown in FC phase
   adaptC4Wrong:[],     // word ids wrong in C4
   adaptCollWrong:[],   // word ids wrong/skipped in collapsed
@@ -2217,37 +2218,40 @@ function adaptBuildC4(word){
 
 function adaptNextPhase(){
   const words=adaptGetWords();
+  const isS2=S.activeUnit&&['s2u1','s2u2','s2u3'].includes(S.activeUnit.id);
   S.adaptWordIdx=0;
   S.adaptAnswered=Math.min(S.adaptAnswered+1,adaptCalcTotal());
   if(S.adaptPhase==='theory'){
-    // Theory handled by normal THEORY_SLOT flow; 
-    // Phase switches after last theory card in renderAdaptiveEx
     S.adaptPhase='fc_intro';
   } else if(S.adaptPhase==='fc_intro'){
     S.adaptPhase='fc';
   } else if(S.adaptPhase==='fc'){
-    if(S.adaptUnknown.length>0){S.adaptPhase='c4';}
-    else{
-      if(S.activeUnit&&['s2u1','s2u2','s2u3'].includes(S.activeUnit.id)){S.adaptPhase='text_reading';}
+    if(isS2){
+      // s2: after fc → c4_all (C4 on ALL words)
+      S.adaptPhase='c4_all';
+      S.adaptC4AllIdx=0;
+    } else {
+      if(S.adaptUnknown.length>0){S.adaptPhase='c4';}
       else{S.adaptPhase='summary_intro';}
     }
+  } else if(S.adaptPhase==='c4_all'){
+    // After C4 on all words → match_all
+    S.adaptPhase='match_all';
+    S.adaptMatchIdx=0;
+    S.adaptMatchPage=0;
+  } else if(S.adaptPhase==='match_all'){
+    // After match_all → text_reading for s2
+    S.adaptPhase='text_reading';
   } else if(S.adaptPhase==='c4'){
     if(S.adaptC4Wrong.length>0){S.adaptPhase='collapsed';}
-    else{
-      if(S.activeUnit&&['s2u1','s2u2','s2u3'].includes(S.activeUnit.id)){S.adaptPhase='text_reading';}
-      else{S.adaptPhase='summary_intro';}
-    }
+    else{S.adaptPhase='summary_intro';}
   } else if(S.adaptPhase==='collapsed'){
     S.adaptPhase='summary_intro';
-    // For s2 units — show text reading screen before exercises
-    if(S.activeUnit&&['s2u1','s2u2','s2u3'].includes(S.activeUnit.id)){
-      S.adaptPhase='text_reading';
-    }
   } else if(S.adaptPhase==='text_reading'){
     S.adaptPhase='summary_intro';
   } else if(S.adaptPhase==='summary_intro'){
     S.adaptPhase='summary';
-    S._transitioning=true; // prevent autosave during transition
+    S._transitioning=true;
     startAdaptiveSummary(true);S.qi=0;nextEx();
     S._transitioning=false;
   }
@@ -2323,10 +2327,31 @@ function renderAdaptiveUnit(){
     saveAdaptState();
     S.mode='home';
     LS.set('lastMode','home');
-    
     render();
   };
   ps.appendChild(back);
+
+  // Back one step (history) — only for s2 units
+  const isS2unit=S.activeUnit&&['s2u1','s2u2','s2u3'].includes(S.activeUnit.id);
+  if(isS2unit&&S.adaptHistory&&S.adaptHistory.length>0){
+    const prevBtn=el('button');prevBtn.innerHTML='&#8592; Назад';
+    prevBtn.style.cssText='background:none;border:none;color:var(--acc);cursor:pointer;font-size:13px;font-weight:800;padding:4px 8px;border-radius:8px;flex-shrink:0';
+    prevBtn.onclick=()=>{
+      const prev=S.adaptHistory.pop();
+      if(prev){
+        S.adaptPhase=prev.phase;
+        S.adaptWordIdx=prev.wordIdx||0;
+        S.adaptC4AllIdx=prev.c4AllIdx||0;
+        S.adaptMatchPage=prev.matchPage||0;
+        S.fcRev=false;
+        S.mDone=[];S.mSelGr=null;S.mSelRu=null;S.mDoneAll=false;
+        S._adaptC4Opts=null;S._adaptC4Word=null;S._adaptC4Checked=false;S._adaptC4Chosen=null;
+        S.adaptAnswered=Math.max(0,(S.adaptAnswered||1)-1);
+        saveAdaptState();render();
+      }
+    };
+    ps.appendChild(prevBtn);
+  }
 
   // Reset progress button
   const resetBtn=el('button');
@@ -2423,6 +2448,14 @@ function renderAdaptiveUnit(){
   else if(phase==='fc'){
     renderAdaptFC(sc);
   }
+  else if(phase==='c4_all'){
+    // C4 on ALL words for s2 units
+    renderAdaptC4All(sc);
+  }
+  else if(phase==='match_all'){
+    // MATCH on ALL words for s2 units
+    renderAdaptMatchAll(sc);
+  }
   else if(phase==='c4'){
     renderAdaptC4(sc);
   }
@@ -2453,18 +2486,20 @@ function renderAdaptiveUnit(){
     d.appendChild(textCard);
 
     // Audio player
-    const playerWrap=el('div');playerWrap.style.cssText='display:flex;align-items:center;gap:12px;margin-bottom:14px;background:var(--sur);border-radius:12px;padding:12px 16px;border:1.5px solid var(--border)';
-    const playBtn=el('button');playBtn.style.cssText='width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,var(--acc),var(--acc4));border:none;cursor:pointer;font-size:20px;flex-shrink:0;display:flex;align-items:center;justify-content:center;color:#000';
-    playBtn.textContent='▶';
+    const playerWrap=el('div');playerWrap.style.cssText='display:flex;align-items:center;gap:12px;margin-bottom:14px;background:rgba(124,140,248,0.08);border-radius:12px;padding:12px 16px;border:1.5px solid var(--border)';
+    const playBtn=el('button');playBtn.style.cssText='width:44px;height:44px;border-radius:50%;background:var(--acc);border:none;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(124,140,248,0.4)';
+    const svgP='<svg width="16" height="18" viewBox="0 0 16 18" fill="none"><polygon points="2,1 15,9 2,17" fill="white"/></svg>';
+    const svgSt='<svg width="16" height="18" viewBox="0 0 16 18" fill="none"><rect x="1" y="1" width="5" height="16" rx="2" fill="white"/><rect x="10" y="1" width="5" height="16" rx="2" fill="white"/></svg>';
+    playBtn.innerHTML=svgP;
     let isPlaying=false;
     playBtn.onclick=()=>{
-      if(isPlaying){window.speechSynthesis&&speechSynthesis.cancel();isPlaying=false;playBtn.textContent='▶';}
+      if(isPlaying){window.speechSynthesis&&speechSynthesis.cancel();isPlaying=false;playBtn.innerHTML=svgP;}
       else{
-        isPlaying=true;playBtn.textContent='⏹';
+        isPlaying=true;playBtn.innerHTML=svgSt;
         const u=new SpeechSynthesisUtterance(fullGreek);
         u.lang='el-GR';u.rate=0.82;
-        u.onend=()=>{isPlaying=false;playBtn.textContent='▶';};
-        u.onerror=()=>{isPlaying=false;playBtn.textContent='▶';};
+        u.onend=()=>{isPlaying=false;playBtn.innerHTML=svgP;};
+        u.onerror=()=>{isPlaying=false;playBtn.innerHTML=svgP;};
         if(window.speechSynthesis){speechSynthesis.cancel();speechSynthesis.speak(u);}
       }
     };
@@ -2541,9 +2576,10 @@ function renderAdaptFC(sc){
   const word=words[S.adaptWordIdx];
   if(!word){adaptNextPhase();render();return;}
 
+  const isS2=['s2u1','s2u2','s2u3'].includes(S.activeUnit&&S.activeUnit.id);
+
   // Front
   const frontEl=el('div');
-  renderWordVisual(word,frontEl);
   const gw=el('div','bw');gw.textContent=word.greek;
   const sb=el('button','spk');sb.textContent='🔊';sb.onclick=e=>{e.stopPropagation();speak(word.greek);};
   const row=el('div');row.style.cssText='display:flex;align-items:center;justify-content:center;gap:10px;margin:8px 0 4px';
@@ -2551,37 +2587,165 @@ function renderAdaptFC(sc){
 
   // Back
   const backEl=el('div');
-  renderWordVisual(word,backEl);
   const gw2=el('div','bw');gw2.textContent=word.greek;
   const sb2=el('button','spk');sb2.textContent='🔊';sb2.onclick=e=>{e.stopPropagation();speak(word.greek);};
   const row2=el('div');row2.style.cssText='display:flex;align-items:center;justify-content:center;gap:10px;margin:8px 0 4px';
   row2.appendChild(gw2);row2.appendChild(sb2);backEl.appendChild(row2);
   const ru=el('div','fca');ru.textContent=word.ru;backEl.appendChild(ru);
 
-  const nb=el('button','btn ber');nb.textContent='❌ Не знаю';
-  nb.onclick=()=>{
-    if(!S.adaptUnknown.includes(word.id))S.adaptUnknown.push(word.id);
-    S.answers.push('err');S.adaptAnswered++;
-    S.adaptWordIdx++;
-    S.fcRev=false;
-    if(S.adaptWordIdx>=words.length){adaptNextPhase();}
-    saveAdaptState();render();
-  };
-  const yb=el('button','btn bok');yb.textContent='✅ Знаю';
-  yb.onclick=()=>{
-    S.answers.push('ok');S.adaptAnswered++;
-    S.adaptWordIdx++;
-    S.fcRev=false;
-    if(S.adaptWordIdx>=words.length){adaptNextPhase();}
-    saveAdaptState();render();
-  };
+  if(isS2){
+    // s2 units: just "Дальше" button, all words go through
+    const nextBtn=el('button','btn bpr bfw');nextBtn.textContent='Дальше →';
+    nextBtn.onclick=()=>{
+      // Save state to history for back navigation
+      if(!S.adaptHistory)S.adaptHistory=[];
+      S.adaptHistory.push({phase:S.adaptPhase,wordIdx:S.adaptWordIdx,c4AllIdx:S.adaptC4AllIdx||0,matchPage:S.adaptMatchPage||0});
+      if(S.adaptHistory.length>50)S.adaptHistory.shift(); // limit history
+      S.adaptWordIdx++;
+      S.adaptAnswered++;
+      S.fcRev=false;
+      if(S.adaptWordIdx>=words.length){adaptNextPhase();}
+      saveAdaptState();render();
+    };
+    sc.appendChild(renderFCFlip({
+      frontEl, backEl,
+      isRevealed: S.fcRev,
+      onFlip: ()=>{S.fcRev=true;render();},
+      buttons: [nextBtn],
+      showHintOverride: !S.fcRev && S.fcTapCount<5
+    }));
+  } else {
+    const nb=el('button','btn ber');nb.textContent='❌ Не знаю';
+    nb.onclick=()=>{
+      if(!S.adaptUnknown.includes(word.id))S.adaptUnknown.push(word.id);
+      S.answers.push('err');S.adaptAnswered++;
+      S.adaptWordIdx++;S.fcRev=false;
+      if(S.adaptWordIdx>=words.length){adaptNextPhase();}
+      saveAdaptState();render();
+    };
+    const yb=el('button','btn bok');yb.textContent='✅ Знаю';
+    yb.onclick=()=>{
+      S.answers.push('ok');S.adaptAnswered++;
+      S.adaptWordIdx++;S.fcRev=false;
+      if(S.adaptWordIdx>=words.length){adaptNextPhase();}
+      saveAdaptState();render();
+    };
+    sc.appendChild(renderFCFlip({
+      frontEl, backEl,
+      isRevealed: S.fcRev,
+      onFlip: ()=>{S.fcRev=true;render();},
+      buttons: [nb, yb]
+    }));
+  }
+}
 
-  sc.appendChild(renderFCFlip({
-    frontEl, backEl,
-    isRevealed: S.fcRev,
-    onFlip: ()=>{S.fcRev=true;render();},
-    buttons: [nb, yb]
-  }));
+function renderAdaptC4All(sc){
+  // C4 on every word in unit (for s2 units)
+  const words=adaptGetWords();
+  if(!S.adaptC4AllIdx)S.adaptC4AllIdx=0;
+  const word=words[S.adaptC4AllIdx];
+  if(!word){adaptNextPhase();render();return;}
+  renderAdaptC4Word(sc,word,false);
+}
+function renderAdaptMatchAll(sc){
+  const words=adaptGetWords();
+  if(!S.adaptMatchPage)S.adaptMatchPage=0;
+  const pageSize=4;
+  const start=S.adaptMatchPage*pageSize;
+  const pagePairs=words.slice(start,start+pageSize);
+  if(!pagePairs.length){adaptNextPhase();render();return;}
+
+  const lbl=el('div','ex');lbl.textContent='СОЕДИНИ ПАРЫ';sc.appendChild(lbl);
+  const progress=el('div');progress.style.cssText='font-size:12px;color:var(--mu);text-align:center;margin-bottom:10px;font-weight:700';
+  progress.textContent=`Группа ${S.adaptMatchPage+1} из ${Math.ceil(words.length/pageSize)}`;
+  sc.appendChild(progress);
+
+  if(!S.mDone)S.mDone=[];
+  if(!S.mSelGr&&S.mSelGr!==null)S.mSelGr=null;
+  if(!S.mSelRu&&S.mSelRu!==null)S.mSelRu=null;
+  if(!S.mDoneAll)S.mDoneAll=false;
+
+  // Use fixed order: left=greek shuffled, right=russian shuffled
+  if(!S._matchLL||S._matchPageKey!==S.adaptMatchPage){
+    S._matchLL=shuffle(pagePairs.map(p=>p.greek));
+    S._matchRL=shuffle(pagePairs.map(p=>p.ru));
+    S._matchPageKey=S.adaptMatchPage;
+  }
+
+  const mg=el('div','mg');
+  const lCol=el('div','mc');
+  const rCol=el('div','mc');
+
+  S._matchLL.forEach(gr=>{
+    const done=(S.mDone||[]).includes(gr);
+    const sel=S.mSelGr===gr;
+    const wrong=(S.mWrong||[]).includes(gr);
+    let cls='mi'+(done?' mm':wrong?' mw':sel?' ms':'');
+    const d=el('button',cls);
+    d.textContent=(done?'✓ ':'')+gr;
+    d.style.fontFamily='inherit';
+    d.disabled=done;
+    d.onclick=()=>{
+      if(done)return;
+      speak(gr);
+      if(S.mSelRu){
+        const pair=pagePairs.find(p=>p.greek===gr);
+        if(pair&&pair.ru===S.mSelRu){
+          S.mDone=[...(S.mDone||[]),gr];S.mSelGr=null;S.mSelRu=null;
+          if(S.mDone.length===pagePairs.length)S.mDoneAll=true;
+          render();
+        } else {
+          S.mWrong=[gr,S.mSelRu];
+          setTimeout(()=>{S.mWrong=[];S.mSelGr=null;S.mSelRu=null;render();},700);
+        }
+      } else {S.mSelGr=gr;S.mSelRu=null;render();}
+    };
+    lCol.appendChild(d);
+  });
+
+  S._matchRL.forEach(ru=>{
+    const pair=pagePairs.find(p=>p.ru===ru);
+    const done=(S.mDone||[]).includes(pair&&pair.greek);
+    const sel=S.mSelRu===ru;
+    const wrong=(S.mWrong||[]).includes(ru);
+    let cls='mi'+(done?' mm':wrong?' mw':sel?' ms':'');
+    const d=el('button',cls);
+    d.textContent=ru;
+    d.style.fontFamily='inherit';
+    d.disabled=done;
+    d.onclick=()=>{
+      if(done)return;
+      if(S.mSelGr){
+        const gpair=pagePairs.find(p=>p.greek===S.mSelGr);
+        if(gpair&&gpair.ru===ru){
+          S.mDone=[...(S.mDone||[]),S.mSelGr];S.mSelGr=null;S.mSelRu=null;
+          if(S.mDone.length===pagePairs.length)S.mDoneAll=true;
+          render();
+        } else {
+          S.mWrong=[S.mSelGr,ru];
+          setTimeout(()=>{S.mWrong=[];S.mSelGr=null;S.mSelRu=null;render();},700);
+        }
+      } else {S.mSelRu=ru;S.mSelGr=null;render();}
+    };
+    rCol.appendChild(d);
+  });
+
+  mg.appendChild(lCol);mg.appendChild(rCol);
+  sc.appendChild(mg);
+
+  if(S.mDoneAll){
+    const nb=el('button','btn bpr bfw');nb.style.marginTop='14px';nb.textContent='Дальше →';
+    nb.onclick=()=>{
+      S.adaptMatchPage=(S.adaptMatchPage||0)+1;
+      S.mDone=[];S.mSelGr=null;S.mSelRu=null;S.mDoneAll=false;S.mWrong=[];
+      S._matchLL=null;S._matchRL=null;
+      S.adaptAnswered++;
+      const words2=adaptGetWords();
+      if(S.adaptMatchPage*pageSize>=words2.length){adaptNextPhase();}
+      saveAdaptState();render();
+    };
+    sc.appendChild(nb);
+  }
 }
 
 function renderAdaptC4(sc){
@@ -2643,7 +2807,11 @@ function renderAdaptC4Word(sc,word,isCollapsedFallback){
       const nb=el('button','btn bpr bfw');nb.textContent='Дальше →';nb.style.marginTop='8px';
       nb.onclick=()=>{
         S._adaptC4Opts=null;S._adaptC4Word=null;S._adaptC4Checked=false;S._adaptC4Chosen=null;
-        if(isCollapsedFallback){
+        if(S.adaptPhase==='c4_all'){
+          S.adaptC4AllIdx=(S.adaptC4AllIdx||0)+1;
+          const allWords=adaptGetWords();
+          if(S.adaptC4AllIdx>=allWords.length){adaptNextPhase();}
+        } else if(isCollapsedFallback){
           S.adaptWordIdx++;
           const wrongWords=adaptGetWords().filter(w=>S.adaptC4Wrong.includes(w.id));
           if(S.adaptWordIdx>=wrongWords.length){adaptNextPhase();}
@@ -2652,7 +2820,7 @@ function renderAdaptC4Word(sc,word,isCollapsedFallback){
           const unknownWords=adaptGetWords().filter(w=>S.adaptUnknown.includes(w.id));
           if(S.adaptWordIdx>=unknownWords.length){adaptNextPhase();}
         }
-        render();
+        saveAdaptState();render();
       };
       sc.appendChild(nb);
     }
@@ -2894,9 +3062,17 @@ function renderHome(){
         errBtn.onclick=e=>{
           e.stopPropagation();
           const errWords=unitErrs.map(id=>ALL_WORDS.find(w=>w.id===id)).filter(Boolean);
-          S.activeUnit=u;S.queue=shuffle(errWords);S.qi=0;
-          S.score={c:0,w:0,st:0};S.errs=[];S.answers=[];S.mode='unit';
-          
+          // Build FC exercises for each error word
+          const errQueue=errWords.map(w=>({type:'FC',word:w,dir:'grToRu'}));
+          S.activeUnit=u;
+          S.queue=shuffle(errQueue);
+          S.qi=0;
+          S.score={c:0,w:0,st:0};S.errs=[];S.answers=[];
+          S.isRetry=true;
+          S.retryTotal=errQueue.length;
+          S.retryCorrect=0;
+          S.mode='unit';
+          S.fcRev=false;
           LS.set('session',null);
           nextEx();render();
         };
@@ -3644,20 +3820,29 @@ function renderEx(){
     const card=el('div','card');
 
 
-    // Audio player - icon only, no text
+    // Audio player - centered button with progress bar
     const playerWrap=el('div');
-    playerWrap.style.cssText='margin-bottom:14px;position:relative;border-radius:14px;overflow:hidden;background:var(--acc);border:2px solid var(--acc);cursor:pointer;user-select:none;height:64px;touch-action:none';
-    const playerFill=el('div');
-    playerFill.style.cssText='position:absolute;top:0;left:60px;height:100%;background:rgba(255,255,255,0.3);width:0%;pointer-events:none';
-    const playerIcon=el('div');
-    playerIcon.style.cssText='position:absolute;left:0;top:0;width:60px;height:64px;z-index:2;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.15);border-radius:12px 0 0 12px';
+    playerWrap.style.cssText='margin-bottom:14px;position:relative;border-radius:14px;background:rgba(124,140,248,0.12);border:1.5px solid var(--border);cursor:pointer;user-select:none;height:64px;touch-action:none;display:flex;align-items:center;gap:12px;padding:0 16px';
+    
+    const playerBtn=el('div');
+    playerBtn.style.cssText='width:44px;height:44px;border-radius:50%;background:var(--acc);display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 2px 8px rgba(124,140,248,0.4)';
+    
+    const svgPlay='<svg width="16" height="18" viewBox="0 0 16 18" fill="none"><polygon points="2,1 15,9 2,17" fill="white"/></svg>';
+    const svgPause='<svg width="16" height="18" viewBox="0 0 16 18" fill="none"><rect x="1" y="1" width="5" height="16" rx="2" fill="white"/><rect x="10" y="1" width="5" height="16" rx="2" fill="white"/></svg>';
+    playerBtn.innerHTML=svgPlay;
 
-    const svgPlay='<svg width="18" height="20" viewBox="0 0 18 20" fill="none"><polygon points="2,1 17,10 2,19" fill="white"/></svg>';
-    const svgPause='<svg width="18" height="20" viewBox="0 0 18 20" fill="none"><rect x="1" y="1" width="5" height="18" rx="2" fill="white"/><rect x="11" y="1" width="5" height="18" rx="2" fill="white"/></svg>';
-    playerIcon.innerHTML=svgPlay;
+    const barWrap=el('div');
+    barWrap.style.cssText='flex:1;height:6px;background:rgba(124,140,248,0.2);border-radius:99px;overflow:hidden';
+    const playerFill=el('div');
+    playerFill.style.cssText='height:100%;background:var(--acc);border-radius:99px;width:0%;pointer-events:none;transition:width 0.1s linear';
+    barWrap.appendChild(playerFill);
+
+    const playerIcon=playerBtn; // alias for compat
+    playerWrap.appendChild(playerBtn);
+    playerWrap.appendChild(barWrap);
 
     function refreshIcon(){
-      playerIcon.innerHTML=isPlaying?svgPause:svgPlay;
+      playerBtn.innerHTML=isPlaying?svgPause:svgPlay;
     }
     playerWrap.appendChild(playerFill);
     playerWrap.appendChild(playerIcon);
@@ -3868,13 +4053,18 @@ function renderEx(){
   else if(type==='Q4'){
     const lbl=el('div','ex');lbl.textContent='ВОПРОС ПО ТЕКСТУ';ew.appendChild(lbl);
     const card=el('div','card');
-    // Question
-    const qEl=el('div');qEl.style.cssText='font-size:17px;font-weight:800;line-height:1.5;color:var(--txt);margin-bottom:6px';
-    qEl.textContent=S.ex.question;card.appendChild(qEl);
+    // Question with speaker
+    const qRow=el('div');qRow.style.cssText='display:flex;align-items:flex-start;gap:10px;margin-bottom:6px';
+    const qEl=el('div');qEl.style.cssText='font-size:17px;font-weight:800;line-height:1.5;color:var(--txt);flex:1';
+    qEl.textContent=S.ex.question;
+    const qSpk=el('button','spk');qSpk.textContent='🔊';qSpk.style.flexShrink='0';
+    qSpk.onclick=()=>speak(S.ex.question);
+    qRow.appendChild(qEl);qRow.appendChild(qSpk);
+    card.appendChild(qRow);
     const qRuEl=el('div');qRuEl.style.cssText='font-size:13px;color:var(--mu);font-weight:600;margin-bottom:12px';
     qRuEl.textContent=S.ex.questionRu;card.appendChild(qRuEl);
     ew.appendChild(card);
-    // Options
+    // Options with audio on tap
     const chs=el('div','chs');
     (S.ex.options||[]).forEach(opt=>{
       let cls='cb2';
@@ -3886,6 +4076,7 @@ function renderEx(){
       if(S.q4checked)b.disabled=true;
       b.onclick=()=>{
         if(S.q4checked)return;
+        speak(opt);
         S.q4chosen=opt;render();
       };
       chs.appendChild(b);
@@ -3893,12 +4084,30 @@ function renderEx(){
     ew.appendChild(chs);
     if(S.q4chosen&&!S.q4checked){
       const chk=el('button','btn bpr bfw');chk.textContent='Проверить';
-      chk.onclick=()=>{
-        S.q4checked=true;
-        const ok=S.q4chosen===S.ex.answer;
-        render();
-      };
+      chk.onclick=()=>{S.q4checked=true;const ok=S.q4chosen===S.ex.answer;render();};
       ew.appendChild(chk);
+    }
+    // Show text reference for s2 units
+    const uid=S.activeUnit&&S.activeUnit.id;
+    if(['s2u1','s2u2','s2u3'].includes(uid)){
+      const theory=THEORY_CARDS.find(t=>t.unitId===uid);
+      if(theory&&theory.greekText){
+        const refWrap=el('div');refWrap.style.cssText='margin-top:12px;border-radius:12px;background:var(--sur2);padding:12px 14px;border:1px solid var(--border)';
+        const refHint=el('div');refHint.style.cssText='font-size:11px;font-weight:900;color:var(--mu);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px';
+        refHint.textContent='📖 Посмотрите в тексте ↓';
+        refWrap.appendChild(refHint);
+        const refText=el('div');refText.style.cssText='font-size:14px;line-height:1.8;color:var(--txt);font-weight:600;margin-bottom:10px';
+        refText.textContent=theory.greekText;
+        refWrap.appendChild(refText);
+        // Translation toggle
+        const trBtn=el('button');trBtn.style.cssText='font-size:12px;color:var(--mu);background:none;border:1px solid var(--border);border-radius:8px;padding:4px 10px;cursor:pointer;font-weight:700';
+        trBtn.textContent='👁 Показать перевод текста';
+        const trDiv=el('div');trDiv.style.cssText='font-size:13px;color:var(--mu);margin-top:8px;line-height:1.7;display:none';
+        trDiv.textContent=theory.ruText||'';
+        trBtn.onclick=()=>{trDiv.style.display=trDiv.style.display==='none'?'block':'none';trBtn.textContent=trDiv.style.display==='none'?'👁 Показать перевод текста':'👁 Скрыть перевод';};
+        refWrap.appendChild(trBtn);refWrap.appendChild(trDiv);
+        ew.appendChild(refWrap);
+      }
     }
     if(S.q4checked){
       const fb=el('div','fb '+(S.q4chosen===S.ex.answer?'fbok':'fber'));
