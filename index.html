@@ -566,6 +566,22 @@ const THEORY_CARDS = [
       {label:"Στο Λονγκ Άιλαντ — на Лонг-Айленде", example:""},
       {label:"💡 Ключевые слова: σπουδάζει (учится), τελειώνει (заканчивает), μένει (живёт), πήρε (взял)", example:""},
     ]
+  },
+  {
+    id:"t5_1", unitId:"s4u1",
+    title:"Η Οικογένεια της Ελένης",
+    subtitle:"Текст для чтения",
+    greekText:`Η Ελένη έχει μεγάλη οικογένεια. Μένει με τους γονείς της και τον αδερφό της. Ο αδερφός της είναι μικρότερος από αυτήν. Η μαμά της δουλεύει στο σπίτι και ο μπαμπάς της δουλεύει πολύ. Τρώνε συχνά μαζί το βράδυ.
+
+Η Ελένη είναι παντρεμένη με τον Γιάννη. Γνωριστήκαν μέσα από φίλους πριν από πέντε χρόνια. Τώρα ζούνε μαζί και έχουν έναν γιο και μια κόρη. Τα παιδιά τους πηγαίνουν στο σχολείο.
+
+Μια φορά το μήνα επισκέπτονται τη γιαγιά και τον παππού που μένουν σε άλλη πόλη. Η οικογένειά τους είναι πολύ ενωμένη. Σπάνια τσακώνονται και τα πάνε καλά μεταξύ τους. Η Ελένη λέει: «Η οικογένεια είναι το πιο σημαντικό πράγμα στη ζωή μου!»`,
+    ruText:`У Элени большая семья. Она живёт с родителями и братом. Её брат младше неё. Её мама работает дома, а папа много работает. Они часто ужинают вместе вечером.
+
+Элени замужем за Янисом. Они познакомились через друзей пять лет назад. Сейчас они живут вместе и у них есть сын и дочь. Их дети ходят в школу.
+
+Раз в месяц они навещают бабушку и дедушку, которые живут в другом городе. Их семья очень дружная. Они редко ссорятся и хорошо ладят друг с другом. Элени говорит: «Семья — самая важная часть моей жизни!»`,
+    items:[]
   }
 ];
 
@@ -1798,6 +1814,66 @@ const SECTIONS=[{
       {id:1000,greek:"το άρθρο",ru:"статья",emoji:"📰",cat:"Учёба"},
     ]
   }]
+},{
+  id:"s4",title:"Μαθαίνω Φράσεις",subtitle:"Учёба по фразам",
+  units:[{
+    id:"s4u1",title:"Οικογένεια και Σχέσεις",titleRu:"Семья и отношения",emoji:"👨‍👩‍👧‍👦",
+    isPhraseUnit:true,
+    words:[
+      {id:2001,greek:"Έχω μεγάλη οικογένεια.",ru:"У меня большая семья.",emoji:"👨‍👩‍👧‍👦",cat:"Семья"},
+      {id:2002,greek:"Έχω έναν αδερφό και μια αδερφή.",ru:"У меня есть брат и сестра.",emoji:"👧👦",cat:"Семья"},
+      {id:2003,greek:"Η μαμά μου δουλεύει στο σπίτι.",ru:"Моя мама работает дома.",emoji:"👩‍💼",cat:"Семья"},
+      {id:2004,greek:"Ο μπαμπάς μου αγαπάει να μαγειρεύει.",ru:"Мой папа любит готовить.",emoji:"👨‍🍳",cat:"Семья"},
+      {id:2005,greek:"Τρώμε συχνά μαζί το βράδυ.",ru:"Мы часто ужинаем вместе.",emoji:"🍽️",cat:"Семья"},
+      {id:2006,greek:"Μένω με τους γονείς μου.",ru:"Я живу с родителями.",emoji:"🏠",cat:"Семья"},
+      {id:2007,greek:"Η αδερφή μου είναι μεγαλύτερη από μένα.",ru:"Моя сестра старше меня.",emoji:"👧",cat:"Семья"},
+      {id:2008,greek:"Ο αδερφός μου είναι μικρότερος από μένα.",ru:"Мой брат младше меня.",emoji:"👦",cat:"Семья"},
+      {id:2009,greek:"Έχω έναν ξάδερφο.",ru:"У меня есть двоюродный брат.",emoji:"🧑",cat:"Семья"},
+      {id:2010,greek:"Έχω μια ξαδέρφη.",ru:"У меня есть двоюродная сестра.",emoji:"👩",cat:"Семья"},
+      {id:2011,greek:"Η γιαγιά και ο παππούς μου μένουν σε άλλη πόλη.",ru:"Мои бабушка и дедушка живут в другом городе.",emoji:"👴👵",cat:"Семья"},
+      {id:2012,greek:"Τους επισκεπτόμαστε τα Σαββατοκύριακα.",ru:"Мы навещаем их по выходным.",emoji:"🚗",cat:"Семья"},
+      {id:2013,greek:"Αγαπάω πολύ την οικογένειά μου.",ru:"Я очень люблю свою семью.",emoji:"❤️",cat:"Семья"},
+      {id:2014,greek:"Η οικογένειά μου με στηρίζει.",ru:"Моя семья поддерживает меня.",emoji:"🤝",cat:"Семья"},
+      {id:2015,greek:"Σπάνια τσακωνόμαστε.",ru:"Мы редко ссоримся.",emoji:"☮️",cat:"Семья"},
+      {id:2016,greek:"Τα πάμε καλά μεταξύ μας.",ru:"Мы хорошо ладим друг с другом.",emoji:"😊",cat:"Семья"},
+      {id:2017,greek:"Σήμερα είναι τα γενέθλια της μαμάς μου.",ru:"Сегодня у моей мамы день рождения.",emoji:"🎂",cat:"Семья"},
+      {id:2018,greek:"Ετοιμάζουμε μια έκπληξη για αυτήν.",ru:"Мы готовим для неё сюрприз.",emoji:"🎁",cat:"Семья"},
+      {id:2019,greek:"Ο πατέρας μου δουλεύει πολύ.",ru:"Мой отец много работает.",emoji:"💼",cat:"Семья"},
+      {id:2020,greek:"Είμαι περήφανος/η για τους γονείς μου.",ru:"Я горжусь своими родителями.",emoji:"🌟",cat:"Семья"},
+      {id:2021,greek:"Είμαι παντρεμένος.",ru:"Я женат.",emoji:"💍",cat:"Отношения"},
+      {id:2022,greek:"Είμαι παντρεμένη.",ru:"Я замужем.",emoji:"💍",cat:"Отношения"},
+      {id:2023,greek:"Έχω άντρα.",ru:"У меня есть муж.",emoji:"👨",cat:"Отношения"},
+      {id:2024,greek:"Έχω γυναίκα.",ru:"У меня есть жена.",emoji:"👩",cat:"Отношения"},
+      {id:2025,greek:"Γνωριστήκαμε πριν από πέντε χρόνια.",ru:"Мы познакомились пять лет назад.",emoji:"🤝",cat:"Отношения"},
+      {id:2026,greek:"Ζούμε μαζί.",ru:"Мы живём вместе.",emoji:"🏠",cat:"Отношения"},
+      {id:2027,greek:"Μας αρέσει να περνάμε χρόνο μαζί.",ru:"Мы любим проводить время вместе.",emoji:"💑",cat:"Отношения"},
+      {id:2028,greek:"Συχνά βολτάρουμε τα βράδια.",ru:"Мы часто гуляем по вечерам.",emoji:"🌙",cat:"Отношения"},
+      {id:2029,greek:"Βλέπουμε ταινίες τα Σαββατοκύριακα.",ru:"Мы смотрим фильмы по выходным.",emoji:"🎬",cat:"Отношения"},
+      {id:2030,greek:"Σχεδιάζουμε διακοπές μαζί.",ru:"Мы планируем отпуск вместе.",emoji:"✈️",cat:"Отношения"},
+      {id:2031,greek:"Έχω φίλο.",ru:"У меня есть парень.",emoji:"👨",cat:"Отношения"},
+      {id:2032,greek:"Έχω φίλη.",ru:"У меня есть девушка.",emoji:"👩",cat:"Отношения"},
+      {id:2033,greek:"Γνωριστήκαμε μέσα από φίλους.",ru:"Мы познакомились через друзей.",emoji:"👥",cat:"Отношения"},
+      {id:2034,greek:"Μιλάμε συχνά στο τηλέφωνο.",ru:"Мы часто разговариваем по телефону.",emoji:"📞",cat:"Отношения"},
+      {id:2035,greek:"Αυτός πάντα με βοηθάει.",ru:"Он всегда помогает мне.",emoji:"🤝",cat:"Отношения"},
+      {id:2036,greek:"Αυτή με καταλαβαίνει καλά.",ru:"Она хорошо понимает меня.",emoji:"💬",cat:"Отношения"},
+      {id:2037,greek:"Αγαπάμε τις ίδιες ταινίες.",ru:"Мы любим одни и те же фильмы.",emoji:"🎥",cat:"Отношения"},
+      {id:2038,greek:"Σπάνια μαλώνουμε.",ru:"Мы редко спорим.",emoji:"☮️",cat:"Отношения"},
+      {id:2039,greek:"Μου αρέσει να περνάω χρόνο μαζί του.",ru:"Мне нравится проводить с ним время.",emoji:"😊",cat:"Отношения"},
+      {id:2040,greek:"Μου αρέσει να περνάω χρόνο μαζί της.",ru:"Мне нравится проводить с ней время.",emoji:"😊",cat:"Отношения"},
+      {id:2041,greek:"Σκοπεύουμε να παντρευτούμε.",ru:"Мы собираемся пожениться.",emoji:"💒",cat:"Отношения"},
+      {id:2042,greek:"Παντρεύτηκαν πρόσφατα.",ru:"Они недавно поженились.",emoji:"👰",cat:"Отношения"},
+      {id:2043,greek:"Έχουν έναν ευτυχισμένο γάμο.",ru:"У них счастливый брак.",emoji:"💑",cat:"Отношения"},
+      {id:2044,greek:"Μεγαλώνουν δύο παιδιά.",ru:"Они воспитывают двоих детей.",emoji:"👶",cat:"Дети"},
+      {id:2045,greek:"Έχω έναν γιο.",ru:"У меня есть сын.",emoji:"👦",cat:"Дети"},
+      {id:2046,greek:"Έχω μια κόρη.",ru:"У меня есть дочь.",emoji:"👧",cat:"Дети"},
+      {id:2047,greek:"Τα παιδιά μου πηγαίνουν στο σχολείο.",ru:"Мои дети ходят в школу.",emoji:"🎒",cat:"Дети"},
+      {id:2048,greek:"Περνάμε πολύ χρόνο με τα παιδιά.",ru:"Мы проводим много времени с детьми.",emoji:"👨‍👩‍👧‍👦",cat:"Дети"},
+      {id:2049,greek:"Η οικογένειά μας είναι πολύ ενωμένη.",ru:"Наша семья очень дружная.",emoji:"❤️",cat:"Семья"},
+      {id:2050,greek:"Η οικογένεια είναι το πιο σημαντικό πράγμα στη ζωή μου.",ru:"Семья — самая важная часть моей жизни.",emoji:"🌟",cat:"Семья"},
+      {id:2051,greek:"Η μαμά μου με καταλαβαίνει πάντα.",ru:"Моя мама всегда понимает меня.",emoji:"💛",cat:"Семья"},
+      {id:2052,greek:"Ο μπαμπάς μου είναι ο καλύτερός μου φίλος.",ru:"Мой папа — мой лучший друг.",emoji:"👨‍👦",cat:"Семья"},
+    ]
+  }]
 }];
 
 const ALL_WORDS=SECTIONS.flatMap(s=>s.units.flatMap(u=>u.words));
@@ -2072,7 +2148,14 @@ function saveAdaptState(){
     answers:S.answers||[],
     score:S.score,
     fillChosen:S.fillChosen,
-    fillChecked:S.fillChecked
+    fillChecked:S.fillChecked,
+    phraseChecked:S._phraseChecked,
+    phraseSkipped:S._phraseSkipped,
+    phraseInput:S._phraseInput,
+    phraseOptChosen:S._phraseOptChosen,
+    c4AllIdx:S.adaptC4AllIdx||0,
+    matchPage:S.adaptMatchPage||0,
+    matchIsPhrase:S._matchIsPhrase||false,
   });
 }
 
@@ -2175,7 +2258,8 @@ function splitGreekSyllables(word){
 }
 
 // ─── ADAPTIVE UNIT HELPERS ───────────────────────────────
-function isAdaptiveUnit(unit){return unit&&(unit.id==='s1u0'||unit.id==='s2u1'||unit.id==='s2u2'||unit.id==='s2u3'||unit.id==='s3u1');}
+function isAdaptiveUnit(unit){return unit&&(unit.id==='s1u0'||unit.id==='s2u1'||unit.id==='s2u2'||unit.id==='s2u3'||unit.id==='s3u1'||unit.id==='s4u1');}
+function isPhraseUnit(unit){return unit&&unit.isPhraseUnit===true;}
 
 function adaptGetWords(){
   return S.activeUnit?S.activeUnit.words:[];
@@ -2184,16 +2268,19 @@ function adaptGetWords(){
 function adaptCalcTotal(){
   const words=adaptGetWords();
   const nWords=words.length;
+  const uid=S.activeUnit?.id;
+  // Phrase units: cards + match groups + text_reading
+  if(isPhraseUnit(S.activeUnit)){
+    const matchGroups=Math.ceil(nWords/4);
+    return nWords + matchGroups + 1; // 52 cards + 13 match groups + 1 text
+  }
   const nUnknown=S.adaptUnknown.length;
   const nC4Wrong=S.adaptC4Wrong.length;
-  const uid=S.activeUnit?.id;
   const theories=THEORY_CARDS.filter(t=>t.unitId===uid).length;
   const fills=FILL_EXERCISES.filter(f=>f.unitId===uid).length;
   const listenQs=LISTEN_EXERCISES.filter(l=>l.unitId===uid).reduce((a,l)=>a+l.questions.length,0);
   const q4s=Q4_EXERCISES.filter(q=>q.unitId===uid).length;
-  // +1 for text_reading screen on s2 units
   const textReading=['s2u1','s2u2','s2u3'].includes(uid)?1:0;
-  // theory + fc_intro(1) + fc(nWords) + c4(nUnknown) + collapsed(c4wrong) + text_reading + summary_intro(1) + fill+listen+q4
   return theories+1+nWords+nUnknown+nC4Wrong+textReading+1+fills+listenQs+q4s;
 }
 
@@ -2223,6 +2310,8 @@ function adaptNextPhase(){
   S.adaptAnswered=Math.min(S.adaptAnswered+1,adaptCalcTotal());
   if(S.adaptPhase==='theory'){
     S.adaptPhase='fc_intro';
+    // Phrase units skip fc_intro entirely
+    if(isPhraseUnit(S.activeUnit)) S.adaptPhase='fc';
   } else if(S.adaptPhase==='fc_intro'){
     S.adaptPhase='fc';
   } else if(S.adaptPhase==='fc'){
@@ -2420,6 +2509,31 @@ function renderAdaptiveUnit(){
         saveAdaptState();render();
       };
       d.appendChild(btn);sc.appendChild(d);
+    } else if(isPhraseUnit(S.activeUnit)){
+      // Phrase unit intro
+      const d=el('div','phase-screen');
+      d.innerHTML=`<div class="phase-icon">${S.activeUnit.emoji||'💬'}</div>
+        <div class="phase-title">${S.activeUnit.titleRu}</div>
+        <div class="phase-sub" style="text-align:left;max-width:320px">
+          Учим фразы из жизни:<br><br>
+          <b>1.</b> 🃏 Карточки — русский → греческий<br>
+          <b>2.</b> ✍️ Напиши или выбери из 4 вариантов<br>
+          <b>3.</b> 🔗 Сопоставление фраз<br>
+          <b>4.</b> 📖 Текст со всеми фразами
+        </div>`;
+      const btn=el('button','btn bpr bfw');btn.textContent='Начать →';
+      btn.onclick=()=>{
+        S.adaptPhase='fc';
+        S.adaptWordIdx=0;
+        S._phraseChecked=false;
+        S._phraseSkipped=false;
+        S._phraseInput='';
+        S._phraseOpts=null;
+        S._phraseOptChosen=null;
+        S._phraseShowInput=false;
+        saveAdaptState();render();
+      };
+      d.appendChild(btn);sc.appendChild(d);
     } else {
       // Normal theory rendering
       const ex=S.ex;
@@ -2446,7 +2560,11 @@ function renderAdaptiveUnit(){
     d.appendChild(btn);sc.appendChild(d);
   }
   else if(phase==='fc'){
-    renderAdaptFC(sc);
+    if(isPhraseUnit(S.activeUnit)){
+      renderPhraseFC(sc);
+    } else {
+      renderAdaptFC(sc);
+    }
   }
   else if(phase==='c4_all'){
     // C4 on ALL words for s2 units
@@ -2639,6 +2757,183 @@ function renderAdaptFC(sc){
   }
 }
 
+function renderPhraseFC(sc){
+  const words=adaptGetWords();
+  const idx=S.adaptWordIdx||0;
+  const word=words[idx];
+  if(!word){
+    S.adaptPhase='match_all';
+    S.adaptMatchPage=0;
+    S._matchLL=null;S._matchRL=null;
+    saveAdaptState();render();return;
+  }
+
+  const lbl=el('div','ex');
+  lbl.textContent=S._phraseSkipped?'ВЫБЕРИ ПРАВИЛЬНЫЙ ПЕРЕВОД':'КАРТОЧКА — НАПИШИ ПО-ГРЕЧЕСКИ';
+  sc.appendChild(lbl);
+
+  // Progress: idx+1 / total words
+  const progTxt=el('div');
+  progTxt.style.cssText='font-size:11px;color:var(--mu);text-align:right;margin-bottom:6px;font-weight:700';
+  progTxt.textContent=`${idx+1} / ${words.length}`;
+  sc.appendChild(progTxt);
+
+  // Card: Russian phrase
+  const card=el('div','card');
+  card.style.marginBottom='12px';
+  const ruEl=el('div');
+  ruEl.style.cssText='font-size:17px;font-weight:800;color:var(--txt);line-height:1.6;text-align:center';
+  ruEl.textContent=word.ru;
+  card.appendChild(ruEl);
+
+  // Speaker button for correct answer (shown after check)
+  const spkBtn=el('button','spk');
+  spkBtn.style.cssText='margin-top:8px;font-size:18px;display:none';
+  spkBtn.textContent='🔊';
+  spkBtn.onclick=()=>speak(word.greek);
+  card.appendChild(spkBtn);
+  sc.appendChild(card);
+
+  if(!S._phraseChecked && !S._phraseSkipped){
+    // --- TWO CHOICE BUTTONS ---
+    const btnRow=el('div');
+    btnRow.style.cssText='display:flex;flex-direction:column;gap:10px;margin-top:4px';
+
+    const writeBtn=el('button','btn bpr bfw');
+    writeBtn.textContent='✍️ Написать по-гречески';
+    writeBtn.onclick=e=>{
+      e.preventDefault();
+      S._phraseShowInput=true;
+      render();
+    };
+
+    const skipBtn=el('button','btn bot bfw');
+    skipBtn.textContent='🎯 Выбрать из вариантов';
+    skipBtn.onclick=e=>{
+      e.preventDefault();
+      e.stopPropagation();
+      S._phraseSkipped=true;
+      S._phraseChecked=false;
+      S._phraseOpts=null;
+      S._phraseOptChosen=null;
+      render();
+    };
+
+    if(S._phraseShowInput){
+      // Show input field
+      const inp=el('input','wi');
+      inp.placeholder='Напиши по-гречески...';
+      inp.style.cssText+='font-size:15px;width:100%;box-sizing:border-box;margin-bottom:8px';
+      inp.value=S._phraseInput||'';
+      inp.oninput=e=>{S._phraseInput=e.target.value;};
+      inp.onkeydown=e=>{if(e.key==='Enter'&&inp.value.trim())checkPhrase();};
+      sc.appendChild(inp);
+      const checkBtn=el('button','btn bpr bfw');
+      checkBtn.textContent='Проверить';
+      checkBtn.onclick=e=>{e.preventDefault();if((S._phraseInput||'').trim())checkPhrase();};
+      sc.appendChild(checkBtn);
+      sc.appendChild(skipBtn);
+    } else {
+      btnRow.appendChild(writeBtn);
+      btnRow.appendChild(skipBtn);
+      sc.appendChild(btnRow);
+    }
+
+  } else if(S._phraseSkipped && !S._phraseOptChosen){
+    // --- 4 OPTIONS MODE (not yet chosen) ---
+    if(!S._phraseOpts) S._phraseOpts=buildPhraseOpts(word,words);
+    renderPhraseOpts(sc,word,false);
+
+  } else if(S._phraseSkipped && S._phraseOptChosen){
+    // --- 4 OPTIONS RESULT ---
+    if(!S._phraseOpts) S._phraseOpts=buildPhraseOpts(word,words);
+    renderPhraseOpts(sc,word,true);
+    const isOk=S._phraseOptChosen===word.id;
+    renderPhraseFB(sc,isOk,word,spkBtn);
+    nextPhraseBtn(sc);
+
+  } else {
+    // --- WRITE RESULT ---
+    const userAns=(S._phraseInput||'').trim();
+    const isOk=userAns.toLowerCase()===word.greek.toLowerCase();
+    renderPhraseFB(sc,isOk,word,spkBtn);
+    nextPhraseBtn(sc);
+  }
+
+  function checkPhrase(){
+    S._phraseChecked=true;
+    S._phraseSkipped=false;
+    render();
+  }
+}
+
+function renderPhraseOpts(sc, word, checked){
+  if(!S._phraseOpts) S._phraseOpts=buildPhraseOpts(word, adaptGetWords());
+  const chs=el('div','chs');chs.style.cssText='grid-template-columns:1fr;gap:8px';
+  S._phraseOpts.forEach(opt=>{
+    let cls='cb2';
+    if(checked){
+      if(opt.id===word.id) cls+=' ck';
+      else if(opt.id===S._phraseOptChosen) cls+=' cw';
+    } else {
+      if(S._phraseOptChosen===opt.id) cls+=' ms';
+    }
+    const b=el('button',cls);
+    b.style.cssText+='font-size:13px;font-family:inherit;text-align:center;padding:12px 10px';
+    b.textContent=opt.greek;
+    b.disabled=!!S._phraseOptChosen;
+    b.onclick=()=>{
+      speak(opt.greek);
+      S._phraseOptChosen=opt.id;
+      S._phraseChecked=true;
+      render();
+    };
+    chs.appendChild(b);
+  });
+  sc.appendChild(chs);
+}
+
+function renderPhraseFB(sc, isOk, word, spkBtnEl){
+  if(spkBtnEl) spkBtnEl.style.display='block';
+  const fb=el('div','fb '+(isOk?'fbok':'fber'));
+  fb.style.marginTop='10px';
+  if(isOk){
+    fb.innerHTML='✅ Верно! <b>'+word.greek+'</b>';
+  } else {
+    const wrongText=S._phraseSkipped
+      ? (S._phraseOpts||[]).find(o=>o.id===S._phraseOptChosen)?.greek||'...'
+      : (S._phraseInput||'').trim();
+    fb.innerHTML='❌ Неверно: <span style="color:var(--er)"><b>'+wrongText+'</b></span> → Правильно: <b>'+word.greek+'</b>';
+  }
+  sc.appendChild(fb);
+  // Always show speaker
+  const sp=el('button','btn bot bfw');
+  sp.style.marginTop='6px';sp.textContent='🔊 Прослушать правильный вариант';
+  sp.onclick=()=>speak(word.greek);
+  sc.appendChild(sp);
+}
+
+function nextPhraseBtn(parent){
+  const nb=el('button','btn bpr bfw');nb.style.marginTop='10px';nb.textContent='Дальше →';
+  nb.onclick=()=>{
+    const idx=S.adaptWordIdx||0;
+    if(!S.adaptHistory)S.adaptHistory=[];
+    S.adaptHistory.push({phase:'fc',wordIdx:idx});
+    if(S.adaptHistory.length>60)S.adaptHistory.shift();
+    S.adaptWordIdx=idx+1;
+    S.adaptAnswered++;
+    S._phraseChecked=false;S._phraseSkipped=false;
+    S._phraseInput='';S._phraseOptChosen=null;S._phraseOpts=null;S._phraseShowInput=false;
+    saveAdaptState();render();
+  };
+  parent.appendChild(nb);
+}
+
+function buildPhraseOpts(word,words){
+  const others=shuffle(words.filter(w=>w.id!==word.id)).slice(0,3);
+  return shuffle([word,...others]);
+}
+
 function renderAdaptC4All(sc){
   // C4 on every word in unit (for s2 units)
   const words=adaptGetWords();
@@ -2665,10 +2960,13 @@ function renderAdaptMatchAll(sc){
   if(!S.mSelRu&&S.mSelRu!==null)S.mSelRu=null;
   if(!S.mDoneAll)S.mDoneAll=false;
 
-  // Use fixed order: left=greek shuffled, right=russian shuffled
+  // Use fixed order: left=russian, right=greek for phrase units
   if(!S._matchLL||S._matchPageKey!==S.adaptMatchPage){
-    S._matchLL=shuffle(pagePairs.map(p=>p.greek));
-    S._matchRL=shuffle(pagePairs.map(p=>p.ru));
+    const uid=S.activeUnit&&S.activeUnit.id;
+    const isPhrase=!!(S.activeUnit&&S.activeUnit.isPhraseUnit);
+    S._matchLL=shuffle(pagePairs.map(p=>isPhrase?p.ru:p.greek));
+    S._matchRL=shuffle(pagePairs.map(p=>isPhrase?p.greek:p.ru));
+    S._matchIsPhrase=isPhrase; // cache for use in onclick
     S._matchPageKey=S.adaptMatchPage;
     S.mDone=[];S.mSelGr=null;S.mSelRu=null;S.mDoneAll=false;S.mWrong=[];
   }
@@ -2676,57 +2974,71 @@ function renderAdaptMatchAll(sc){
   const mg=el('div','mg');
   const lCol=el('div','mc');
   const rCol=el('div','mc');
+  const isPhrase=!!(S._matchIsPhrase); // use cached value
 
-  S._matchLL.forEach(gr=>{
-    const done=(S.mDone||[]).includes(gr);
-    const sel=S.mSelGr===gr;
-    const wrong=(S.mWrong||[]).includes(gr);
+  // For phrase units: LL=russian, RL=greek
+  // For other units: LL=greek, RL=russian
+  function findPairByLeft(leftVal){
+    return isPhrase ? pagePairs.find(p=>p.ru===leftVal) : pagePairs.find(p=>p.greek===leftVal);
+  }
+  function findPairByRight(rightVal){
+    return isPhrase ? pagePairs.find(p=>p.greek===rightVal) : pagePairs.find(p=>p.ru===rightVal);
+  }
+  function leftKey(pair){ return isPhrase ? pair.ru : pair.greek; }
+
+  S._matchLL.forEach(leftVal=>{
+    const done=(S.mDone||[]).includes(leftVal);
+    const sel=S.mSelGr===leftVal;
+    const wrong=(S.mWrong||[]).includes(leftVal);
     let cls='mi'+(done?' mm':wrong?' mw':sel?' ms':'');
     const d=el('button',cls);
-    d.textContent=(done?'✓ ':'')+gr;
+    d.textContent=(done?'✓ ':'')+leftVal;
     d.style.fontFamily='inherit';
     d.disabled=done;
     d.onclick=()=>{
       if(done)return;
-      speak(gr);
+      if(isPhrase) speak(findPairByLeft(leftVal)?.greek||leftVal);
+      else speak(leftVal);
       if(S.mSelRu){
-        const pair=pagePairs.find(p=>p.greek===gr);
-        if(pair&&pair.ru===S.mSelRu){
-          S.mDone=[...(S.mDone||[]),gr];S.mSelGr=null;S.mSelRu=null;
+        const pair=findPairByLeft(leftVal);
+        const rightMatch=isPhrase?pair?.greek===S.mSelRu:pair?.ru===S.mSelRu;
+        if(rightMatch){
+          S.mDone=[...(S.mDone||[]),leftVal];S.mSelGr=null;S.mSelRu=null;
           if(S.mDone.length===pagePairs.length)S.mDoneAll=true;
           render();
         } else {
-          S.mWrong=[gr,S.mSelRu];
+          S.mWrong=[leftVal,S.mSelRu];
           setTimeout(()=>{S.mWrong=[];S.mSelGr=null;S.mSelRu=null;render();},700);
         }
-      } else {S.mSelGr=gr;S.mSelRu=null;render();}
+      } else {S.mSelGr=leftVal;S.mSelRu=null;render();}
     };
     lCol.appendChild(d);
   });
 
-  S._matchRL.forEach(ru=>{
-    const pair=pagePairs.find(p=>p.ru===ru);
-    const done=(S.mDone||[]).includes(pair&&pair.greek);
-    const sel=S.mSelRu===ru;
-    const wrong=(S.mWrong||[]).includes(ru);
+  S._matchRL.forEach(rightVal=>{
+    const pair=findPairByRight(rightVal);
+    const done=(S.mDone||[]).includes(pair?leftKey(pair):null);
+    const sel=S.mSelRu===rightVal;
+    const wrong=(S.mWrong||[]).includes(rightVal);
     let cls='mi'+(done?' mm':wrong?' mw':sel?' ms':'');
     const d=el('button',cls);
-    d.textContent=ru;
+    d.textContent=done?'✓ '+rightVal:rightVal;
     d.style.fontFamily='inherit';
     d.disabled=done;
     d.onclick=()=>{
       if(done)return;
       if(S.mSelGr){
-        const gpair=pagePairs.find(p=>p.greek===S.mSelGr);
-        if(gpair&&gpair.ru===ru){
+        const lpair=findPairByLeft(S.mSelGr);
+        const rightMatch=isPhrase?lpair?.greek===rightVal:lpair?.ru===rightVal;
+        if(rightMatch){
           S.mDone=[...(S.mDone||[]),S.mSelGr];S.mSelGr=null;S.mSelRu=null;
           if(S.mDone.length===pagePairs.length)S.mDoneAll=true;
           render();
         } else {
-          S.mWrong=[S.mSelGr,ru];
+          S.mWrong=[S.mSelGr,rightVal];
           setTimeout(()=>{S.mWrong=[];S.mSelGr=null;S.mSelRu=null;render();},700);
         }
-      } else {S.mSelRu=ru;S.mSelGr=null;render();}
+      } else {S.mSelRu=rightVal;S.mSelGr=null;render();}
     };
     rCol.appendChild(d);
   });
@@ -5417,6 +5729,15 @@ function renderPopup(){
       S.answers=[];
       S.score={c:0,w:0,st:0};
       S.errs=[];
+      // Reset phrase unit state
+      S._phraseChecked=false;
+      S._phraseSkipped=false;
+      S._phraseInput='';
+      S._phraseOptChosen=null;
+      S._phraseOpts=null;
+      S._phraseShowInput=false;
+      S._matchLL=null;S._matchRL=null;S._matchIsPhrase=false;
+      S.mDone=[];S.mSelGr=null;S.mSelRu=null;S.mDoneAll=false;S.mWrong=[];
       S.popup=null;
       save();
       showToast('✅ Прогресс сброшен');
