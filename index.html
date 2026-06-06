@@ -2790,7 +2790,7 @@ function renderPhraseFC(sc){
   const spkBtn=el('button','spk');
   spkBtn.style.cssText='margin-top:8px;font-size:18px;display:none';
   spkBtn.textContent='🔊';
-  spkBtn.onclick=()=>speak(word.greek);
+  spkBtn.onclick=e=>{e.stopPropagation();speak(word.greek);};
   card.appendChild(spkBtn);
   sc.appendChild(card);
 
@@ -2881,12 +2881,15 @@ function renderPhraseOpts(sc, word, checked){
     const b=el('button',cls);
     b.style.cssText+='font-size:13px;font-family:inherit;text-align:center;padding:12px 10px';
     b.textContent=opt.greek;
-    b.disabled=!!S._phraseOptChosen;
-    b.onclick=()=>{
+    b.disabled=false; // always clickable for audio
+    b.onclick=e=>{
+      e.stopPropagation();
       speak(opt.greek);
-      S._phraseOptChosen=opt.id;
-      S._phraseChecked=true;
-      render();
+      if(!S._phraseOptChosen){
+        S._phraseOptChosen=opt.id;
+        S._phraseChecked=true;
+        render();
+      }
     };
     chs.appendChild(b);
   });
