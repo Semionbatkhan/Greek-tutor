@@ -2973,12 +2973,14 @@ function renderAdaptMatchAll(sc){
   if(!S.mDoneAll)S.mDoneAll=false;
 
   // Use fixed order: left=russian, right=greek for phrase units
+  const PHRASE_UNIT_IDS=['s4u1']; // add new phrase units here
+  const uid=S.activeUnit&&S.activeUnit.id;
+  const isPhraseUnit_=PHRASE_UNIT_IDS.includes(uid);
+
   if(!S._matchLL||S._matchPageKey!==S.adaptMatchPage){
-    const uid=S.activeUnit&&S.activeUnit.id;
-    const isPhrase=!!(S.activeUnit&&S.activeUnit.isPhraseUnit);
-    S._matchLL=shuffle(pagePairs.map(p=>isPhrase?p.ru:p.greek));
-    S._matchRL=shuffle(pagePairs.map(p=>isPhrase?p.greek:p.ru));
-    S._matchIsPhrase=isPhrase; // cache for use in onclick
+    S._matchLL=shuffle(pagePairs.map(p=>isPhraseUnit_?p.ru:p.greek));
+    S._matchRL=shuffle(pagePairs.map(p=>isPhraseUnit_?p.greek:p.ru));
+    S._matchIsPhrase=isPhraseUnit_;
     S._matchPageKey=S.adaptMatchPage;
     S.mDone=[];S.mSelGr=null;S.mSelRu=null;S.mDoneAll=false;S.mWrong=[];
   }
@@ -2986,7 +2988,7 @@ function renderAdaptMatchAll(sc){
   const mg=el('div','mg');
   const lCol=el('div','mc');
   const rCol=el('div','mc');
-  const isPhrase=!!(S._matchIsPhrase); // use cached value
+  const isPhrase=isPhraseUnit_;
 
   // For phrase units: LL=russian, RL=greek
   // For other units: LL=greek, RL=russian
