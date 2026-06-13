@@ -622,6 +622,14 @@ const THEORY_CARDS = [
 
 Я выплачу сейчас 50% стоимости участка, ещё 40% после получения окончательного разрешения на раздел участка и его регистрации в Земельном кадастре, и оставшиеся 10% при передаче отдельного свидетельства о праве собственности.`,
     items:[]
+  },
+  {
+    id:"t8_1", unitId:"s4u3",
+    title:"Συχνές Φράσεις",
+    subtitle:"Частые фразы",
+    greekText:`Μερικές φορές δεν ξέρω σε ποιον να τηλεφωνήσω.`,
+    ruText:`Иногда я не знаю кому звонить.`,
+    items:[]
   }
 ];
 
@@ -1936,6 +1944,12 @@ const SECTIONS=[{
       {id:2116,greek:"Και την καταχώρισή του στο Κτηματολόγιο.",ru:"И его регистрации в Земельном кадастре.",emoji:"🗂️",cat:"Оплата"},
       {id:2117,greek:"Και το υπόλοιπο 10% με τη μεταβίβαση του ξεχωριστού τίτλου ιδιοκτησίας.",ru:"И оставшиеся 10% при передаче отдельного свидетельства о праве собственности.",emoji:"🔑",cat:"Оплата"},
     ]
+  },{
+    id:"s4u3",title:"Συχνές Φράσεις",titleRu:"Частые фразы",emoji:"💬",
+    isPhraseUnit:true,
+    words:[
+      {id:2201,greek:"Μερικές φορές δεν ξέρω σε ποιον να τηλεφωνήσω.",ru:"Иногда я не знаю кому звонить.",emoji:"📞",cat:"Повседневное"},
+    ]
   }]
 }];
 
@@ -2329,8 +2343,8 @@ function splitGreekSyllables(word){
 }
 
 // ─── ADAPTIVE UNIT HELPERS ───────────────────────────────
-function isAdaptiveUnit(unit){return unit&&(unit.id==='s1u0'||unit.id==='s2u1'||unit.id==='s2u2'||unit.id==='s2u3'||unit.id==='s3u1'||unit.id==='s4u1'||unit.id==='s4u2');}
-function isPhraseUnit(unit){return unit&&(unit.id==='s4u1'||unit.id==='s4u2');}
+function isAdaptiveUnit(unit){return unit&&(unit.id==='s1u0'||unit.id==='s2u1'||unit.id==='s2u2'||unit.id==='s2u3'||unit.id==='s3u1'||unit.id==='s4u1'||unit.id==='s4u2'||unit.id==='s4u3');}
+function isPhraseUnit(unit){return unit&&(unit.id==='s4u1'||unit.id==='s4u2'||unit.id==='s4u3');}
 
 function adaptGetWords(){
   return S.activeUnit?S.activeUnit.words:[];
@@ -2980,11 +2994,50 @@ function renderPhraseFB(sc, isOk, word, spkBtnEl){
     fb.innerHTML='❌ Неверно: <span style="color:var(--er)"><b>'+wrongText+'</b></span> → Правильно: <b>'+word.greek+'</b>';
   }
   sc.appendChild(fb);
-  // Always show speaker
+
+  // Speaker button
   const sp=el('button','btn bot bfw');
   sp.style.marginTop='6px';sp.textContent='🔊 Прослушать правильный вариант';
   sp.onclick=()=>speak(word.greek);
   sc.appendChild(sp);
+
+  // Разбор button — only for phrase units (s4)
+  if(isPhraseUnit(S.activeUnit)){
+    const analysisWrap=el('div');analysisWrap.style.marginTop='8px';
+    const analysisBtn=el('button','btn bot bfw');
+    analysisBtn.style.cssText='font-size:13px;border:1.5px solid var(--acc);color:var(--acc);background:var(--acc-light)';
+    analysisBtn.textContent='🔍 Разбор фразы';
+    analysisBtn.onclick=async()=>{
+      analysisBtn.disabled=true;
+      analysisBtn.textContent='⏳ Анализирую...';
+      try{
+        const res=await fetch('/api/generate',{
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({
+            model:'claude-sonnet-4-5',
+            max_tokens:800,
+            system:'Ты преподаватель греческого языка. Отвечай только на русском языке. Кратко и чётко.',
+            messages:[{role:'user',content:
+              `Разбери греческую фразу по словам и объясни грамматику:\n\n«${word.greek}»\n\nДля каждого слова: что это за часть речи, форма, почему именно так, а не иначе. Объясни предлоги и конструкции. Не более 150 слов. Без вступлений.`
+            }]
+          })
+        });
+        const data=await res.json();
+        const text=(data.content||[]).map(b=>b.text||'').join('').trim();
+        analysisBtn.style.display='none';
+        const box=el('div');
+        box.style.cssText='margin-top:8px;padding:14px;background:var(--sur2);border-radius:12px;border:1.5px solid var(--acc);font-size:13px;line-height:1.7;color:var(--txt);white-space:pre-wrap;font-weight:600';
+        box.textContent=text;
+        analysisWrap.appendChild(box);
+      } catch(e){
+        analysisBtn.textContent='⚠️ Ошибка — нет соединения';
+        analysisBtn.disabled=false;
+      }
+    };
+    analysisWrap.appendChild(analysisBtn);
+    sc.appendChild(analysisWrap);
+  }
 }
 
 function nextPhraseBtn(parent){
@@ -3035,7 +3088,7 @@ function renderAdaptMatchAll(sc){
   if(!S.mDoneAll)S.mDoneAll=false;
 
   // Use fixed order: left=russian, right=greek for phrase units
-  const PHRASE_UNIT_IDS=['s4u1','s4u2']; // add new phrase units here
+  const PHRASE_UNIT_IDS=['s4u1','s4u2','s4u3']; // add new phrase units here
   const uid=S.activeUnit&&S.activeUnit.id;
   const isPhraseUnit_=PHRASE_UNIT_IDS.includes(uid);
 
