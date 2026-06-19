@@ -2423,6 +2423,17 @@ function splitGreekSyllables(word){
 function isAdaptiveUnit(unit){return unit&&(unit.id==='s1u0'||unit.id==='s2u1'||unit.id==='s2u2'||unit.id==='s2u3'||unit.id==='s3u1'||unit.id==='s4u1'||unit.id==='s4u2'||unit.id==='s4u3'||unit.id==='s4u4');}
 function isPhraseUnit(unit){return unit&&(unit.id==='s4u1'||unit.id==='s4u2'||unit.id==='s4u3'||unit.id==='s4u4');}
 
+function saveAdaptHistory(){
+  if(!S.adaptHistory)S.adaptHistory=[];
+  S.adaptHistory.push({
+    phase:S.adaptPhase,
+    wordIdx:S.adaptWordIdx||0,
+    c4AllIdx:S.adaptC4AllIdx||0,
+    matchPage:S.adaptMatchPage||0,
+  });
+  if(S.adaptHistory.length>50)S.adaptHistory.shift();
+}
+
 function adaptGetWords(){
   return S.activeUnit?S.activeUnit.words:[];
 }
@@ -2468,6 +2479,8 @@ function adaptBuildC4(word){
 function adaptNextPhase(){
   const words=adaptGetWords();
   const isS2=S.activeUnit&&['s2u1','s2u2','s2u3'].includes(S.activeUnit.id);
+  // Save current state to history before transitioning
+  saveAdaptHistory();
   S.adaptWordIdx=0;
   S.adaptAnswered=Math.min(S.adaptAnswered+1,adaptCalcTotal());
   if(S.adaptPhase==='theory'){
@@ -2582,11 +2595,10 @@ function renderAdaptiveUnit(){
   };
   ps.appendChild(back);
 
-  // Back one step (history) — only for s2 units
-  const isS2unit=S.activeUnit&&['s2u1','s2u2','s2u3'].includes(S.activeUnit.id);
-  if(isS2unit&&S.adaptHistory&&S.adaptHistory.length>0){
-    const prevBtn=el('button');prevBtn.innerHTML='&#8592; Назад';
-    prevBtn.style.cssText='background:none;border:none;color:var(--acc);cursor:pointer;font-size:13px;font-weight:800;padding:4px 8px;border-radius:8px;flex-shrink:0';
+  // Back one step (history) — for all adaptive units
+  if(S.adaptHistory&&S.adaptHistory.length>0){
+    const prevBtn=el('button');prevBtn.innerHTML='&#9664;';
+    prevBtn.style.cssText='background:none;border:none;color:var(--acc);cursor:pointer;font-size:26px;padding:0 4px;flex-shrink:0';
     prevBtn.onclick=()=>{
       const prev=S.adaptHistory.pop();
       if(prev){
@@ -2595,6 +2607,7 @@ function renderAdaptiveUnit(){
         S.adaptC4AllIdx=prev.c4AllIdx||0;
         S.adaptMatchPage=prev.matchPage||0;
         S.fcRev=false;
+        S._phraseChecked=false;S._phraseSkipped=false;S._phraseInput='';S._phraseOpts=null;S._phraseOptChosen=null;S._phraseShowInput=false;
         S.mDone=[];S.mSelGr=null;S.mSelRu=null;S.mDoneAll=false;
         S._adaptC4Opts=null;S._adaptC4Word=null;S._adaptC4Checked=false;S._adaptC4Chosen=null;
         S.adaptAnswered=Math.max(0,(S.adaptAnswered||1)-1);
@@ -2602,6 +2615,10 @@ function renderAdaptiveUnit(){
       }
     };
     ps.appendChild(prevBtn);
+  } else {
+    const prevDisabled=el('span');prevDisabled.innerHTML='&#9664;';
+    prevDisabled.style.cssText='color:var(--border);font-size:26px;padding:0 4px;flex-shrink:0';
+    ps.appendChild(prevDisabled);
   }
 
   // Reset progress button
@@ -2803,8 +2820,19 @@ function renderAdaptiveUnit(){
     }
     d.appendChild(trCard);
 
-    const goBtn=el('button','btn bpr bfw');goBtn.textContent='К упражнениям →';
-    goBtn.onclick=()=>{if(window.speechSynthesis)speechSynthesis.cancel();adaptNextPhase();saveAdaptState();render();};
+    const goBtn=el('button','btn bpr bfw');
+    goBtn.textContent=isPhraseUnit(S.activeUnit)?'🏆 Завершить юнит':'К упражнениям →';
+    goBtn.onclick=()=>{
+      if(window.speechSynthesis)speechSynthesis.cancel();
+      if(isPhraseUnit(S.activeUnit)){
+        // phrase units have no summary — go straight to done screen
+        S.adaptPhase='summary_intro';
+        adaptNextPhase();
+      } else {
+        adaptNextPhase();
+      }
+      saveAdaptState();render();
+    };
     d.appendChild(goBtn);
     sc.appendChild(d);
   }
@@ -3203,8 +3231,7 @@ function renderAdaptMatchAll(sc){
     d.disabled=done;
     d.onclick=()=>{
       if(done)return;
-      if(isPhrase) speak(findPairByLeft(leftVal)?.greek||leftVal);
-      else speak(leftVal);
+      if(!isPhrase) speak(leftVal); // phrase units: left=russian, no TTS on tap
       if(S.mSelRu){
         const pair=findPairByLeft(leftVal);
         const rightMatch=isPhrase?pair?.greek===S.mSelRu:pair?.ru===S.mSelRu;
@@ -4781,17 +4808,7 @@ function renderWords(){
   const inp=el('input','wls');inp.placeholder='Поиск...';inp.value=S.wlSearch;inp.dataset.persist='wl-search';
   inp.oninput=e=>{
     S.wlSearch=e.target.value;S.wlPage=0;
-    const q2=S.wlSearch.toLowerCase();
-    wrap.querySelectorAll('[data-word-id]').forEach(row=>{
-      const gr=row.dataset.wordGreek||'';
-      const ru=row.dataset.wordRu||'';
-      row.style.display=(!q2||gr.includes(q2)||ru.includes(q2))?'':'none';
-    });
-    // Also show/hide category headers
-    wrap.querySelectorAll('.cl').forEach(cl=>{
-      const next=cl.nextElementSibling;
-      if(next)cl.style.display=next&&next.style.display!=='none'?'':'none';
-    });
+    render();
   };
   wlt.appendChild(inp);
   const eb=el('button','wleb');eb.textContent='↓ Конец';
@@ -5842,6 +5859,48 @@ const VERBS = [
     past:["επισκέφτηκα","επισκέφτηκες","επισκέφτηκε","επισκεφτήκαμε","επισκεφτήκατε","επισκέφτηκαν"],
     future:["θα επισκεφτώ","θα επισκεφτείς","θα επισκεφτεί","θα επισκεφτούμε","θα επισκεφτείτε","θα επισκεφτούν"],
     note:"Τους επισκεπτόμαστε τα Σαββατοκύριακα — Мы навещаем их по выходным. Возвратный глагол."
+  },
+  {
+    id:"v42", greek:"αρρωσταίνω", ru:"болеть / заболевать",
+    present:["αρρωσταίνω","αρρωσταίνεις","αρρωσταίνει","αρρωσταίνουμε","αρρωσταίνετε","αρρωσταίνουν"],
+    past:["αρρώστησα","αρρώστησες","αρρώστησε","αρρωστήσαμε","αρρωστήσατε","αρρώστησαν"],
+    future:["θα αρρωστήσω","θα αρρωστήσεις","θα αρρωστήσει","θα αρρωστήσουμε","θα αρρωστήσετε","θα αρρωστήσουν"],
+    note:"Αρρωσταίνω συχνά τον χειμώνα — Я часто болею зимой."
+  },
+  {
+    id:"v43", greek:"απαντώ", ru:"отвечать",
+    present:["απαντώ","απαντάς","απαντάει","απαντάμε","απαντάτε","απαντάνε"],
+    past:["απάντησα","απάντησες","απάντησε","απαντήσαμε","απαντήσατε","απάντησαν"],
+    future:["θα απαντήσω","θα απαντήσεις","θα απαντήσει","θα απαντήσουμε","θα απαντήσετε","θα απαντήσουν"],
+    note:"Απαντώ στην ερώτηση — Я отвечаю на вопрос. Тип глагола на -ώ/-άω."
+  },
+  {
+    id:"v44", greek:"συμφωνώ", ru:"соглашаться / соответствовать",
+    present:["συμφωνώ","συμφωνείς","συμφωνεί","συμφωνούμε","συμφωνείτε","συμφωνούν"],
+    past:["συμφώνησα","συμφώνησες","συμφώνησε","συμφωνήσαμε","συμφωνήσατε","συμφώνησαν"],
+    future:["θα συμφωνήσω","θα συμφωνήσεις","θα συμφωνήσει","θα συμφωνήσουμε","θα συμφωνήσετε","θα συμφωνήσουν"],
+    note:"Συμφωνώ με αυτή την πρόταση — Я согласен с этим предложением."
+  },
+  {
+    id:"v45", greek:"βρίσκω", ru:"находить",
+    present:["βρίσκω","βρίσκεις","βρίσκει","βρίσκουμε","βρίσκετε","βρίσκουν"],
+    past:["βρήκα","βρήκες","βρήκε","βρήκαμε","βρήκατε","βρήκαν"],
+    future:["θα βρω","θα βρεις","θα βρει","θα βρούμε","θα βρείτε","θα βρουν"],
+    note:"Βρίσκω ένα βιβλίο — Я нахожу книгу. Неправильное прошедшее: βρήκα."
+  },
+  {
+    id:"v46", greek:"παρακολουθώ", ru:"следить / смотреть (передачу)",
+    present:["παρακολουθώ","παρακολουθείς","παρακολουθεί","παρακολουθούμε","παρακολουθείτε","παρακολουθούν"],
+    past:["παρακολούθησα","παρακολούθησες","παρακολούθησε","παρακολουθήσαμε","παρακολουθήσατε","παρακολούθησαν"],
+    future:["θα παρακολουθήσω","θα παρακολουθήσεις","θα παρακολουθήσει","θα παρακολουθήσουμε","θα παρακολουθήσετε","θα παρακολουθήσουν"],
+    note:"Παρακολουθώ μια ταινία — Я смотрю фильм. Также: παρακολουθώ μαθήματα = посещаю занятия."
+  },
+  {
+    id:"v47", greek:"υπάρχω", ru:"существовать / быть (в наличии)",
+    present:["υπάρχω","υπάρχεις","υπάρχει","υπάρχουμε","υπάρχετε","υπάρχουν"],
+    past:["υπήρχα","υπήρχες","υπήρχε","υπήρχαμε","υπήρχατε","υπήρχαν"],
+    future:["θα υπάρχω","θα υπάρχεις","θα υπάρχει","θα υπάρχουμε","θα υπάρχετε","θα υπάρχουν"],
+    note:"Υπάρχουν πολλά βιβλία — Есть много книг. Часто используется в 3 л. ед/мн.ч."
   },
 ];
 
