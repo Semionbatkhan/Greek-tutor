@@ -2633,33 +2633,37 @@ function renderAdaptiveUnit(){
     ps.appendChild(prevDisabled);
   }
 
-  // Forward one step (redo without solving) — only if we went back before
-  if(S.adaptForwardHistory&&S.adaptForwardHistory.length>0){
-    const fwdBtn=el('button');fwdBtn.innerHTML='&#9654;';
-    fwdBtn.style.cssText='background:none;border:none;color:var(--acc);cursor:pointer;font-size:26px;padding:0 4px;flex-shrink:0';
-    fwdBtn.onclick=()=>{
-      // Save current position back into history (so back button still works)
-      saveAdaptHistory();
-      const next=S.adaptForwardHistory.pop();
-      if(next){
-        S.adaptPhase=next.phase;
-        S.adaptWordIdx=next.wordIdx||0;
-        S.adaptC4AllIdx=next.c4AllIdx||0;
-        S.adaptMatchPage=next.matchPage||0;
-        S.fcRev=false;
-        S._phraseChecked=false;S._phraseSkipped=false;S._phraseInput='';S._phraseOpts=null;S._phraseOptChosen=null;S._phraseShowInput=false;
-        S.mDone=[];S.mSelGr=null;S.mSelRu=null;S.mDoneAll=false;
-        S._adaptC4Opts=null;S._adaptC4Word=null;S._adaptC4Checked=false;S._adaptC4Chosen=null;
-        S.adaptAnswered=Math.min((S.adaptAnswered||0)+1,adaptCalcTotal());
-        saveAdaptState();render();
-      }
-    };
-    ps.appendChild(fwdBtn);
-  } else {
-    const fwdDisabled=el('span');fwdDisabled.innerHTML='&#9654;';
-    fwdDisabled.style.cssText='color:var(--border);font-size:26px;padding:0 4px;flex-shrink:0';
-    ps.appendChild(fwdDisabled);
-  }
+  // Forward one step — always active, advances without requiring an answer
+  const fwdBtn=el('button');fwdBtn.innerHTML='&#9654;';
+  fwdBtn.style.cssText='background:none;border:none;color:var(--acc);cursor:pointer;font-size:26px;padding:0 4px;flex-shrink:0';
+  fwdBtn.onclick=()=>{
+    saveAdaptHistory();
+    const totalW=adaptGetWords().length;
+    if(['fc','c4_all'].includes(S.adaptPhase)){
+      S.adaptWordIdx=(S.adaptWordIdx||0)+1;
+      S.fcRev=false;
+      S._phraseChecked=false;S._phraseSkipped=false;S._phraseInput='';S._phraseOpts=null;S._phraseOptChosen=null;S._phraseShowInput=false;
+      S._adaptC4Opts=null;S._adaptC4Word=null;S._adaptC4Checked=false;S._adaptC4Chosen=null;
+      if(S.adaptWordIdx>=totalW){adaptNextPhase();}
+    } else if(S.adaptPhase==='match_all'){
+      const pageSize=4;
+      S.adaptMatchPage=(S.adaptMatchPage||0)+1;
+      S.mDone=[];S.mSelGr=null;S.mSelRu=null;S.mDoneAll=false;S.mWrong=[];
+      S._matchLL=null;S._matchRL=null;
+      if(S.adaptMatchPage*pageSize>=totalW){adaptNextPhase();}
+    } else if(['c4','collapsed'].includes(S.adaptPhase)){
+      S.adaptWordIdx=(S.adaptWordIdx||0)+1;
+      S._adaptC4Opts=null;S._adaptC4Word=null;S._adaptC4Checked=false;S._adaptC4Chosen=null;
+      S.collPlaced=[];S._collChecked=false;
+      adaptNextPhase(); // simplify: just go to next phase for these less-common ones
+    } else {
+      adaptNextPhase();
+    }
+    // Progress = position based, not correctness based
+    S.adaptAnswered=Math.min((S.adaptAnswered||0)+1,adaptCalcTotal());
+    saveAdaptState();render();
+  };
+  ps.appendChild(fwdBtn);
 
   // Reset progress button
   const resetBtn=el('button');
@@ -2817,9 +2821,26 @@ function renderAdaptiveUnit(){
 
     const fullGreek=theory&&theory.greekText||'';
 
-    // Greek text card
+    // Greek text card — render as dialogue lines if it contains speaker names (Name:)
     const textCard=el('div','card');textCard.style.cssText='margin-bottom:12px;line-height:1.9;font-size:16px;font-weight:600;color:var(--txt)';
-    textCard.textContent=fullGreek;
+    const isDialogue=/^[Α-Ωα-ωΆ-Ώ][\wΑ-Ωα-ωΆ-Ώ\s]*:\s/.test(fullGreek.trim());
+    if(isDialogue){
+      const lines=fullGreek.split(/\n+/).filter(l=>l.trim());
+      lines.forEach((line,i)=>{
+        const m=line.match(/^([^:]+):\s*(.+)$/);
+        const p=el('div');p.style.cssText='margin-bottom:'+(i<lines.length-1?'14px':'0');
+        if(m){
+          const speaker=el('span');speaker.style.cssText='color:var(--acc);font-weight:900';speaker.textContent=m[1]+': ';
+          const rest=document.createTextNode(m[2]);
+          p.appendChild(speaker);p.appendChild(rest);
+        } else {
+          p.textContent=line;
+        }
+        textCard.appendChild(p);
+      });
+    } else {
+      textCard.textContent=fullGreek;
+    }
     d.appendChild(textCard);
 
     // Audio player
@@ -2849,7 +2870,24 @@ function renderAdaptiveUnit(){
     const rows=theory&&(theory.rows||theory.content)||[];
     const ruText=theory&&theory.ruText;
     if(ruText){
-      trCard.textContent=ruText;
+      const isRuDialogue=/^[А-ЯЁ][\wА-ЯЁа-яё\s]*:\s/.test(ruText.trim());
+      if(isRuDialogue){
+        const ruLines=ruText.split(/\n+/).filter(l=>l.trim());
+        ruLines.forEach((line,i)=>{
+          const m=line.match(/^([^:]+):\s*(.+)$/);
+          const p=el('div');p.style.cssText='margin-bottom:'+(i<ruLines.length-1?'14px':'0');
+          if(m){
+            const speaker=el('span');speaker.style.cssText='color:var(--mu);font-weight:900';speaker.textContent=m[1]+': ';
+            const rest=document.createTextNode(m[2]);
+            p.appendChild(speaker);p.appendChild(rest);
+          } else {
+            p.textContent=line;
+          }
+          trCard.appendChild(p);
+        });
+      } else {
+        trCard.textContent=ruText;
+      }
     } else {
       // Fallback: extract Russian parts from rows
       rows.filter(r=>!r.label.startsWith('💡')).forEach(r=>{
@@ -3640,32 +3678,6 @@ function renderHome(){
       const sb2btn=ur.querySelector('.sb2');
       if(sb2btn)sb2btn.onclick=e=>{e.stopPropagation();startUnit(u);};
       sb.appendChild(ur);
-      // Show retry errors button if unit has saved errors
-      const sess=LS.get('session',null);
-      const unitErrs=LS.get('unitErrs_'+u.id,[]);
-      if(unitErrs.length>0){
-        const errRow=el('div');errRow.style.cssText='padding:8px 16px 10px;border-top:1px solid var(--card2);';
-        const errBtn=el('button','btn ber bfw');errBtn.style.cssText='font-size:13px;padding:10px;';
-        errBtn.textContent=`🔁 Повторить ошибки (${unitErrs.length})`;
-        errBtn.onclick=e=>{
-          e.stopPropagation();
-          const errWords=unitErrs.map(id=>ALL_WORDS.find(w=>w.id===id)).filter(Boolean);
-          // Build FC exercises for each error word
-          const errQueue=errWords.map(w=>({type:'FC',word:w,dir:'grToRu'}));
-          S.activeUnit=u;
-          S.queue=shuffle(errQueue);
-          S.qi=0;
-          S.score={c:0,w:0,st:0};S.errs=[];S.answers=[];
-          S.isRetry=true;
-          S.retryTotal=errQueue.length;
-          S.retryCorrect=0;
-          S.mode='unit';
-          S.fcRev=false;
-          LS.set('session',null);
-          nextEx();render();
-        };
-        errRow.appendChild(errBtn);sb.appendChild(errRow);
-      }
     });
     } // end if(!isCollapsed)
     sc.appendChild(sb);
@@ -3946,44 +3958,15 @@ function renderUnitEx(){
   const wrap=el('div');
   wrap.style.cssText='display:flex;flex-direction:column;flex:1';
   if(S.queue.length>0&&S.qi>=S.queue.length){
-    const pct=Math.round((S.score.c/(S.score.c+S.score.w||1))*100);
+    // Progress = position based (100% = reached the end), not correctness based
     const sc=el('div','sc');
     const card=el('div','card cc');card.style.marginTop='20px';
-
-    // Retry mode — errors remain → loop; no errors → success screen
-    if(S.isRetry){
-      card.innerHTML=`
-        <div style="font-size:60px">🌟</div>
-        <div style="font-size:20px;font-weight:900;margin:14px 0 8px">Работа над ошибками завершена!</div>
-        <div style="font-size:36px;color:var(--ok);font-weight:900;margin-bottom:8px">${S.retryTotal||0}/${S.retryTotal||0}</div>
-        <div style="font-size:14px;color:var(--mu);margin-bottom:18px;font-weight:700">Все ошибки исправлены ✅</div>
-      `;
-      S.isRetry=false;S.retryTotal=0;S.retryCorrect=0;
-      const hb=el('button','btn bpr bfw');hb.textContent='← К юнитам';
-      hb.onclick=()=>{S.mode='home';render();};
-      card.appendChild(hb);
-      sc.appendChild(card);wrap.appendChild(sc);return wrap;
-    }
-    // Normal completion screen
     card.innerHTML=`
       <div style="font-size:60px">🏆</div>
       <div style="font-size:20px;font-weight:900;margin:14px 0 8px">Юнит пройден!</div>
-      <div style="font-size:36px;color:var(--acc);font-weight:900;margin-bottom:8px">${pct}%</div>
-      <div style="font-size:14px;color:var(--mu);margin-bottom:18px;font-weight:700">✅ ${S.score.c} верно · ❌ ${S.score.w} ошибок</div>
+      <div style="font-size:36px;color:var(--acc);font-weight:900;margin-bottom:8px">100%</div>
+      <div style="font-size:14px;color:var(--mu);margin-bottom:18px;font-weight:700">${S.queue.length} упражнений завершено</div>
     `;
-    if(S.errs.length>0){
-      const rb=el('button','btn ber bfw');rb.style.marginBottom='10px';
-      rb.textContent=`🔁 Повторить ошибки (${S.errs.length})`;
-      rb.onclick=()=>{
-        const errsCopy=S.errs.slice();
-        S.errs=[];S.score={c:0,w:0,st:0};S.answers=[];
-        S.isRetry=true;
-        S.retryTotal=errsCopy.length;
-        S.retryCorrect=0;
-        S.queue=errsCopy;
-        S.qi=0;nextEx();render();};
-      card.appendChild(rb);
-    }
     const hb=el('button','btn bpr bfw');hb.textContent='← К юнитам';
     hb.onclick=()=>{S.mode='home';render();};
     card.appendChild(hb);
@@ -4377,11 +4360,8 @@ function renderEx(){
       }
       if(S.qi<S.queue.length){nextEx();render();}
       else{
-        const pct=Math.round((S.score.c/(S.score.c+S.score.w||1))*100);
-        S.unitScores[S.activeUnit.id]=pct;
+        S.unitScores[S.activeUnit.id]=100;
         LS.set('unitTotalItems_'+S.activeUnit.id,unitTotalItems(S.activeUnit.id));
-        if(S.errs.length>0){LS.set('unitErrs_'+S.activeUnit.id,S.errs.map(w=>w.id));}
-        else{LS.set('unitErrs_'+S.activeUnit.id,[]);}
         LS.set('session',null);save();render();
       }
     };
