@@ -2159,6 +2159,7 @@ let S={
   // Adaptive unit state (s1u0)
   adaptPhase:'theory', // theory|fc_intro|fc|c4_all|match_all|c4|collapsed|text_reading|summary_intro|summary
   adaptHistory:[],  // stack of {phase, wordIdx, c4AllIdx, matchPage, fcRev}
+  adaptForwardHistory:[],  // stack for forward navigation after going back
   adaptUnknown:[],     // word ids marked as unknown in FC phase
   adaptC4Wrong:[],     // word ids wrong in C4
   adaptCollWrong:[],   // word ids wrong/skipped in collapsed
@@ -2481,6 +2482,7 @@ function adaptNextPhase(){
   const isS2=S.activeUnit&&['s2u1','s2u2','s2u3'].includes(S.activeUnit.id);
   // Save current state to history before transitioning
   saveAdaptHistory();
+  S.adaptForwardHistory=[]; // new progress invalidates forward history
   S.adaptWordIdx=0;
   S.adaptAnswered=Math.min(S.adaptAnswered+1,adaptCalcTotal());
   if(S.adaptPhase==='theory'){
@@ -2532,6 +2534,8 @@ function adaptInitCollapsed(word){
 
 function startAdaptiveUnit(unit){
   S.activeUnit=unit;
+  S.adaptHistory=[];
+  S.adaptForwardHistory=[];
   // Try to restore saved progress
   const saved=LS.get('adaptState',null);
   if(saved&&saved.unitId===unit.id&&saved.phase&&saved.phase!=='theory'){
@@ -2600,6 +2604,14 @@ function renderAdaptiveUnit(){
     const prevBtn=el('button');prevBtn.innerHTML='&#9664;';
     prevBtn.style.cssText='background:none;border:none;color:var(--acc);cursor:pointer;font-size:26px;padding:0 4px;flex-shrink:0';
     prevBtn.onclick=()=>{
+      // Save current position so we can go forward again
+      if(!S.adaptForwardHistory)S.adaptForwardHistory=[];
+      S.adaptForwardHistory.push({
+        phase:S.adaptPhase,
+        wordIdx:S.adaptWordIdx||0,
+        c4AllIdx:S.adaptC4AllIdx||0,
+        matchPage:S.adaptMatchPage||0,
+      });
       const prev=S.adaptHistory.pop();
       if(prev){
         S.adaptPhase=prev.phase;
@@ -2619,6 +2631,34 @@ function renderAdaptiveUnit(){
     const prevDisabled=el('span');prevDisabled.innerHTML='&#9664;';
     prevDisabled.style.cssText='color:var(--border);font-size:26px;padding:0 4px;flex-shrink:0';
     ps.appendChild(prevDisabled);
+  }
+
+  // Forward one step (redo without solving) — only if we went back before
+  if(S.adaptForwardHistory&&S.adaptForwardHistory.length>0){
+    const fwdBtn=el('button');fwdBtn.innerHTML='&#9654;';
+    fwdBtn.style.cssText='background:none;border:none;color:var(--acc);cursor:pointer;font-size:26px;padding:0 4px;flex-shrink:0';
+    fwdBtn.onclick=()=>{
+      // Save current position back into history (so back button still works)
+      saveAdaptHistory();
+      const next=S.adaptForwardHistory.pop();
+      if(next){
+        S.adaptPhase=next.phase;
+        S.adaptWordIdx=next.wordIdx||0;
+        S.adaptC4AllIdx=next.c4AllIdx||0;
+        S.adaptMatchPage=next.matchPage||0;
+        S.fcRev=false;
+        S._phraseChecked=false;S._phraseSkipped=false;S._phraseInput='';S._phraseOpts=null;S._phraseOptChosen=null;S._phraseShowInput=false;
+        S.mDone=[];S.mSelGr=null;S.mSelRu=null;S.mDoneAll=false;
+        S._adaptC4Opts=null;S._adaptC4Word=null;S._adaptC4Checked=false;S._adaptC4Chosen=null;
+        S.adaptAnswered=Math.min((S.adaptAnswered||0)+1,adaptCalcTotal());
+        saveAdaptState();render();
+      }
+    };
+    ps.appendChild(fwdBtn);
+  } else {
+    const fwdDisabled=el('span');fwdDisabled.innerHTML='&#9654;';
+    fwdDisabled.style.cssText='color:var(--border);font-size:26px;padding:0 4px;flex-shrink:0';
+    ps.appendChild(fwdDisabled);
   }
 
   // Reset progress button
@@ -2909,6 +2949,7 @@ function renderAdaptFC(sc){
       if(!S.adaptHistory)S.adaptHistory=[];
       S.adaptHistory.push({phase:S.adaptPhase,wordIdx:S.adaptWordIdx,c4AllIdx:S.adaptC4AllIdx||0,matchPage:S.adaptMatchPage||0});
       if(S.adaptHistory.length>50)S.adaptHistory.shift(); // limit history
+      S.adaptForwardHistory=[];
       S.adaptWordIdx++;
       S.adaptAnswered++;
       S.fcRev=false;
@@ -3152,6 +3193,7 @@ function nextPhraseBtn(parent){
     if(!S.adaptHistory)S.adaptHistory=[];
     S.adaptHistory.push({phase:'fc',wordIdx:idx});
     if(S.adaptHistory.length>60)S.adaptHistory.shift();
+    S.adaptForwardHistory=[];
     S.adaptWordIdx=idx+1;
     S.adaptAnswered++;
     S._phraseChecked=false;S._phraseSkipped=false;
@@ -6102,6 +6144,7 @@ function renderPopup(){
       S._phraseOpts=null;
       S._phraseShowInput=false;
       S._matchLL=null;S._matchRL=null;S._matchIsPhrase=false;
+      S.adaptHistory=[];S.adaptForwardHistory=[];
       S.mDone=[];S.mSelGr=null;S.mSelRu=null;S.mDoneAll=false;S.mWrong=[];
       S.popup=null;
       save();
