@@ -2085,7 +2085,7 @@ function unitTotalItems(uid) {
 }
 
 // Increment this number every time you add new exercises to existing units
-const APP_VERSION = 17;
+const APP_VERSION = 18;
 
 // Clear localStorage if version changed, but preserve user progress
 (function checkVersion(){
@@ -2175,6 +2175,8 @@ let S={
   adaptPhase:'theory', // theory|fc_intro|fc|c4_all|match_all|c4|collapsed|text_reading|summary_intro|summary
   adaptHistory:[],  // stack of {phase, wordIdx, c4AllIdx, matchPage, fcRev}
   adaptForwardHistory:[],  // stack for forward navigation after going back
+  flatSteps:[],     // pre-built ordered list of all steps in the unit
+  flatStepIdx:0,    // current position in flatSteps
   adaptUnknown:[],     // word ids marked as unknown in FC phase
   adaptC4Wrong:[],     // word ids wrong in C4
   adaptCollWrong:[],   // word ids wrong/skipped in collapsed
@@ -2316,6 +2318,7 @@ function saveAdaptState(){
   if(!S.activeUnit)return;
   LS.set('adaptState',{
     unitId:S.activeUnit.id,
+    flatStepIdx:S.flatStepIdx||0,
     phase:S.adaptPhase,
     unknown:S.adaptUnknown,
     c4wrong:S.adaptC4Wrong,
@@ -2477,6 +2480,167 @@ function adaptCalcTotal(){
   return theories+1+nWords+nUnknown+nC4Wrong+textReading+1+fills+listenQs+q4s;
 }
 
+// ─── FLAT STEP LIST — simple, reliable forward/back navigation ──
+// Builds the complete ordered list of steps for the current unit ONCE.
+// Each step is a small descriptor; going forward/back just moves an index
+// into this array and re-derives render state from the descriptor.
+function buildFlatSteps(){
+  const unit=S.activeUnit;
+  if(!unit)return [];
+  const uid=unit.id;
+  const words=unit.words||[];
+  const steps=[];
+
+  if(isPhraseUnit(unit)){
+    // theory(0) -> fc(nWords) -> match_all(nGroups) -> text_reading(1)
+    words.forEach((w,i)=>steps.push({phase:'fc',wordIdx:i}));
+    const nGroups=Math.ceil(words.length/4);
+    for(let g=0;g<nGroups;g++)steps.push({phase:'match_all',matchPage:g});
+    steps.push({phase:'text_reading'});
+    return steps;
+  }
+
+  const isS2=['s2u1','s2u2','s2u3'].includes(uid);
+  const theories=THEORY_CARDS.filter(t=>t.unitId===uid);
+
+  // Theory cards
+  theories.forEach((t,i)=>steps.push({phase:'theory',qi:i}));
+  // fc_intro screen
+  steps.push({phase:'fc_intro'});
+  // fc cards
+  words.forEach((w,i)=>steps.push({phase:'fc',wordIdx:i}));
+
+  if(isS2){
+    // c4_all on every word
+    words.forEach((w,i)=>steps.push({phase:'c4_all',c4AllIdx:i}));
+    // match_all groups
+    const nGroups=Math.ceil(words.length/4);
+    for(let g=0;g<nGroups;g++)steps.push({phase:'match_all',matchPage:g});
+    // text_reading
+    steps.push({phase:'text_reading'});
+  } else {
+    // c4 + collapsed are dynamic (depend on what the learner marked unknown) —
+    // we just reserve worst-case slots sized to the whole word list so the
+    // flat list never runs short; renderers already guard against missing data.
+    words.forEach((w,i)=>steps.push({phase:'c4',wordIdx:i}));
+    words.forEach((w,i)=>steps.push({phase:'collapsed',wordIdx:i}));
+  }
+
+  // summary_intro + summary queue (FILL/LISTEN/Q4)
+  steps.push({phase:'summary_intro'});
+  const fills=FILL_EXERCISES.filter(f=>f.unitId===uid);
+  const listens=LISTEN_EXERCISES.filter(l=>l.unitId===uid);
+  const summaryQueue=[];
+  fills.forEach(f=>summaryQueue.push({type:'FILL_SLOT',fillId:f.id}));
+  listens.forEach(l=>l.questions.forEach((_,qIdx)=>summaryQueue.push({type:'LISTEN_SLOT',listenId:l.id,qIdx})));
+  if(isS2){
+    const q4s=Q4_EXERCISES.filter(q=>q.unitId===uid);
+    q4s.forEach(q=>summaryQueue.push({type:'Q4_SLOT',q4Id:q.id}));
+  }
+  summaryQueue.forEach((item,i)=>steps.push({phase:'summary',qi:i,_summaryItem:item}));
+
+  return steps;
+}
+
+// Applies a flat step descriptor to S — sets up whatever state the existing
+// render functions expect, without touching adaptAnswered (caller's job).
+function applyFlatStep(step){
+  if(!step)return;
+  S.adaptPhase=step.phase;
+  S.adaptWordIdx=step.wordIdx||0;
+  S.adaptC4AllIdx=step.c4AllIdx||0;
+  S.adaptMatchPage=step.matchPage||0;
+  S.fcRev=false;
+  S._phraseChecked=false;S._phraseSkipped=false;S._phraseInput='';S._phraseOpts=null;S._phraseOptChosen=null;S._phraseShowInput=false;
+  S.mDone=[];S.mSelGr=null;S.mSelRu=null;S.mDoneAll=false;S.mWrong=[];
+  S._matchLL=null;S._matchRL=null;
+  S._adaptC4Opts=null;S._adaptC4Word=null;S._adaptC4Checked=false;S._adaptC4Chosen=null;
+  S.collPlaced=[];S._collChecked=false;
+  if(step.phase==='theory'||step.phase==='summary'){
+    S.qi=step.qi||0;
+    if(step.phase==='theory'){
+      const theories=THEORY_CARDS.filter(t=>t.unitId===S.activeUnit.id);
+      S.queue=theories.map(t=>({type:'THEORY_SLOT',theoryId:t.id}));
+    } else {
+      // summary — rebuild the same queue we used when first entering summary
+      if(!S._summaryQueueCache||S._summaryQueueCacheUnit!==S.activeUnit.id){
+        const fills=FILL_EXERCISES.filter(f=>f.unitId===S.activeUnit.id);
+        const listens=LISTEN_EXERCISES.filter(l=>l.unitId===S.activeUnit.id);
+        const q=[];
+        fills.forEach(f=>q.push({type:'FILL_SLOT',fillId:f.id}));
+        listens.forEach(l=>l.questions.forEach((_,qIdx)=>q.push({type:'LISTEN_SLOT',listenId:l.id,qIdx})));
+        if(['s2u1','s2u2','s2u3'].includes(S.activeUnit.id)){
+          const q4s=Q4_EXERCISES.filter(qq=>qq.unitId===S.activeUnit.id);
+          q4s.forEach(qq=>q.push({type:'Q4_SLOT',q4Id:qq.id}));
+        }
+        S._summaryQueueCache=q;
+        S._summaryQueueCacheUnit=S.activeUnit.id;
+      }
+      S.queue=S._summaryQueueCache;
+    }
+    nextEx();
+  }
+}
+
+// Single entry point used by every "Дальше / Знаю / Не знаю" button inside
+// exercises. It just moves flatStepIdx forward by one — same as pressing ▶.
+// This guarantees the flat step list and the actual rendered phase never
+// drift apart, regardless of which exercise type triggered it.
+function goForwardOneStep(){
+  if(window.speechSynthesis)speechSynthesis.cancel();
+  const totalSteps=(S.flatSteps||[]).length;
+  let idx=Math.min(totalSteps,(S.flatStepIdx||0)+1);
+  // c4/collapsed slots are reserved worst-case (sized to the whole word list);
+  // skip any that don't actually have a word waiting (because the learner
+  // didn't mark that many words unknown / wrong).
+  let guard=0;
+  while(idx<totalSteps&&guard<2000){
+    const step=S.flatSteps[idx];
+    if(step.phase==='c4'){
+      const unknownWords=adaptGetWords().filter(w=>S.adaptUnknown.includes(w.id));
+      if((step.wordIdx||0)<unknownWords.length)break;
+      idx++;guard++;continue;
+    }
+    if(step.phase==='collapsed'){
+      const wrongWords=adaptGetWords().filter(w=>S.adaptC4Wrong.includes(w.id));
+      if((step.wordIdx||0)<wrongWords.length)break;
+      idx++;guard++;continue;
+    }
+    break;
+  }
+  S.flatStepIdx=idx;
+  if(S.flatStepIdx<totalSteps){
+    applyFlatStep(S.flatSteps[S.flatStepIdx]);
+  } else {
+    S.adaptPhase='summary';S.queue=[];S.qi=0;
+  }
+  saveAdaptState();
+}
+
+// Symmetric counterpart to goForwardOneStep — used by the ◀ button.
+function goBackOneStep(){
+  if(window.speechSynthesis)speechSynthesis.cancel();
+  let idx=Math.max(0,(S.flatStepIdx||0)-1);
+  let guard=0;
+  while(idx>0&&guard<2000){
+    const step=S.flatSteps[idx];
+    if(step.phase==='c4'){
+      const unknownWords=adaptGetWords().filter(w=>S.adaptUnknown.includes(w.id));
+      if((step.wordIdx||0)<unknownWords.length)break;
+      idx--;guard++;continue;
+    }
+    if(step.phase==='collapsed'){
+      const wrongWords=adaptGetWords().filter(w=>S.adaptC4Wrong.includes(w.id));
+      if((step.wordIdx||0)<wrongWords.length)break;
+      idx--;guard++;continue;
+    }
+    break;
+  }
+  S.flatStepIdx=idx;
+  applyFlatStep(S.flatSteps[S.flatStepIdx]);
+  saveAdaptState();
+}
+
 function adaptCurrentWord(){
   const phase=S.adaptPhase;
   if(phase==='fc'){return adaptGetWords()[S.adaptWordIdx]||null;}
@@ -2567,59 +2731,42 @@ function startAdaptiveUnit(unit){
   S.lastActiveUnitId=unit.id;LS.set('lastActiveUnitId',unit.id);
   S.adaptHistory=[];
   S.adaptForwardHistory=[];
-  // Try to restore saved progress
+  S.flatSteps=buildFlatSteps();
+  S.flatStepIdx=0;
+  S.adaptUnknown=[];S.adaptC4Wrong=[];S.adaptCollWrong=[];
+  S.answers=[];S.score={c:0,w:0,st:0};S.errs=[];
+  S.adaptAnswered=0;
+  // Try to restore saved progress (just the position — flat list is rebuilt fresh each time)
   const saved=LS.get('adaptState',null);
-  if(saved&&saved.unitId===unit.id&&saved.phase&&saved.phase!=='theory'){
-    S.adaptPhase=saved.phase;
+  if(saved&&saved.unitId===unit.id&&typeof saved.flatStepIdx==='number'){
+    S.flatStepIdx=Math.min(saved.flatStepIdx,Math.max(0,S.flatSteps.length-1));
     S.adaptUnknown=saved.unknown||[];
     S.adaptC4Wrong=saved.c4wrong||[];
     S.adaptCollWrong=saved.collwrong||[];
-    S.adaptWordIdx=saved.wordIdx||0;
-    S.adaptAnswered=saved.answered||0;
-    S.adaptHistory=saved.history||[];
-    S.answers=saved.answers||[];
     S.score=saved.score||{c:0,w:0,st:0};
-    S.errs=[];
-    // Rebuild queue for current phase
-    if(saved.phase==='summary'){
-      startAdaptiveSummary(true);
-      S.qi=Math.min(saved.qi||0, Math.max(0,S.queue.length-1));
-      nextEx();
-    } else {
-      // fc/c4/collapsed/fc_intro/c4_intro/summary_intro phases
-      // Queue not needed - these phases render directly from adaptPhase
-      S.queue=[];S.qi=0;S.ex=null;
-    }
-    S.mode='unit';render();return;
   }
-  S.adaptPhase='theory';
-  S.adaptUnknown=[];
-  S.adaptC4Wrong=[];
-  S.adaptCollWrong=[];
-  S.adaptWordIdx=0;
-  S.adaptAnswered=0;
-  S.answers=[];
-  S.score={c:0,w:0,st:0};
-  S.errs=[];
-  const theories=THEORY_CARDS.filter(t=>t.unitId===unit.id);
-  S.queue=theories.map(t=>({type:'THEORY_SLOT',theoryId:t.id}));
-  S.qi=0;
   S.mode='unit';
-  
-  nextEx();render();
+  if(S.flatStepIdx>=S.flatSteps.length){
+    // Was already finished last time — show completion screen
+    S.adaptPhase='summary';S.queue=[];S.qi=0;
+  } else {
+    applyFlatStep(S.flatSteps[S.flatStepIdx]);
+  }
+  render();
 }
 
 // ─── RENDER ADAPTIVE UNIT ────────────────────────────────
 function renderAdaptiveUnit(){
   const wrap=el('div');wrap.style.cssText='display:flex;flex-direction:column;flex:1';
 
+  if(!S.flatSteps||!S.flatSteps.length)S.flatSteps=buildFlatSteps();
+  const totalSteps=S.flatSteps.length||1;
   // Detect final completion screen — hide nav arrows there
-  const isFinalScreen = S.adaptPhase==='summary' && (!S.ex || S.qi>=S.queue.length);
+  const isFinalScreen = S.flatStepIdx>=totalSteps;
 
-  // ── Progress bar ──
-  const total=adaptCalcTotal()||1;
-  // answered = S.adaptAnswered
-  const answered=S.adaptAnswered;
+  // ── Progress bar — position based, simple and reliable ──
+  const total=totalSteps;
+  const answered=Math.min(S.flatStepIdx,totalSteps);
   const pct=Math.round((answered/total)*100);
   
   const ps=el('div','ps');
@@ -2634,98 +2781,30 @@ function renderAdaptiveUnit(){
   };
   ps.appendChild(back);
 
-  // Back one step (history) — for all adaptive units (hidden on final screen)
-  if(isFinalScreen){
-    // No nav arrows on final completion screen
-  } else if(S.adaptHistory&&S.adaptHistory.length>0){
-    const prevBtn=el('button');prevBtn.innerHTML='&#9664;';
+  // ── Simple flat-step navigation: just move the index, no correctness checks ──
+  const prevBtn=el('button');prevBtn.innerHTML='&#9664;';
+  if(S.flatStepIdx>0){
     prevBtn.style.cssText='background:none;border:none;color:var(--acc);cursor:pointer;font-size:26px;padding:0 4px;flex-shrink:0';
     prevBtn.onclick=()=>{
-      // Save current position so we can go forward again
-      if(!S.adaptForwardHistory)S.adaptForwardHistory=[];
-      S.adaptForwardHistory.push({
-        phase:S.adaptPhase,
-        wordIdx:S.adaptWordIdx||0,
-        c4AllIdx:S.adaptC4AllIdx||0,
-        matchPage:S.adaptMatchPage||0,
-      });
-      let prev=S.adaptHistory.pop();
-      // Skip phases that would have no data to show (avoids instant re-forward loop)
-      let guard=0;
-      while(prev&&guard<10){
-        guard++;
-        const testPhase=prev.phase;
-        const testWordIdx=prev.wordIdx||0;
-        let hasData=true;
-        if(testPhase==='c4'){
-          const unknownWords=adaptGetWords().filter(w=>S.adaptUnknown.includes(w.id));
-          hasData=testWordIdx<unknownWords.length;
-        } else if(testPhase==='collapsed'){
-          const wrongWords=adaptGetWords().filter(w=>S.adaptC4Wrong.includes(w.id));
-          hasData=testWordIdx<wrongWords.length;
-        } else if(['fc','c4_all'].includes(testPhase)){
-          hasData=testWordIdx<adaptGetWords().length;
-        }
-        if(hasData)break;
-        prev=S.adaptHistory.pop(); // skip this empty step, try the one before it
-      }
-      if(prev){
-        S.adaptPhase=prev.phase;
-        S.adaptWordIdx=prev.wordIdx||0;
-        S.adaptC4AllIdx=prev.c4AllIdx||0;
-        S.adaptMatchPage=prev.matchPage||0;
-        S.fcRev=false;
-        S._phraseChecked=false;S._phraseSkipped=false;S._phraseInput='';S._phraseOpts=null;S._phraseOptChosen=null;S._phraseShowInput=false;
-        S.mDone=[];S.mSelGr=null;S.mSelRu=null;S.mDoneAll=false;
-        S._adaptC4Opts=null;S._adaptC4Word=null;S._adaptC4Checked=false;S._adaptC4Chosen=null;
-        S.adaptAnswered=Math.max(0,(S.adaptAnswered||1)-1);
-        saveAdaptState();render();
-      }
+      goBackOneStep();
+      render();
     };
-    ps.appendChild(prevBtn);
   } else {
-    const prevDisabled=el('span');prevDisabled.innerHTML='&#9664;';
-    prevDisabled.style.cssText='color:var(--border);font-size:26px;padding:0 4px;flex-shrink:0';
-    ps.appendChild(prevDisabled);
+    prevBtn.style.cssText='background:none;border:none;color:var(--border);cursor:default;font-size:26px;padding:0 4px;flex-shrink:0';
   }
+  ps.appendChild(prevBtn);
 
-  // Forward one step — always active, advances without requiring an answer (hidden on final screen)
-  if(!isFinalScreen){
   const fwdBtn=el('button');fwdBtn.innerHTML='&#9654;';
-  fwdBtn.style.cssText='background:none;border:none;color:var(--acc);cursor:pointer;font-size:26px;padding:0 4px;flex-shrink:0';
-  fwdBtn.onclick=()=>{
-    saveAdaptHistory();
-    const totalW=adaptGetWords().length;
-    let phaseChanged=false;
-    if(['fc','c4_all'].includes(S.adaptPhase)){
-      S.adaptWordIdx=(S.adaptWordIdx||0)+1;
-      S.fcRev=false;
-      S._phraseChecked=false;S._phraseSkipped=false;S._phraseInput='';S._phraseOpts=null;S._phraseOptChosen=null;S._phraseShowInput=false;
-      S._adaptC4Opts=null;S._adaptC4Word=null;S._adaptC4Checked=false;S._adaptC4Chosen=null;
-      if(S.adaptWordIdx>=totalW){adaptNextPhase();phaseChanged=true;}
-    } else if(S.adaptPhase==='match_all'){
-      const pageSize=4;
-      S.adaptMatchPage=(S.adaptMatchPage||0)+1;
-      S.mDone=[];S.mSelGr=null;S.mSelRu=null;S.mDoneAll=false;S.mWrong=[];
-      S._matchLL=null;S._matchRL=null;
-      if(S.adaptMatchPage*pageSize>=totalW){adaptNextPhase();phaseChanged=true;}
-    } else if(['c4','collapsed'].includes(S.adaptPhase)){
-      S.adaptWordIdx=(S.adaptWordIdx||0)+1;
-      S._adaptC4Opts=null;S._adaptC4Word=null;S._adaptC4Checked=false;S._adaptC4Chosen=null;
-      S.collPlaced=[];S._collChecked=false;
-      adaptNextPhase();phaseChanged=true; // simplify: just go to next phase for these less-common ones
-    } else {
-      adaptNextPhase();phaseChanged=true;
-    }
-    // Progress = position based, not correctness based
-    // adaptNextPhase() already increments adaptAnswered itself — only increment here if we did NOT call it
-    if(!phaseChanged){
-      S.adaptAnswered=Math.min((S.adaptAnswered||0)+1,adaptCalcTotal());
-    }
-    saveAdaptState();render();
-  };
-  ps.appendChild(fwdBtn);
+  if(S.flatStepIdx<totalSteps){
+    fwdBtn.style.cssText='background:none;border:none;color:var(--acc);cursor:pointer;font-size:26px;padding:0 4px;flex-shrink:0';
+    fwdBtn.onclick=()=>{
+      goForwardOneStep();
+      render();
+    };
+  } else {
+    fwdBtn.style.cssText='background:none;border:none;color:var(--border);cursor:default;font-size:26px;padding:0 4px;flex-shrink:0';
   }
+  ps.appendChild(fwdBtn);
 
   // Reset progress button
   const resetBtn=el('button');
@@ -2841,7 +2920,7 @@ function renderAdaptiveUnit(){
       <div class="phase-title">Знакомство со словами</div>
       <div class="phase-sub">Сейчас пройдёмся по <b>${words.length} словам</b>.<br>Отвечай честно — <b>знаю</b> или <b>не знаю</b>.<br>Система составит упражнения только для тех слов, которые ты не знаешь.</div>`;
     const btn=el('button','btn bpr bfw');btn.textContent='Начать →';
-    btn.onclick=()=>{S.adaptPhase='fc';S.adaptWordIdx=0;S.adaptAnswered++;render();};
+    btn.onclick=()=>{goForwardOneStep();render();};
     d.appendChild(btn);sc.appendChild(d);
   }
   else if(phase==='fc'){
@@ -2864,7 +2943,7 @@ function renderAdaptiveUnit(){
   }
   else if(phase==='collapsed'){
     const word=adaptCurrentWord();
-    if(!word){adaptNextPhase();render();return wrap;}
+    if(!word){goForwardOneStep();render();return wrap;}
     // Words with slash, spaces, or too short → C4 fallback
     const hasSlash=word.greek.includes('/')||word.greek.includes(' ')||word.greek.includes('·');
     const syls=splitGreekSyllables(word.greek);
@@ -2963,15 +3042,8 @@ function renderAdaptiveUnit(){
     const goBtn=el('button','btn bpr bfw');
     goBtn.textContent=isPhraseUnit(S.activeUnit)?'🏆 Завершить юнит':'К упражнениям →';
     goBtn.onclick=()=>{
-      if(window.speechSynthesis)speechSynthesis.cancel();
-      if(isPhraseUnit(S.activeUnit)){
-        // phrase units have no summary — go straight to done screen
-        S.adaptPhase='summary_intro';
-        adaptNextPhase();
-      } else {
-        adaptNextPhase();
-      }
-      saveAdaptState();render();
+      goForwardOneStep();
+      render();
     };
     d.appendChild(goBtn);
     sc.appendChild(d);
@@ -2983,14 +3055,14 @@ function renderAdaptiveUnit(){
       <div class="phase-sub">Сделайте несколько упражнений с незнакомыми словами, чтобы начать их постепенно запоминать.<br><br>После окончания этого юнита перейдите в раздел <b>Практика</b>, где вы сможете делать упражнения и читать тексты с новыми словами до тех пор, пока они не перейдут из короткой памяти в долгую.</div>`;
     const goBtn=el('button','btn bpr bfw');
     goBtn.textContent='Поехали →';
-    goBtn.onclick=()=>{S.adaptPhase='summary';S.adaptAnswered++;S._transitioning=true;startAdaptiveSummary(true);S.qi=0;nextEx();S._transitioning=false;render();};
+    goBtn.onclick=()=>{goForwardOneStep();render();};
     d.appendChild(goBtn);sc.appendChild(d);
   }
   else if(phase==='summary'){
     if(!S.ex||S.qi>=S.queue.length){
       // All summary exercises done - show completion screen
-      const total=adaptCalcTotal();
-      const done=Math.min(S.adaptAnswered,total);
+      const total=(S.flatSteps||[]).length||1;
+      const done=Math.min(S.flatStepIdx,total);
       const d=el('div','phase-screen');
       d.innerHTML=`<div class="phase-icon">🏆</div>
         <div class="phase-title" style="color:var(--ok)">Юнит завершён!</div>
@@ -3022,7 +3094,7 @@ function renderAdaptiveUnit(){
 function renderAdaptFC(sc){
   const words=adaptGetWords();
   const word=words[S.adaptWordIdx];
-  if(!word){adaptNextPhase();render();return;}
+  if(!word){goForwardOneStep();render();return;}
 
   const isS2=['s2u1','s2u2','s2u3'].includes(S.activeUnit&&S.activeUnit.id);
 
@@ -3045,16 +3117,8 @@ function renderAdaptFC(sc){
     // s2 units: just "Дальше" button, all words go through
     const nextBtn=el('button','btn bpr bfw');nextBtn.textContent='Дальше →';
     nextBtn.onclick=()=>{
-      // Save state to history for back navigation
-      if(!S.adaptHistory)S.adaptHistory=[];
-      S.adaptHistory.push({phase:S.adaptPhase,wordIdx:S.adaptWordIdx,c4AllIdx:S.adaptC4AllIdx||0,matchPage:S.adaptMatchPage||0});
-      if(S.adaptHistory.length>50)S.adaptHistory.shift(); // limit history
-      S.adaptForwardHistory=[];
-      S.adaptWordIdx++;
-      S.adaptAnswered++;
-      S.fcRev=false;
-      if(S.adaptWordIdx>=words.length){adaptNextPhase();}
-      saveAdaptState();render();
+      goForwardOneStep();
+      render();
     };
     sc.appendChild(renderFCFlip({
       frontEl, backEl,
@@ -3067,17 +3131,15 @@ function renderAdaptFC(sc){
     const nb=el('button','btn ber');nb.textContent='❌ Не знаю';
     nb.onclick=()=>{
       if(!S.adaptUnknown.includes(word.id))S.adaptUnknown.push(word.id);
-      S.answers.push('err');S.adaptAnswered++;
-      S.adaptWordIdx++;S.fcRev=false;
-      if(S.adaptWordIdx>=words.length){adaptNextPhase();}
-      saveAdaptState();render();
+      S.answers.push('err');
+      goForwardOneStep();
+      render();
     };
     const yb=el('button','btn bok');yb.textContent='✅ Знаю';
     yb.onclick=()=>{
-      S.answers.push('ok');S.adaptAnswered++;
-      S.adaptWordIdx++;S.fcRev=false;
-      if(S.adaptWordIdx>=words.length){adaptNextPhase();}
-      saveAdaptState();render();
+      S.answers.push('ok');
+      goForwardOneStep();
+      render();
     };
     sc.appendChild(renderFCFlip({
       frontEl, backEl,
@@ -3093,10 +3155,8 @@ function renderPhraseFC(sc){
   const idx=S.adaptWordIdx||0;
   const word=words[idx];
   if(!word){
-    S.adaptPhase='match_all';
-    S.adaptMatchPage=0;
-    S._matchLL=null;S._matchRL=null;
-    saveAdaptState();render();return;
+    goForwardOneStep();
+    render();return;
   }
 
   const lbl=el('div','ex');
@@ -3289,16 +3349,8 @@ function renderPhraseFB(sc, isOk, word, spkBtnEl){
 function nextPhraseBtn(parent){
   const nb=el('button','btn bpr bfw');nb.style.marginTop='10px';nb.textContent='Дальше →';
   nb.onclick=()=>{
-    const idx=S.adaptWordIdx||0;
-    if(!S.adaptHistory)S.adaptHistory=[];
-    S.adaptHistory.push({phase:'fc',wordIdx:idx});
-    if(S.adaptHistory.length>60)S.adaptHistory.shift();
-    S.adaptForwardHistory=[];
-    S.adaptWordIdx=idx+1;
-    S.adaptAnswered++;
-    S._phraseChecked=false;S._phraseSkipped=false;
-    S._phraseInput='';S._phraseOptChosen=null;S._phraseOpts=null;S._phraseShowInput=false;
-    saveAdaptState();render();
+    goForwardOneStep();
+    render();
   };
   parent.appendChild(nb);
 }
@@ -3313,7 +3365,7 @@ function renderAdaptC4All(sc){
   const words=adaptGetWords();
   if(!S.adaptC4AllIdx)S.adaptC4AllIdx=0;
   const word=words[S.adaptC4AllIdx];
-  if(!word){adaptNextPhase();render();return;}
+  if(!word){goForwardOneStep();render();return;}
   renderAdaptC4Word(sc,word,false);
 }
 function renderAdaptMatchAll(sc){
@@ -3322,7 +3374,7 @@ function renderAdaptMatchAll(sc){
   const pageSize=4;
   const start=S.adaptMatchPage*pageSize;
   const pagePairs=words.slice(start,start+pageSize);
-  if(!pagePairs.length){adaptNextPhase();render();return;}
+  if(!pagePairs.length){goForwardOneStep();render();return;}
 
   const lbl=el('div','ex');lbl.textContent='СОЕДИНИ ПАРЫ';sc.appendChild(lbl);
   const progress=el('div');progress.style.cssText='font-size:12px;color:var(--mu);text-align:center;margin-bottom:10px;font-weight:700';
@@ -3424,13 +3476,8 @@ function renderAdaptMatchAll(sc){
   if(S.mDoneAll){
     const nb=el('button','btn bpr bfw');nb.style.marginTop='14px';nb.textContent='Дальше →';
     nb.onclick=()=>{
-      S.adaptMatchPage=(S.adaptMatchPage||0)+1;
-      S.mDone=[];S.mSelGr=null;S.mSelRu=null;S.mDoneAll=false;S.mWrong=[];
-      S._matchLL=null;S._matchRL=null;
-      S.adaptAnswered++;
-      const words2=adaptGetWords();
-      if(S.adaptMatchPage*pageSize>=words2.length){adaptNextPhase();}
-      saveAdaptState();render();
+      goForwardOneStep();
+      render();
     };
     sc.appendChild(nb);
   }
@@ -3439,7 +3486,7 @@ function renderAdaptMatchAll(sc){
 function renderAdaptC4(sc){
   const unknownWords=adaptGetWords().filter(w=>S.adaptUnknown.includes(w.id));
   const word=unknownWords[S.adaptWordIdx];
-  if(!word){adaptNextPhase();render();return;}
+  if(!word){goForwardOneStep();render();return;}
   renderAdaptC4Word(sc,word,false);
 }
 
@@ -3495,20 +3542,8 @@ function renderAdaptC4Word(sc,word,isCollapsedFallback){
       const nb=el('button','btn bpr bfw');nb.textContent='Дальше →';nb.style.marginTop='8px';
       nb.onclick=()=>{
         S._adaptC4Opts=null;S._adaptC4Word=null;S._adaptC4Checked=false;S._adaptC4Chosen=null;
-        if(S.adaptPhase==='c4_all'){
-          S.adaptC4AllIdx=(S.adaptC4AllIdx||0)+1;
-          const allWords=adaptGetWords();
-          if(S.adaptC4AllIdx>=allWords.length){adaptNextPhase();}
-        } else if(isCollapsedFallback){
-          S.adaptWordIdx++;
-          const wrongWords=adaptGetWords().filter(w=>S.adaptC4Wrong.includes(w.id));
-          if(S.adaptWordIdx>=wrongWords.length){adaptNextPhase();}
-        } else {
-          S.adaptWordIdx++;
-          const unknownWords=adaptGetWords().filter(w=>S.adaptUnknown.includes(w.id));
-          if(S.adaptWordIdx>=unknownWords.length){adaptNextPhase();}
-        }
-        saveAdaptState();render();
+        goForwardOneStep();
+        render();
       };
       sc.appendChild(nb);
     }
@@ -3650,9 +3685,7 @@ function renderAdaptCollapsed(sc,word){
 
 function adaptCollNext(){
   S._collChecked=false;S._collWord=null;S.collPlaced=[];S.collSyllables=[];
-  S.adaptWordIdx++;
-  const wrongWords=adaptGetWords().filter(w=>S.adaptC4Wrong.includes(w.id));
-  if(S.adaptWordIdx>=wrongWords.length){adaptNextPhase();}
+  goForwardOneStep();
   render();
 }
 
@@ -3995,6 +4028,12 @@ function advance(ok){
   // Update adaptive progress counter in summary phase
   if(S.adaptPhase==='summary'&&S.activeUnit&&isAdaptiveUnit(S.activeUnit)){
     S.adaptAnswered=Math.min(S.adaptAnswered+1,adaptCalcTotal());
+    // Keep flatStepIdx in sync with qi so ◀▶ buttons stay consistent
+    if(S.flatSteps&&S.flatSteps.length){
+      const newIdx=S.flatSteps.findIndex(s=>s.phase==='summary'&&s.qi===S.qi);
+      if(newIdx>=0){S.flatStepIdx=newIdx;}
+      else if(S.qi>=S.queue.length){S.flatStepIdx=S.flatSteps.length;}
+    }
     saveAdaptState();
   }
   if(S.qi<S.queue.length){nextEx();render();}
@@ -4412,14 +4451,14 @@ function renderEx(){
     nb.onclick=()=>{
       if(!S.answers)S.answers=[];
       S.answers.push('theory');
-      S.adaptAnswered++;
-      S.qi++;
       save();
       if(isAdaptiveUnit(S.activeUnit)){
-        if(S.qi<S.queue.length){nextEx();render();}
-        else{S.adaptPhase='fc_intro';render();}
+        goForwardOneStep();
+        render();
         return;
       }
+      S.adaptAnswered++;
+      S.qi++;
       if(S.qi<S.queue.length){nextEx();render();}
       else{
         S.unitScores[S.activeUnit.id]=100;
@@ -6322,33 +6361,8 @@ function renderPopup(){
   S.activeUnit=unit;
   S.mode='unit';
   if(isAdaptiveUnit(unit)){
-    const saved=LS.get('adaptState',null);
-    if(saved&&saved.unitId===lastUnitId&&saved.phase){
-      S.adaptPhase=saved.phase;
-      S.adaptUnknown=saved.unknown||[];
-      S.adaptC4Wrong=saved.c4wrong||[];
-      S.adaptCollWrong=saved.collwrong||[];
-      S.adaptWordIdx=saved.wordIdx||0;
-      S.adaptAnswered=saved.answered||0;
-      S.adaptHistory=saved.history||[];
-      S.answers=saved.answers||[];
-      S.score=saved.score||{c:0,w:0,st:0};
-      S.fillChosen=saved.fillChosen||null;
-      S.fillChecked=saved.fillChecked||false;
-      if(saved.phase==='theory'){
-        // Rebuild theory queue and restore qi position
-        const theories=THEORY_CARDS.filter(t=>t.unitId===unit.id);
-        S.queue=theories.map(t=>({type:'THEORY_SLOT',theoryId:t.id}));
-        S.qi=Math.min(saved.qi||0, Math.max(0,S.queue.length-1));
-        nextEx();
-      } else if(saved.phase==='summary'){
-        startAdaptiveSummary(true);
-        S.qi=Math.min(saved.qi||0, Math.max(0,S.queue.length-1));
-        nextEx();
-      }
-    } else {
-      startAdaptiveUnit(unit);
-    }
+    // startAdaptiveUnit already knows how to restore from saved flatStepIdx
+    startAdaptiveUnit(unit);
   } else {
     const sess=LS.get('session',null);
     if(sess&&sess.unitId===lastUnitId){
