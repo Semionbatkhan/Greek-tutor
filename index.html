@@ -2334,6 +2334,7 @@ function saveAdaptState(){
     c4AllIdx:S.adaptC4AllIdx||0,
     matchPage:S.adaptMatchPage||0,
     matchIsPhrase:S._matchIsPhrase||false,
+    history:S.adaptHistory||[],
   });
 }
 
@@ -2575,6 +2576,7 @@ function startAdaptiveUnit(unit){
     S.adaptCollWrong=saved.collwrong||[];
     S.adaptWordIdx=saved.wordIdx||0;
     S.adaptAnswered=saved.answered||0;
+    S.adaptHistory=saved.history||[];
     S.answers=saved.answers||[];
     S.score=saved.score||{c:0,w:0,st:0};
     S.errs=[];
@@ -2647,7 +2649,26 @@ function renderAdaptiveUnit(){
         c4AllIdx:S.adaptC4AllIdx||0,
         matchPage:S.adaptMatchPage||0,
       });
-      const prev=S.adaptHistory.pop();
+      let prev=S.adaptHistory.pop();
+      // Skip phases that would have no data to show (avoids instant re-forward loop)
+      let guard=0;
+      while(prev&&guard<10){
+        guard++;
+        const testPhase=prev.phase;
+        const testWordIdx=prev.wordIdx||0;
+        let hasData=true;
+        if(testPhase==='c4'){
+          const unknownWords=adaptGetWords().filter(w=>S.adaptUnknown.includes(w.id));
+          hasData=testWordIdx<unknownWords.length;
+        } else if(testPhase==='collapsed'){
+          const wrongWords=adaptGetWords().filter(w=>S.adaptC4Wrong.includes(w.id));
+          hasData=testWordIdx<wrongWords.length;
+        } else if(['fc','c4_all'].includes(testPhase)){
+          hasData=testWordIdx<adaptGetWords().length;
+        }
+        if(hasData)break;
+        prev=S.adaptHistory.pop(); // skip this empty step, try the one before it
+      }
       if(prev){
         S.adaptPhase=prev.phase;
         S.adaptWordIdx=prev.wordIdx||0;
@@ -6309,6 +6330,7 @@ function renderPopup(){
       S.adaptCollWrong=saved.collwrong||[];
       S.adaptWordIdx=saved.wordIdx||0;
       S.adaptAnswered=saved.answered||0;
+      S.adaptHistory=saved.history||[];
       S.answers=saved.answers||[];
       S.score=saved.score||{c:0,w:0,st:0};
       S.fillChosen=saved.fillChosen||null;
