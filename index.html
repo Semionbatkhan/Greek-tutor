@@ -2656,28 +2656,32 @@ function renderAdaptiveUnit(){
   fwdBtn.onclick=()=>{
     saveAdaptHistory();
     const totalW=adaptGetWords().length;
+    let phaseChanged=false;
     if(['fc','c4_all'].includes(S.adaptPhase)){
       S.adaptWordIdx=(S.adaptWordIdx||0)+1;
       S.fcRev=false;
       S._phraseChecked=false;S._phraseSkipped=false;S._phraseInput='';S._phraseOpts=null;S._phraseOptChosen=null;S._phraseShowInput=false;
       S._adaptC4Opts=null;S._adaptC4Word=null;S._adaptC4Checked=false;S._adaptC4Chosen=null;
-      if(S.adaptWordIdx>=totalW){adaptNextPhase();}
+      if(S.adaptWordIdx>=totalW){adaptNextPhase();phaseChanged=true;}
     } else if(S.adaptPhase==='match_all'){
       const pageSize=4;
       S.adaptMatchPage=(S.adaptMatchPage||0)+1;
       S.mDone=[];S.mSelGr=null;S.mSelRu=null;S.mDoneAll=false;S.mWrong=[];
       S._matchLL=null;S._matchRL=null;
-      if(S.adaptMatchPage*pageSize>=totalW){adaptNextPhase();}
+      if(S.adaptMatchPage*pageSize>=totalW){adaptNextPhase();phaseChanged=true;}
     } else if(['c4','collapsed'].includes(S.adaptPhase)){
       S.adaptWordIdx=(S.adaptWordIdx||0)+1;
       S._adaptC4Opts=null;S._adaptC4Word=null;S._adaptC4Checked=false;S._adaptC4Chosen=null;
       S.collPlaced=[];S._collChecked=false;
-      adaptNextPhase(); // simplify: just go to next phase for these less-common ones
+      adaptNextPhase();phaseChanged=true; // simplify: just go to next phase for these less-common ones
     } else {
-      adaptNextPhase();
+      adaptNextPhase();phaseChanged=true;
     }
     // Progress = position based, not correctness based
-    S.adaptAnswered=Math.min((S.adaptAnswered||0)+1,adaptCalcTotal());
+    // adaptNextPhase() already increments adaptAnswered itself — only increment here if we did NOT call it
+    if(!phaseChanged){
+      S.adaptAnswered=Math.min((S.adaptAnswered||0)+1,adaptCalcTotal());
+    }
     saveAdaptState();render();
   };
   ps.appendChild(fwdBtn);
