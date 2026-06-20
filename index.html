@@ -2505,12 +2505,12 @@ function buildFlatSteps(){
 
   // Theory cards
   theories.forEach((t,i)=>steps.push({phase:'theory',qi:i}));
-  // fc_intro screen
-  steps.push({phase:'fc_intro'});
-  // fc cards
-  words.forEach((w,i)=>steps.push({phase:'fc',wordIdx:i}));
 
   if(isS2){
+    // fc_intro screen
+    steps.push({phase:'fc_intro'});
+    // fc cards
+    words.forEach((w,i)=>steps.push({phase:'fc',wordIdx:i}));
     // c4_all on every word
     words.forEach((w,i)=>steps.push({phase:'c4_all',c4AllIdx:i}));
     // match_all groups
@@ -2518,16 +2518,25 @@ function buildFlatSteps(){
     for(let g=0;g<nGroups;g++)steps.push({phase:'match_all',matchPage:g});
     // text_reading
     steps.push({phase:'text_reading'});
+    // summary_intro + summary queue (FILL/LISTEN/Q4)
+    steps.push({phase:'summary_intro'});
+    appendSummarySteps(steps,uid,isS2);
   } else {
-    // c4 + collapsed are dynamic (depend on what the learner marked unknown) —
-    // we just reserve worst-case slots sized to the whole word list so the
-    // flat list never runs short; renderers already guard against missing data.
-    words.forEach((w,i)=>steps.push({phase:'c4',wordIdx:i}));
+    // Simple, fully fixed flow — no adaptivity, no "Знаю/Не знаю":
+    // C4 greek→russian on every word, then C4 russian→greek on every word,
+    // then collapsed (syllable assembly) on every word, then summary.
+    steps.push({phase:'c4_intro_screen'});
+    words.forEach((w,i)=>steps.push({phase:'c4_gr',wordIdx:i}));
+    words.forEach((w,i)=>steps.push({phase:'c4_ru',wordIdx:i}));
     words.forEach((w,i)=>steps.push({phase:'collapsed',wordIdx:i}));
+    steps.push({phase:'summary_intro'});
+    appendSummarySteps(steps,uid,false);
   }
 
-  // summary_intro + summary queue (FILL/LISTEN/Q4)
-  steps.push({phase:'summary_intro'});
+  return steps;
+}
+
+function appendSummarySteps(stepsArr,uid,isS2){
   const fills=FILL_EXERCISES.filter(f=>f.unitId===uid);
   const listens=LISTEN_EXERCISES.filter(l=>l.unitId===uid);
   const summaryQueue=[];
@@ -2537,9 +2546,7 @@ function buildFlatSteps(){
     const q4s=Q4_EXERCISES.filter(q=>q.unitId===uid);
     q4s.forEach(q=>summaryQueue.push({type:'Q4_SLOT',q4Id:q.id}));
   }
-  summaryQueue.forEach((item,i)=>steps.push({phase:'summary',qi:i,_summaryItem:item}));
-
-  return steps;
+  summaryQueue.forEach((item,i)=>stepsArr.push({phase:'summary',qi:i,_summaryItem:item}));
 }
 
 // Applies a flat step descriptor to S — sets up whatever state the existing
@@ -2555,6 +2562,8 @@ function applyFlatStep(step){
   S.mDone=[];S.mSelGr=null;S.mSelRu=null;S.mDoneAll=false;S.mWrong=[];
   S._matchLL=null;S._matchRL=null;
   S._adaptC4Opts=null;S._adaptC4Word=null;S._adaptC4Checked=false;S._adaptC4Chosen=null;
+  S._simpleC4_gr=null;S._simpleC4Word_gr=null;S._simpleC4_ru=null;S._simpleC4Word_ru=null;
+  S._simpleC4Checked=false;S._simpleC4Chosen=null;
   S.collPlaced=[];S._collChecked=false;
   if(step.phase==='theory'||step.phase==='summary'){
     S.qi=step.qi||0;
@@ -2589,26 +2598,7 @@ function applyFlatStep(step){
 function goForwardOneStep(){
   if(window.speechSynthesis)speechSynthesis.cancel();
   const totalSteps=(S.flatSteps||[]).length;
-  let idx=Math.min(totalSteps,(S.flatStepIdx||0)+1);
-  // c4/collapsed slots are reserved worst-case (sized to the whole word list);
-  // skip any that don't actually have a word waiting (because the learner
-  // didn't mark that many words unknown / wrong).
-  let guard=0;
-  while(idx<totalSteps&&guard<2000){
-    const step=S.flatSteps[idx];
-    if(step.phase==='c4'){
-      const unknownWords=adaptGetWords().filter(w=>S.adaptUnknown.includes(w.id));
-      if((step.wordIdx||0)<unknownWords.length)break;
-      idx++;guard++;continue;
-    }
-    if(step.phase==='collapsed'){
-      const wrongWords=adaptGetWords().filter(w=>S.adaptC4Wrong.includes(w.id));
-      if((step.wordIdx||0)<wrongWords.length)break;
-      idx++;guard++;continue;
-    }
-    break;
-  }
-  S.flatStepIdx=idx;
+  S.flatStepIdx=Math.min(totalSteps,(S.flatStepIdx||0)+1);
   if(S.flatStepIdx<totalSteps){
     applyFlatStep(S.flatSteps[S.flatStepIdx]);
   } else {
@@ -2620,23 +2610,7 @@ function goForwardOneStep(){
 // Symmetric counterpart to goForwardOneStep — used by the ◀ button.
 function goBackOneStep(){
   if(window.speechSynthesis)speechSynthesis.cancel();
-  let idx=Math.max(0,(S.flatStepIdx||0)-1);
-  let guard=0;
-  while(idx>0&&guard<2000){
-    const step=S.flatSteps[idx];
-    if(step.phase==='c4'){
-      const unknownWords=adaptGetWords().filter(w=>S.adaptUnknown.includes(w.id));
-      if((step.wordIdx||0)<unknownWords.length)break;
-      idx--;guard++;continue;
-    }
-    if(step.phase==='collapsed'){
-      const wrongWords=adaptGetWords().filter(w=>S.adaptC4Wrong.includes(w.id));
-      if((step.wordIdx||0)<wrongWords.length)break;
-      idx--;guard++;continue;
-    }
-    break;
-  }
-  S.flatStepIdx=idx;
+  S.flatStepIdx=Math.max(0,(S.flatStepIdx||0)-1);
   applyFlatStep(S.flatSteps[S.flatStepIdx]);
   saveAdaptState();
 }
@@ -2653,6 +2627,12 @@ function adaptCurrentWord(){
     return wrongWords[S.adaptWordIdx]||null;
   }
   return null;
+}
+
+// Simple fixed-flow word lookup — collapsed now runs over every word
+// directly (no adaptive subset), so it's just an index into the word list.
+function adaptCurrentWordSimple(){
+  return adaptGetWords()[S.adaptWordIdx]||null;
 }
 
 function adaptBuildC4(word){
@@ -2913,6 +2893,16 @@ function renderAdaptiveUnit(){
       if(allTheoryDone&&ex.type==='THEORY'){}
     }
   }
+  else if(phase==='c4_intro_screen'){
+    const words=adaptGetWords();
+    const d=el('div','phase-screen');
+    d.innerHTML=`<div class="phase-icon">🎯</div>
+      <div class="phase-title">Изучаем слова</div>
+      <div class="phase-sub">Сейчас пройдёмся по <b>${words.length} словам</b>.<br>Выбирай правильный перевод из 4 вариантов.</div>`;
+    const btn=el('button','btn bpr bfw');btn.textContent='Начать →';
+    btn.onclick=()=>{goForwardOneStep();render();};
+    d.appendChild(btn);sc.appendChild(d);
+  }
   else if(phase==='fc_intro'){
     const words=adaptGetWords();
     const d=el('div','phase-screen');
@@ -2934,6 +2924,20 @@ function renderAdaptiveUnit(){
     // C4 on ALL words for s2 units
     renderAdaptC4All(sc);
   }
+  else if(phase==='c4_gr'){
+    // Simple fixed flow: word shown in Greek, pick Russian translation
+    const words=adaptGetWords();
+    const word=words[S.adaptWordIdx];
+    if(!word){goForwardOneStep();render();return wrap;}
+    renderSimpleC4(sc,word,'gr');
+  }
+  else if(phase==='c4_ru'){
+    // Simple fixed flow: word shown in Russian, pick Greek translation
+    const words=adaptGetWords();
+    const word=words[S.adaptWordIdx];
+    if(!word){goForwardOneStep();render();return wrap;}
+    renderSimpleC4(sc,word,'ru');
+  }
   else if(phase==='match_all'){
     // MATCH on ALL words for s2 units
     renderAdaptMatchAll(sc);
@@ -2942,7 +2946,7 @@ function renderAdaptiveUnit(){
     renderAdaptC4(sc);
   }
   else if(phase==='collapsed'){
-    const word=adaptCurrentWord();
+    const word=adaptCurrentWordSimple();
     if(!word){goForwardOneStep();render();return wrap;}
     // Words with slash, spaces, or too short → C4 fallback
     const hasSlash=word.greek.includes('/')||word.greek.includes(' ')||word.greek.includes('·');
@@ -3492,6 +3496,69 @@ function renderAdaptC4(sc){
 
 function renderAdaptC4Fallback(sc,word){
   renderAdaptC4Word(sc,word,true);
+}
+
+// Simple fixed C4 exercise — no adaptivity, just word index in/out.
+// direction 'gr' = show Greek, pick Russian; 'ru' = show Russian, pick Greek.
+function renderSimpleC4(sc,word,direction){
+  const isGr=direction==='gr';
+  const lbl=el('div','ex');lbl.textContent=isGr?'ВЫБЕРИ ПЕРЕВОД':'КАК ПО-ГРЕЧЕСКИ?';sc.appendChild(lbl);
+
+  const card=el('div','card cc');card.style.marginBottom='10px';
+  const row=el('div');row.style.cssText='display:flex;align-items:center;justify-content:center;gap:10px';
+  const w=el('div','bw');w.textContent=isGr?word.greek:word.ru;
+  const sb=el('button','spk');sb.textContent='🔊';
+  sb.onclick=()=>speak(word.greek);
+  row.appendChild(w);
+  if(isGr)row.appendChild(sb); // speaker only makes sense for greek text
+  card.appendChild(row);sc.appendChild(card);
+
+  const optsKey='_simpleC4_'+direction;
+  const wordKey='_simpleC4Word_'+direction;
+  if(!S[optsKey]||S[wordKey]!==word.id){
+    S[optsKey]=shuffle([word,...pick(ALL_WORDS.filter(w2=>w2.id!==word.id),3)]);
+    S[wordKey]=word.id;
+    S._simpleC4Checked=false;
+    S._simpleC4Chosen=null;
+  }
+
+  const chs=el('div','chs');chs.style.cssText='display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px;margin-bottom:12px';
+  S[optsKey].forEach(o=>{
+    let cls='cb2';
+    const optText=isGr?o.ru:o.greek;
+    if(S._simpleC4Checked){
+      if(o.id===word.id)cls+=' ck';
+      else if(o.id===S._simpleC4Chosen)cls+=' cw';
+    } else if(S._simpleC4Chosen===o.id)cls+=' ms';
+    const b=el('button',cls);b.textContent=optText;
+    if(S._simpleC4Checked)b.disabled=true;
+    b.onclick=()=>{
+      if(S._simpleC4Checked)return;
+      if(!isGr)speak(o.greek); // speak greek options when choosing from russian prompt
+      S._simpleC4Chosen=o.id;render();
+    };
+    chs.appendChild(b);
+  });
+  sc.appendChild(chs);
+
+  if(S._simpleC4Chosen&&!S._simpleC4Checked){
+    const chk=el('button','btn bpr bfw');chk.textContent='Проверить';
+    chk.onclick=()=>{S._simpleC4Checked=true;render();};
+    sc.appendChild(chk);
+  }
+  if(S._simpleC4Checked){
+    const ok=S._simpleC4Chosen===word.id;
+    const fb=el('div','fb '+(ok?'fbok':'fber'));
+    fb.textContent=ok?'✅ Верно!':'❌ Правильно: '+(isGr?word.ru:word.greek);
+    sc.appendChild(fb);
+    const nb=el('button','btn bpr bfw');nb.textContent='Дальше →';nb.style.marginTop='8px';
+    nb.onclick=()=>{
+      S[optsKey]=null;S[wordKey]=null;S._simpleC4Checked=false;S._simpleC4Chosen=null;
+      goForwardOneStep();
+      render();
+    };
+    sc.appendChild(nb);
+  }
 }
 
 function renderAdaptC4Word(sc,word,isCollapsedFallback){
