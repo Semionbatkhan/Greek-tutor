@@ -2489,11 +2489,13 @@ function unitTotalItems(uid) {
   const listenQs = LISTEN_EXERCISES.filter(l=>l.unitId===uid)
     .reduce((a,l)=>a+l.questions.length, 0);
   const theories = THEORY_CARDS.filter(t=>t.unitId===uid).length;
-  return words * 2 + fills + listenQs + theories;
+  const assembles = ASSEMBLE_EXERCISES.filter(a=>a.unitId===uid).length;
+  const videoIntro = unit.videoId ? 1 : 0;
+  return words * 2 + fills + listenQs + theories + assembles + videoIntro;
 }
 
 // Increment this number every time you add new exercises to existing units
-const APP_VERSION = 19;
+const APP_VERSION = 20;
 
 // Clear localStorage if version changed, but preserve user progress
 (function checkVersion(){
