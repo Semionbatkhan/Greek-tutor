@@ -2549,6 +2549,44 @@ function pickDistractors(word,basePool,n){
   return pick(anyPool,n);
 }
 
+// Small glossary of common grammatical function words (articles, particles,
+// pronouns, conjunctions, prepositions) used only to gloss phrase breakdowns —
+// these rarely have their own flashcard entries, so they're covered separately.
+const FUNCTION_WORD_GLOSS = {
+  'ο':'артикль (м.р.)','η':'артикль (ж.р.)','το':'артикль/его (ср.р.)',
+  'οι':'артикль (мн.ч., м/ж.р.)','τα':'артикль/их (мн.ч., ср.р.)',
+  'τον':'его (вин.п., м.р.)','την':'её (вин.п., ж.р.)',
+  'των':'артикль (род.п., мн.ч.)','του':'его (род.п.)','της':'её (род.п.)',
+  'ένας':'один / артикль (м.р.)','μία':'одна / артикль (ж.р.)','μια':'одна / артикль (ж.р.)','ένα':'одно / артикль (ср.р.)',
+  'και':'и','κι':'и','να':'частица (чтобы / бы)',"να'":'частица (чтобы / бы)',
+  'δεν':'не','μη':'не (запрет)','μην':'не (запрет)',
+  'σε':'в / на','με':'с / вместе','από':'от / из','για':'для / за','προς':'к / в сторону',
+  'σας':'вас / вам / ваш','σου':'тебя / тебе / твой','μου':'меня / мне / мой',
+  'μας':'нас / нам / наш','τους':'их / им','τις':'их (ж.р.) / артикль',
+  'είναι':'есть / является','έχω':'я имею','έχεις':'ты имеешь','έχει':'он/она имеет',
+  'αν':'если','ότι':'что','πως':'как / что','που':'который / где','πού':'где',
+  'τι':'что','ποιος':'кто','ποια':'какая / которая','πολύ':'очень','λίγο':'немного',
+  'δεν':'не','ναι':'да','όχι':'нет','θα':'частица будущего времени','ας':'давай(те)',
+  'σαν':'как / словно','ως':'как','ή':'или','αλλά':'но','όμως':'однако',
+};
+// Look up a single token's meaning: first check the app's own vocabulary,
+// then the small function-word glossary above.
+function glossToken(tok){
+  const clean=tok.replace(/[.,!;·»«"']+$/,'').trim();
+  if(!clean) return null;
+  const lower=clean.toLowerCase();
+  const found=ALL_WORDS.find(w=>!isPhraseWord(w)&&w.greek.toLowerCase()===lower);
+  if(found) return found.ru;
+  if(FUNCTION_WORD_GLOSS[lower]) return FUNCTION_WORD_GLOSS[lower];
+  return null;
+}
+// Build a word-by-word breakdown of a phrase for the "Разбор фразы" button.
+function breakdownPhrase(greek){
+  return greek.split(/\s+/).filter(Boolean).map(tok=>({
+    tok, gloss: glossToken(tok)
+  }));
+}
+
 // ─── STATE ────────────────────────────────────────────────
 // By default ALL words are checked
 const defaultChecked=new Set(ALL_IDS);
@@ -4024,10 +4062,29 @@ function renderAdaptC4Word(sc,word,isCollapsedFallback){
     const fb=el('div','fb '+(ok?'fbok':'fber'));
     fb.textContent=ok?'✅ Верно!':'❌ Правильно: '+word.ru;
     sc.appendChild(fb);
+    // Phrase breakdown — only for multi-word phrases, only the correct answer
+    if(isPhraseWord(word)){
+      const bd=el('button','btn bot bfw');bd.textContent='🔍 Разбор фразы';
+      bd.style.marginTop='8px';
+      bd.onclick=()=>{S.showBreakdown=!S.showBreakdown;render();};
+      sc.appendChild(bd);
+      if(S.showBreakdown){
+        const parts=breakdownPhrase(word.greek);
+        const box=el('div');
+        box.style.cssText='background:var(--card2);border:1.5px solid rgba(255,255,255,.1);border-radius:12px;padding:12px 14px;margin-top:8px;display:flex;flex-direction:column;gap:6px';
+        parts.forEach(p=>{
+          const row=el('div');row.style.cssText='display:flex;justify-content:space-between;gap:10px;font-size:13px';
+          const gr=el('span');gr.style.cssText='font-weight:700;color:var(--acc)';gr.textContent=p.tok;
+          const ru=el('span');ru.style.cssText='color:var(--mu);text-align:right';ru.textContent=p.gloss||'—';
+          row.appendChild(gr);row.appendChild(ru);box.appendChild(row);
+        });
+        sc.appendChild(box);
+      }
+    }
     {
       const nb=el('button','btn bpr bfw');nb.textContent='Дальше →';nb.style.marginTop='8px';
       nb.onclick=()=>{
-        S._adaptC4Opts=null;S._adaptC4Word=null;S._adaptC4Checked=false;S._adaptC4Chosen=null;
+        S._adaptC4Opts=null;S._adaptC4Word=null;S._adaptC4Checked=false;S._adaptC4Chosen=null;S.showBreakdown=false;
         goForwardOneStep();
         render();
       };
@@ -4433,7 +4490,7 @@ function nextEx(){
     S.fillChosen=null;S.fillChecked=false;
     S.listenChosen=null;S.listenChecked=false;
     S.mSelGr=null;S.mSelRu=null;S.mDone=[];S.mWrong=[];S.mDoneAll=false;S.mWrongCount=0;
-    S.wv='';S.ws=null;
+    S.wv='';S.ws=null;S.showBreakdown=false;
     return;
   }
   // VIDEO: youtube embed intro screen
@@ -4456,7 +4513,7 @@ function nextEx(){
     S.fcRev=false;S.chosen=null;S.c4checked=false;S.fillChosen=null;S.fillChecked=false;
     S.listenChosen=null;S.listenChecked=false;
     S.mSelGr=null;S.mSelRu=null;S.mDone=[];S.mWrong=[];S.mDoneAll=false;S.mWrongCount=0;
-    S.wv='';S.ws=null;
+    S.wv='';S.ws=null;S.showBreakdown=false;
     return;
   }
   // FILL: rebuild from source (handles both FILL_SLOT and stale FILL objects)
@@ -4469,7 +4526,7 @@ function nextEx(){
     S.fcRev=false;S.chosen=null;S.c4checked=false;S.fillChosen=null;S.fillChecked=false;
     S.listenChosen=null;S.listenChecked=false;
     S.mSelGr=null;S.mSelRu=null;S.mDone=[];S.mWrong=[];S.mDoneAll=false;S.mWrongCount=0;
-    S.wv='';S.ws=null;
+    S.wv='';S.ws=null;S.showBreakdown=false;
     return;
   }
   // LISTEN: rebuild from source
@@ -4482,7 +4539,7 @@ function nextEx(){
     S.fcRev=false;S.chosen=null;S.c4checked=false;S.fillChosen=null;S.fillChecked=false;
     S.listenChosen=null;S.listenChecked=false;
     S.mSelGr=null;S.mSelRu=null;S.mDone=[];S.mWrong=[];S.mDoneAll=false;S.mWrongCount=0;
-    S.wv='';S.ws=null;
+    S.wv='';S.ws=null;S.showBreakdown=false;
     return;
   }
   if(item&&item.type==='THEORY_SLOT'){
@@ -4518,7 +4575,7 @@ function nextEx(){
     }
   }
   S.fcRev=false;S.chosen=null;S.c4checked=false;S.fillChosen=null;S.fillChecked=false;S.listenChosen=null;S.listenChecked=false;
-  S.wv='';S.ws=null;
+  S.wv='';S.ws=null;S.showBreakdown=false;
   S.mSelGr=null;S.mSelRu=null;S.mDone=[];S.mWrong=[];S.mDoneAll=false;S.mWrongCount=0;
 }
 
@@ -4818,9 +4875,13 @@ function renderEx(){
       else if(S.chosen===o.id)cls+=' ms';
       const b=el('button',cls);
       b.textContent=ruToGr?o.greek:o.ru;
-      if(S.c4checked)b.disabled=true;
       b.onclick=()=>{
-        if(S.c4checked)return;
+        if(S.c4checked){
+          // After checking, buttons stay tappable so the learner can
+          // listen to any option's pronunciation (including the correct one)
+          if(ruToGr) speak(o.greek);
+          return;
+        }
         S.chosen=o.id;
         render();
         // Speak AFTER render to avoid blocking click in Chrome
@@ -4841,8 +4902,27 @@ function renderEx(){
       const fb=el('div','fb '+(isOk?'fbok':'fber'));
       fb.textContent=isOk?`✅ Верно!`:`❌ Правильно: ${ruToGr?word.greek:word.ru}`;
       ew.appendChild(fb);
+      // Phrase breakdown — only for multi-word phrases, only the correct answer
+      if(isPhraseWord(word)){
+        const bd=el('button','btn bot bfw');bd.textContent='🔍 Разбор фразы';
+        bd.style.marginTop='8px';
+        bd.onclick=()=>{S.showBreakdown=!S.showBreakdown;render();};
+        ew.appendChild(bd);
+        if(S.showBreakdown){
+          const parts=breakdownPhrase(word.greek);
+          const box=el('div');
+          box.style.cssText='background:var(--card2);border:1.5px solid rgba(255,255,255,.1);border-radius:12px;padding:12px 14px;margin-top:8px;display:flex;flex-direction:column;gap:6px';
+          parts.forEach(p=>{
+            const row=el('div');row.style.cssText='display:flex;justify-content:space-between;gap:10px;font-size:13px';
+            const gr=el('span');gr.style.cssText='font-weight:700;color:var(--acc)';gr.textContent=p.tok;
+            const ru=el('span');ru.style.cssText='color:var(--mu);text-align:right';ru.textContent=p.gloss||'—';
+            row.appendChild(gr);row.appendChild(ru);box.appendChild(row);
+          });
+          ew.appendChild(box);
+        }
+      }
       const nb=el('button','btn bpr bfw');nb.textContent='Дальше →';
-      nb.onclick=()=>{S.c4checked=false;advance(isOk);};
+      nb.onclick=()=>{S.c4checked=false;S.showBreakdown=false;advance(isOk);};
       ew.appendChild(nb);
     }
   }
