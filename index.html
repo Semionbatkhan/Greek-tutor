@@ -2874,13 +2874,11 @@ function save(){
   if(S.mode==='unit'&&S.activeUnit){
     const queueSave=S.queue.map(item=>{
       if(!item)return null;
-      if(item.type==='FILL_SLOT'||item.type==='LISTEN_SLOT'||item.type==='THEORY_SLOT'||item.type==='Q4_SLOT')return item;
+      if(item.type==='FILL_SLOT'||item.type==='LISTEN_SLOT'||item.type==='THEORY_SLOT'||item.type==='Q4_SLOT'||item.type==='VIDEO_SLOT'||item.type==='ASSEMBLE_SLOT')return item;
       if(item.type&&['FC','C4','WRITE','MATCH'].includes(item.type))return item;
       return item.id;
     });
-    LS.set('session',{unitId:S.activeUnit.id,queue:queueSave,qi:S.qi,score:S.score,errs:S.errs,answers:S.answers||[]});
-  } else {
-    LS.set('session',null);
+    LS.set('session_'+S.activeUnit.id,{unitId:S.activeUnit.id,queue:queueSave,qi:S.qi,score:S.score,errs:S.errs,answers:S.answers||[]});
   }
 }
 
@@ -2974,7 +2972,7 @@ function buildPEx(){
 // ─── RENDER ───────────────────────────────────────────────
 function saveAdaptState(){
   if(!S.activeUnit)return;
-  LS.set('adaptState',{
+  LS.set('adaptState_'+S.activeUnit.id,{
     unitId:S.activeUnit.id,
     flatStepIdx:S.flatStepIdx||0,
     phase:S.adaptPhase,
@@ -3373,7 +3371,7 @@ function startAdaptiveUnit(unit){
   S.answers=[];S.score={c:0,w:0,st:0};S.errs=[];
   S.adaptAnswered=0;
   // Try to restore saved progress (just the position — flat list is rebuilt fresh each time)
-  const saved=LS.get('adaptState',null);
+  const saved=LS.get('adaptState_'+unit.id,null);
   if(saved&&saved.unitId===unit.id&&typeof saved.flatStepIdx==='number'){
     S.flatStepIdx=Math.min(saved.flatStepIdx,Math.max(0,S.flatSteps.length-1));
     S.adaptUnknown=saved.unknown||[];
@@ -3733,7 +3731,7 @@ function renderAdaptiveUnit(){
         S.adaptPhase='theory';
         S.mode='home';
         LS.set('lastMode','home');
-        LS.set('adaptState',null);
+        if(S.activeUnit)LS.set('adaptState_'+S.activeUnit.id,null);
         render();
       };
       d.appendChild(homeBtn);
@@ -4516,7 +4514,7 @@ function renderHome(){
 
 function startUnit(unit){
   if(isAdaptiveUnit(unit)){startAdaptiveUnit(unit);return;}
-  const sess=LS.get('session',null);
+  const sess=LS.get('session_'+unit.id,null);
   if(sess&&sess.unitId===unit.id&&sess.qi<sess.queue.length){
     S.activeUnit=unit;
     // Restore mixed queue (words + fill slots)
@@ -4527,7 +4525,7 @@ function startUnit(unit){
       return ALL_WORDS.find(w=>w.id===item);
     }).filter(Boolean);
     // If queue is empty after restore - fall through to rebuild
-    if(S.queue.length===0){LS.set('session',null);startUnit(unit);return;}
+    if(S.queue.length===0){LS.set('session_'+unit.id,null);startUnit(unit);return;}
     S.qi=sess.qi;
     S.score=sess.score||{c:0,w:0,st:0};
     S.errs=sess.errs||[];
@@ -4817,7 +4815,7 @@ function advance(ok){
     } else {
       LS.set('unitErrs_'+S.activeUnit.id, []);
     }
-    LS.set('session',null);
+    LS.set('session_'+S.activeUnit.id,null);
     save();render();
   }
 }
@@ -5253,7 +5251,7 @@ function renderEx(){
       else{
         S.unitScores[S.activeUnit.id]=100;
         LS.set('unitTotalItems_'+S.activeUnit.id,unitTotalItems(S.activeUnit.id));
-        LS.set('session',null);save();render();
+        LS.set('session_'+S.activeUnit.id,null);save();render();
       }
     };
     ew.appendChild(nb);
@@ -7751,8 +7749,8 @@ function renderPopup(){
       if(S.unitScores)S.unitScores[uid]=0;
       LS.set('unitScores',S.unitScores);
       // Clear saved session and adaptive state
-      LS.set('session',null);
-      LS.set('adaptState',null);
+      LS.set('session_'+uid,null);
+      LS.set('adaptState_'+uid,null);
       LS.set('unitQueueLen_'+uid,0);
       LS.set('unitErrs_'+uid,[]);
       // Reset adaptive state
@@ -7916,11 +7914,11 @@ function renderPopup(){
     // startAdaptiveUnit already knows how to restore from saved flatStepIdx
     startAdaptiveUnit(unit);
   } else {
-    const sess=LS.get('session',null);
+    const sess=LS.get('session_'+lastUnitId,null);
     if(sess&&sess.unitId===lastUnitId){
       S.queue=sess.queue.map(item=>{
         if(!item)return null;
-        if(item.type&&['FILL_SLOT','LISTEN_SLOT','THEORY_SLOT'].includes(item.type))return item;
+        if(item.type&&['FILL_SLOT','LISTEN_SLOT','THEORY_SLOT','Q4_SLOT','VIDEO_SLOT','ASSEMBLE_SLOT'].includes(item.type))return item;
         if(item.type&&['FC','C4','WRITE','MATCH'].includes(item.type))return item;
         return ALL_WORDS.find(w=>w.id===item);
       }).filter(Boolean);
