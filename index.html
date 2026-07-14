@@ -469,6 +469,19 @@ const THEORY_CARDS = [
     ]
   },
   {
+    id:"t52", unitId:"s4u7",
+    title:"έρχομαι или πάω?",
+    titleEn:"Приходить к говорящему vs идти куда-то",
+    emoji:"🧭",
+    content:[
+      {label:"Если человек присоединяется к тому, кто спрашивает (движение К говорящему) — используем έρχομαι.", example:"Θέλεις να έρθεις μαζί μας; — Хочешь пойти с нами? (говорящий сам в этой группе)"},
+      {label:"Если речь о движении в другое место, не к говорящему — используем πάω.", example:"Θέλεις να πας στο σούπερ μάρκετ; — Хочешь пойти в супермаркет?"},
+      {label:"Та же логика в приглашении:", example:"Έλα μαζί μας! — Иди (присоединяйся) с нами! (не Πήγαινε μαζί μας)"},
+      {label:"По-английски работает так же: Come with us, а не Go with us.", example:"Come with us = Έλα μαζί μας"},
+      {label:"Простое правило:", example:"έρχομαι — прийти к кому-то / присоединиться || πάω — пойти в какое-то место"},
+    ]
+  },
+  {
     id:"t1", unitId:"s1u0",
     title:"Артикли — ο, η, το",
     titleEn:"Определённый артикль",
@@ -1344,6 +1357,28 @@ const FILL_EXERCISES = [
    options:["ανακατέψουμε","φτιάξουμε","κερδίσουμε","προσέξουμε"],
    translation:"Нужно перемешать муку, яйцо и молоко.",
    emoji:""},
+  // s4u8 — деловое письмо про налоги
+  {id:"f7a",unitId:"s4u8",
+   sentence:"Δεν ___ κέρδη φέτος.",
+   hint:"Не ожидаю",
+   answer:"αναμένω",
+   options:["αναμένω","χρησιμοποιώ","καλύπτω","φοβάμαι"],
+   translation:"Я не ожидаю прибыли в этом году.",
+   emoji:""},
+  {id:"f7b",unitId:"s4u8",
+   sentence:"Η εταιρεία έχει πολλά ___.",
+   hint:"Расходы",
+   answer:"έξοδα",
+   options:["έξοδα","κέρδη","εισοδήματα","έργα"],
+   translation:"У компании много расходов.",
+   emoji:""},
+  {id:"f7c",unitId:"s4u8",
+   sentence:"Πρέπει να καλύψουμε τον ___ των εργαζομένων.",
+   hint:"Зарплата",
+   answer:"μισθό",
+   options:["μισθό","φόρο","κέρδος","έργο"],
+   translation:"Нам нужно покрыть зарплату сотрудников.",
+   emoji:""},
 ];
 
 // ─── ASSEMBLE EXERCISES ─────────────────────────────────────
@@ -1381,6 +1416,32 @@ const ASSEMBLE_EXERCISES = [
    words:["Κάνουμε","ποδήλατο","χωρίς","βοηθητικές","ρόδες."]},
   {id:"as16",unitId:"s5u1",ru:"Папа готовит вкусные блины.",emoji:"",
    words:["Ο","μπαμπάς","φτιάχνει","νόστιμες","τηγανίτες."]},
+  // s4u8 — деловое письмо про налоги: сборка фраз из слов (оригинальные примеры)
+  {id:"as17",unitId:"s4u8",ru:"Я не ожидаю прибыли в этом году.",emoji:"",
+   words:["Δεν","αναμένω","κέρδη","φέτος."]},
+  {id:"as18",unitId:"s4u8",ru:"У компании много расходов.",emoji:"",
+   words:["Η","εταιρεία","έχει","πολλά","έξοδα."]},
+  {id:"as19",unitId:"s4u8",ru:"Нам нужно покрыть зарплату сотрудников.",emoji:"",
+   words:["Πρέπει","να","καλύψουμε","τον","μισθό","των","εργαζομένων."]},
+  {id:"as20",unitId:"s4u8",ru:"Инвестиция в этом году большая.",emoji:"",
+   words:["Η","επένδυση","αυτό","το","έτος","είναι","μεγάλη."]},
+  {id:"as21",unitId:"s4u8",ru:"Этот налог временный.",emoji:"",
+   words:["Αυτός","ο","φόρος","είναι","προσωρινός."]},
+  {id:"as22",unitId:"s4u8",ru:"Мы используем деньги на расходы.",emoji:"",
+   words:["Χρησιμοποιούμε","τα","χρήματα","για","τα","έξοδα."]},
+  // s4u8 — сборка слова по буквам
+  {id:"as23",unitId:"s4u8",ru:"Собери слово: налог",emoji:"",mode:"letters",
+   words:[..."φόρος"]},
+  {id:"as24",unitId:"s4u8",ru:"Собери слово: компания",emoji:"",mode:"letters",
+   words:[..."εταιρεία"]},
+  {id:"as25",unitId:"s4u8",ru:"Собери слово: прибыль",emoji:"",mode:"letters",
+   words:[..."κέρδος"]},
+  {id:"as26",unitId:"s4u8",ru:"Собери слово: доход",emoji:"",mode:"letters",
+   words:[..."εισόδημα"]},
+  {id:"as27",unitId:"s4u8",ru:"Собери слово: зарплата",emoji:"",mode:"letters",
+   words:[..."μισθός"]},
+  {id:"as28",unitId:"s4u8",ru:"Собери слово: проект",emoji:"",mode:"letters",
+   words:[..."έργο"]},
 ];
 
 // ─── LISTEN EXERCISES ─────────────────────────────────────
@@ -2031,7 +2092,6 @@ const SECTIONS=[{
       {id:946,greek:"είμαι καλά",ru:"мне хорошо / я выздоровел",emoji:"😊",cat:"Фразы"},
       {id:947,greek:"μου πέρασε η ίωση",ru:"вирус прошёл",emoji:"✅",cat:"Фразы"},
       {id:948,greek:"το φαρμακείο",ru:"аптека",emoji:"⚕️",cat:"Место"},
-      {id:949,greek:"στο φαρμακείο",ru:"в аптеке",emoji:"⚕️",cat:"Место"},
       {id:950,greek:"πονάει ο λαιμός μου",ru:"у меня болит горло",emoji:"🫁",cat:"Фразы"},
       {id:951,greek:"έχω μαγουλάδες",ru:"у меня свинка",emoji:"🐷",cat:"Фразы"},
       {id:952,greek:"έχω ιλαρά",ru:"у меня корь",emoji:"🔴",cat:"Фразы"},
@@ -2428,6 +2488,41 @@ const SECTIONS=[{
       {id:2685,greek:"Κάνω γυμναστική κάθε πρωί.",ru:"Я занимаюсь спортом каждое утро.",emoji:"🏋️",cat:"κάνω (особый случай)"},
       {id:2686,greek:"Θέλω να κάνω ένα ταξίδι.",ru:"Я хочу совершить путешествие.",emoji:"✈️",cat:"κάνω (особый случай)"},
       {id:2687,greek:"Τι κάνεις αυτό το Σαββατοκύριακο;",ru:"Что ты делаешь в эти выходные?",emoji:"📅",cat:"κάνω (особый случай)"},
+      // έρχομαι vs πάω — движение к говорящему или в другое место
+      {id:2688,greek:"Θέλεις να έρθεις μαζί μας;",ru:"Хочешь пойти с нами?",emoji:"🧭",cat:"έρχομαι vs πάω"},
+      {id:2689,greek:"Θέλεις να πας στο σούπερ μάρκετ;",ru:"Хочешь пойти в супермаркет?",emoji:"🛒",cat:"έρχομαι vs πάω"},
+      {id:2690,greek:"Θέλεις να πάμε στον κινηματογράφο;",ru:"Хочешь, чтобы мы пошли в кино?",emoji:"🎬",cat:"έρχομαι vs πάω"},
+      {id:2691,greek:"Έλα μαζί μας!",ru:"Иди (присоединяйся) с нами!",emoji:"🤝",cat:"έρχομαι vs πάω"},
+      {id:2692,greek:"Ελάτε σπίτι μου απόψε.",ru:"Приходите ко мне домой сегодня вечером.",emoji:"🏠",cat:"έρχομαι vs πάω"},
+      {id:2693,greek:"Πάμε στην παραλία αύριο;",ru:"Пойдём на пляж завтра?",emoji:"🏖️",cat:"έρχομαι vs πάω"},
+      {id:2694,greek:"Έρχεσαι στο πάρτι μου;",ru:"Ты придёшь на мою вечеринку?",emoji:"🎉",cat:"έρχομαι vs πάω"},
+      {id:2695,greek:"Πηγαίνω στο γραφείο μου τώρα.",ru:"Я иду сейчас в свой офис.",emoji:"💼",cat:"έρχομαι vs πάω"},
+    ]
+  },{
+    id:"s4u8",title:"Επιστολή για τον Φόρο",titleRu:"Письмо о налоге",emoji:"🧾",
+    words:[
+      {id:2696,greek:"σχετικά",ru:"относительно / по поводу",emoji:"",cat:"Бизнес"},
+      {id:2697,greek:"προσωρινός",ru:"временный",emoji:"",cat:"Бизнес"},
+      {id:2698,greek:"φόρος",ru:"налог",emoji:"",cat:"Бизнес"},
+      {id:2699,greek:"κέρδος",ru:"прибыль",emoji:"",cat:"Бизнес"},
+      {id:2700,greek:"διάρκεια",ru:"продолжительность / срок",emoji:"",cat:"Бизнес"},
+      {id:2701,greek:"επένδυση",ru:"инвестиция",emoji:"",cat:"Бизнес"},
+      {id:2702,greek:"εταιρεία",ru:"компания",emoji:"",cat:"Бизнес"},
+      {id:2703,greek:"κάλυψη",ru:"покрытие",emoji:"",cat:"Бизнес"},
+      {id:2704,greek:"έξοδα",ru:"расходы",emoji:"",cat:"Бизнес"},
+      {id:2705,greek:"αρχικός",ru:"начальный / первоначальный",emoji:"",cat:"Бизнес"},
+      {id:2706,greek:"κατασκευαστικός",ru:"строительный",emoji:"",cat:"Бизнес"},
+      {id:2707,greek:"εργασία",ru:"работа",emoji:"",cat:"Бизнес"},
+      {id:2708,greek:"έργο",ru:"проект",emoji:"",cat:"Бизнес"},
+      {id:2709,greek:"μισθός",ru:"зарплата",emoji:"",cat:"Бизнес"},
+      {id:2710,greek:"λοιπός",ru:"прочий / остальной",emoji:"",cat:"Бизнес"},
+      {id:2711,greek:"λειτουργικός",ru:"операционный / функциональный",emoji:"",cat:"Бизнес"},
+      {id:2712,greek:"επομένως",ru:"следовательно / поэтому",emoji:"",cat:"Бизнес"},
+      {id:2713,greek:"φορολογητέος",ru:"облагаемый налогом",emoji:"",cat:"Бизнес"},
+      {id:2714,greek:"δικός",ru:"свой / собственный",emoji:"",cat:"Бизнес"},
+      {id:2715,greek:"καθώς",ru:"поскольку / так как",emoji:"",cat:"Бизнес"},
+      {id:2716,greek:"αναμένω",ru:"я ожидаю",emoji:"",cat:"Глаголы"},
+      {id:2717,greek:"χρησιμοποιώ",ru:"я использую",emoji:"",cat:"Глаголы"},
     ]
   }]
 },{
@@ -2467,7 +2562,8 @@ const SECTIONS=[{
       {id:3025,greek:"κάστρο",ru:"замок (батут)",emoji:"",cat:"Ярмарка"},
       // Велосипед
       {id:3026,greek:"ποδήλατο",ru:"велосипед",emoji:"",cat:"Велосипед"},
-      {id:3027,greek:"βοηθητικές ρόδες",ru:"вспомогательные колёса",emoji:"",cat:"Велосипед"},
+      {id:3027,greek:"βοηθητικός",ru:"вспомогательный",emoji:"",cat:"Велосипед"},
+      {id:3202,greek:"ρόδα",ru:"колесо",emoji:"",cat:"Велосипед"},
       {id:3028,greek:"λόφος",ru:"холм",emoji:"",cat:"Велосипед"},
       // Кухня
       {id:3029,greek:"κολοκύθα",ru:"тыква",emoji:"",cat:"Кухня"},
@@ -2584,19 +2680,14 @@ const SECTIONS=[{
       {id:3136,greek:"μήπως",ru:"а вдруг / может быть",emoji:"",cat:"Наречия"},
       {id:3137,greek:"αφού",ru:"раз уж / после того как",emoji:"",cat:"Наречия"},
       {id:3138,greek:"επειδή",ru:"потому что",emoji:"",cat:"Наречия"},
-      {id:3139,greek:"πολύ κακό για το τίποτα",ru:"много шума из ничего",emoji:"",cat:"Идиомы"},
-      {id:3140,greek:"δεν πειράζει",ru:"ничего страшного",emoji:"",cat:"Идиомы"},
-      {id:3141,greek:"χρόνια πολλά",ru:"с днём рождения / поздравляю",emoji:"",cat:"Идиомы"},
-      {id:3142,greek:"τι κρίμα",ru:"как жаль",emoji:"",cat:"Идиомы"},
-      {id:3143,greek:"τέλος πάντων",ru:"в общем / как бы то ни было",emoji:"",cat:"Идиомы"},
-      {id:3144,greek:"σιγά τα μαγικά",ru:"подумаешь, невидаль (иронично)",emoji:"",cat:"Идиомы"},
-      {id:3145,greek:"να 'χεις το νου σου",ru:"будь внимателен / осторожен",emoji:"",cat:"Идиомы"},
-      {id:3146,greek:"καλά να περάσεις",ru:"хорошо провести время",emoji:"",cat:"Идиомы"},
-      {id:3147,greek:"μη φοβάσαι",ru:"не бойся",emoji:"",cat:"Идиомы"},
-      {id:3148,greek:"τι στην ευχή",ru:"что за чёрт / что вообще происходит",emoji:"",cat:"Идиомы"},
       {id:3149,greek:"καιρός",ru:"погода",emoji:"",cat:"Лето"},
       {id:3150,greek:"χοροπηδάω",ru:"я прыгаю / скачу / резвлюсь",emoji:"",cat:"Глаголы"},
-      {id:3151,greek:"και οι δύο",ru:"оба / и тот, и другой",emoji:"",cat:"Идиомы"},
+      {id:3203,greek:"τίποτα",ru:"ничего",emoji:"",cat:"Дополнительно"},
+      {id:3204,greek:"κρίμα",ru:"жаль",emoji:"",cat:"Дополнительно"},
+      {id:3205,greek:"σιγά",ru:"тихо / спокойно / не спеша",emoji:"",cat:"Наречия"},
+      {id:3206,greek:"μαγικά",ru:"волшебство / магия",emoji:"",cat:"Дополнительно"},
+      {id:3207,greek:"ευχή",ru:"пожелание",emoji:"",cat:"Дополнительно"},
+      {id:3208,greek:"δύο",ru:"два / двое",emoji:"",cat:"Дополнительно"},
       {id:3152,greek:"λίγδα",ru:"жир / жирный налёт (разг.)",emoji:"",cat:"Лето"},
       {id:3153,greek:"λάστιχο",ru:"шланг / резиновая трубка",emoji:"",cat:"Лето"},
       // Второй проход по тексту — оставшаяся значимая лексика
@@ -4635,7 +4726,7 @@ function prevEx(){
   } else if(item&&item.type==='ASSEMBLE_SLOT'){
     const a=ASSEMBLE_EXERCISES.find(x=>x.id===item.assembleId);
     if(a){
-      S.ex={type:'ASSEMBLE',assembleId:a.id,ru:a.ru,correctWords:a.words,emoji:a.emoji};
+      S.ex={type:'ASSEMBLE',assembleId:a.id,ru:a.ru,correctWords:a.words,emoji:a.emoji,mode:a.mode||'words'};
       S.asmBank=shuffle(a.words.map((w,idx)=>({key:idx+'_'+w,text:w})));
       S.asmAnswer=[];S.asmChecked=false;
     } else {S.qi--;prevEx();return;}
@@ -4695,7 +4786,7 @@ function nextEx(){
   if(item&&(item.type==='ASSEMBLE_SLOT'||item.type==='ASSEMBLE')){
     const a=ASSEMBLE_EXERCISES.find(x=>x.id===item.assembleId);
     if(a){
-      S.ex={type:'ASSEMBLE',assembleId:a.id,ru:a.ru,correctWords:a.words,emoji:a.emoji};
+      S.ex={type:'ASSEMBLE',assembleId:a.id,ru:a.ru,correctWords:a.words,emoji:a.emoji,mode:a.mode||'words'};
       S.asmBank=shuffle(a.words.map((w,idx)=>({key:idx+'_'+w,text:w})));
       S.asmAnswer=[];S.asmChecked=false;
     } else {S.qi++;nextEx();return;}
@@ -5693,7 +5784,9 @@ function renderEx(){
       setTimeout(()=>{S.qi++;nextEx();render();},0);
       return ew;
     }
-    const lbl=el('div','ex');lbl.textContent='Собери фразу';ew.appendChild(lbl);
+    const isLetters=S.ex.mode==='letters';
+    const joinChar=isLetters?'':' ';
+    const lbl=el('div','ex');lbl.textContent=isLetters?'Собери слово по буквам':'Собери фразу';ew.appendChild(lbl);
     const card=el('div','card');
     const promptRow=el('div');promptRow.style.cssText='margin-bottom:14px';
     const ru=el('div');ru.style.cssText='font-size:17px;font-weight:800;color:var(--txt);flex:1';ru.textContent=S.ex.ru;
@@ -5701,10 +5794,10 @@ function renderEx(){
 
     // Answer row — tap a chip here to remove it back to the bank
     const ansBox=el('div');
-    ansBox.style.cssText='display:flex;flex-wrap:wrap;gap:8px;min-height:52px;padding:10px;background:var(--sur2);border:2px dashed var(--border);border-radius:12px;margin-bottom:12px';
+    ansBox.style.cssText='display:flex;flex-wrap:wrap;gap:'+(isLetters?'4px':'8px')+';min-height:52px;padding:10px;background:var(--sur2);border:2px dashed var(--border);border-radius:12px;margin-bottom:12px';
     (S.asmAnswer||[]).forEach(chip=>{
       const b=el('button','cb2');
-      b.style.cssText='padding:8px 14px;width:auto';
+      b.style.cssText=isLetters?'padding:8px 4px;width:36px;text-align:center;font-weight:800':'padding:8px 14px;width:auto';
       b.textContent=chip.text;
       b.disabled=!!S.asmChecked;
       b.onclick=()=>{
@@ -5717,12 +5810,12 @@ function renderEx(){
     });
     card.appendChild(ansBox);
 
-    // Word bank
+    // Word/letter bank
     const bank=el('div');
-    bank.style.cssText='display:flex;flex-wrap:wrap;gap:8px';
+    bank.style.cssText='display:flex;flex-wrap:wrap;gap:'+(isLetters?'4px':'8px');
     (S.asmBank||[]).forEach(chip=>{
       const b=el('button','cb2');
-      b.style.cssText='padding:8px 14px;width:auto';
+      b.style.cssText=isLetters?'padding:8px 4px;width:36px;text-align:center;font-weight:800':'padding:8px 14px;width:auto';
       b.textContent=chip.text;
       b.disabled=!!S.asmChecked;
       b.onclick=()=>{
@@ -5745,8 +5838,8 @@ function renderEx(){
       chk.onclick=()=>{if(canCheck){S.asmChecked=true;render();}};
       ew.appendChild(chk);
     } else {
-      const userSent=(S.asmAnswer||[]).map(c=>c.text).join(' ');
-      const correctSent=S.ex.correctWords.join(' ');
+      const userSent=(S.asmAnswer||[]).map(c=>c.text).join(joinChar);
+      const correctSent=S.ex.correctWords.join(joinChar);
       const isOk=userSent===correctSent;
       const fb=el('div','fb '+(isOk?'fbok':'fber'));
       fb.textContent=isOk?'✅ Верно!':'❌ Неверно';
@@ -7570,6 +7663,34 @@ const VERBS = [
     past:["ξέχασα","ξέχασες","ξέχασε","ξεχάσαμε","ξεχάσατε","ξέχασαν"],
     future:["θα ξεχάσω","θα ξεχάσεις","θα ξεχάσει","θα ξεχάσουμε","θα ξεχάσετε","θα ξεχάσουν"],
     note:"Глагол на -άω (сокращённое спряжение)."
+  },
+  {
+    id:"v140", greek:"πειράζω", ru:"мешать / иметь значение",
+    present:["πειράζω","πειράζεις","πειράζει","πειράζουμε","πειράζετε","πειράζουν"],
+    past:["πείραξα","πείραξες","πείραξε","πειράξαμε","πειράξατε","πείραξαν"],
+    future:["θα πειράξω","θα πειράξεις","θα πειράξει","θα πειράξουμε","θα πειράξετε","θα πειράξουν"],
+    note:"«Δεν πειράζει» — устойчивое выражение «ничего страшного»."
+  },
+  {
+    id:"v141", greek:"φοβάμαι", ru:"бояться",
+    present:["φοβάμαι","φοβάσαι","φοβάται","φοβόμαστε","φοβάστε","φοβούνται"],
+    past:["φοβήθηκα","φοβήθηκες","φοβήθηκε","φοβηθήκαμε","φοβηθήκατε","φοβήθηκαν"],
+    future:["θα φοβηθώ","θα φοβηθείς","θα φοβηθεί","θα φοβηθούμε","θα φοβηθείτε","θα φοβηθούν"],
+    note:"Средний залог (пассивная форма)."
+  },
+  {
+    id:"v142", greek:"αναμένω", ru:"ожидать",
+    present:["αναμένω","αναμένεις","αναμένει","αναμένουμε","αναμένετε","αναμένουν"],
+    past:["ανέμεινα","ανέμεινες","ανέμεινε","αναμείναμε","αναμείνατε","ανέμειναν"],
+    future:["θα αναμείνω","θα αναμείνεις","θα αναμείνει","θα αναμείνουμε","θα αναμείνετε","θα αναμείνουν"],
+    note:"Формальный/деловой стиль. «Δεν αναμένω κέρδη» — «Не ожидаю прибыли»."
+  },
+  {
+    id:"v143", greek:"χρησιμοποιώ", ru:"использовать",
+    present:["χρησιμοποιώ","χρησιμοποιείς","χρησιμοποιεί","χρησιμοποιούμε","χρησιμοποιείτε","χρησιμοποιούν"],
+    past:["χρησιμοποίησα","χρησιμοποίησες","χρησιμοποίησε","χρησιμοποιήσαμε","χρησιμοποιήσατε","χρησιμοποίησαν"],
+    future:["θα χρησιμοποιήσω","θα χρησιμοποιήσεις","θα χρησιμοποιήσει","θα χρησιμοποιήσουμε","θα χρησιμοποιήσετε","θα χρησιμοποιήσουν"],
+    note:"Глагол на -ώ. Пассивная форма «χρησιμοποιούμαι» — «использоваться»: «θα χρησιμοποιηθούν» — «будут использованы»."
   },
 ];
 
