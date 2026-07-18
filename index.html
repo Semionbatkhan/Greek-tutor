@@ -482,6 +482,18 @@ const THEORY_CARDS = [
     ]
   },
   {
+    id:"t53", unitId:"s4u9",
+    title:"Ήδη или Εδώ και?",
+    titleEn:"Уже (факт) vs уже в течение (период)",
+    emoji:"⏳",
+    content:[
+      {label:"ήδη = уже — что-то уже произошло или уже является фактом.", example:"Έχω ήδη φάει. — Я уже поел."},
+      {label:"εδώ και + период времени = уже в течение..., действие началось раньше и продолжается сейчас.", example:"Μαθαίνω ελληνικά εδώ και έναν χρόνο. — Я учу греческий уже год."},
+      {label:"💡 Сравни:", example:"Έχω ήδη φάει. (факт — я поел) || Τρώω εδώ και μισή ώρα. (процесс — ем уже полчаса)"},
+      {label:"ήδη обычно стоит перед глаголом или прилагательным, εδώ και — после глагола, перед периодом времени.", example:"Είναι ήδη έτοιμος. || Δουλεύω εδώ και έξι μήνες."},
+    ]
+  },
+  {
     id:"t1", unitId:"s1u0",
     title:"Артикли — ο, η, το",
     titleEn:"Определённый артикль",
@@ -1379,6 +1391,35 @@ const FILL_EXERCISES = [
    options:["μισθό","φόρο","κέρδος","έργο"],
    translation:"Нам нужно покрыть зарплату сотрудников.",
    emoji:""},
+  // s4u9 — ήδη vs εδώ και
+  {id:"f8a",unitId:"s4u9",
+   sentence:"___ έχω φάει.",
+   hint:"Уже (факт)",
+   answer:"Ήδη",
+   options:["Ήδη","Εδώ και","Ακόμα","Πάντα"],
+   translation:"Я уже поел.",
+   emoji:""},
+  {id:"f8b",unitId:"s4u9",
+   sentence:"Δουλεύω ___ έξι μήνες.",
+   hint:"Уже в течение (период времени)",
+   answer:"εδώ και",
+   options:["εδώ και","ήδη","ποτέ","ακόμα"],
+   translation:"Я работаю уже шесть месяцев.",
+   emoji:""},
+  {id:"f8c",unitId:"s4u9",
+   sentence:"Το κατάστημα είναι ___ ανοιχτό.",
+   hint:"Уже (факт, состояние)",
+   answer:"ήδη",
+   options:["ήδη","εδώ και","ακόμα","ποτέ"],
+   translation:"Магазин уже открыт.",
+   emoji:""},
+  {id:"f8d",unitId:"s4u9",
+   sentence:"Ζω ___ δύο χρόνια στην Κύπρο.",
+   hint:"Уже в течение (период)",
+   answer:"εδώ και",
+   options:["εδώ και","ήδη","πολύ","ποτέ"],
+   translation:"Я живу на Кипре уже два года.",
+   emoji:""},
 ];
 
 // ─── ASSEMBLE EXERCISES ─────────────────────────────────────
@@ -1442,6 +1483,19 @@ const ASSEMBLE_EXERCISES = [
    words:[..."μισθός"]},
   {id:"as28",unitId:"s4u8",ru:"Собери слово: проект",emoji:"",mode:"letters",
    words:[..."έργο"]},
+  // s4u9 — ήδη vs εδώ και: сборка фраз из слов
+  {id:"as29",unitId:"s4u9",ru:"Я уже поел.",emoji:"",
+   words:["Έχω","ήδη","φάει."]},
+  {id:"as30",unitId:"s4u9",ru:"Я уже готов.",emoji:"",
+   words:["Είμαι","ήδη","έτοιμος."]},
+  {id:"as31",unitId:"s4u9",ru:"Я живу на Кипре уже два года.",emoji:"",
+   words:["Ζω","εδώ","και","δύο","χρόνια","στην","Κύπρο."]},
+  {id:"as32",unitId:"s4u9",ru:"Я жду уже час.",emoji:"",
+   words:["Περιμένω","εδώ","και","μία","ώρα."]},
+  {id:"as33",unitId:"s4u9",ru:"Магазин уже открыт.",emoji:"",
+   words:["Το","κατάστημα","είναι","ήδη","ανοιχτό."]},
+  {id:"as34",unitId:"s4u9",ru:"Я учу греческий уже год.",emoji:"",
+   words:["Μαθαίνω","ελληνικά","εδώ","και","έναν","χρόνο."]},
 ];
 
 // ─── LISTEN EXERCISES ─────────────────────────────────────
@@ -2471,7 +2525,7 @@ const SECTIONS=[{
       {id:2671,greek:"Δεν λέτε ψέματα.",ru:"Вы не говорите неправду.",emoji:"🚫",cat:"λέω/πω"},
       {id:2672,greek:"Θα πούμε ναι στην πρόταση.",ru:"Мы скажем да предложению.",emoji:"👍",cat:"λέω/πω"},
       // φέρνω / φέρω — приносить / принести
-      {id:2673,greek:"Φέρνω γλυκά στο πάρτι κάθε φορά.",ru:"Я всегда приношу сладости на вечеринку.",emoji:"🍰",cat:"φέρνω/φέρω"},
+      {id:2673,greek:"Φέρνω γλυκά στο πάρτι κάθε φορά.",ru:"Я приношу сладости на вечеринку каждый раз.",emoji:"🍰",cat:"φέρνω/φέρω"},
       {id:2674,greek:"Θέλω να φέρω τον σκύλο μου.",ru:"Я хочу привести свою собаку.",emoji:"🐶",cat:"φέρνω/φέρω"},
       {id:2675,greek:"Ο σερβιτόρος φέρνει το φαγητό.",ru:"Официант приносит еду.",emoji:"🍽️",cat:"φέρνω/φέρω"},
       {id:2676,greek:"Μπορείς να φέρεις το βιβλίο αύριο;",ru:"Можешь принести книгу завтра?",emoji:"📖",cat:"φέρνω/φέρω"},
@@ -2485,7 +2539,7 @@ const SECTIONS=[{
       {id:2683,greek:"Δεν δίνετε σημασία στις λεπτομέρειες.",ru:"Вы не обращаете внимания на детали.",emoji:"🔍",cat:"δίνω/δώσω"},
       {id:2684,greek:"Θα δώσω εξετάσεις τον Ιούνιο.",ru:"Я буду сдавать экзамены в июне.",emoji:"📚",cat:"δίνω/δώσω"},
       // κάνω — особый случай, форма одна
-      {id:2685,greek:"Κάνω γυμναστική κάθε πρωί.",ru:"Я занимаюсь спортом каждое утро.",emoji:"🏋️",cat:"κάνω (особый случай)"},
+      {id:2685,greek:"Κάνω γυμναστική κάθε πρωί.",ru:"Я делаю зарядку каждое утро.",emoji:"🏋️",cat:"κάνω (особый случай)"},
       {id:2686,greek:"Θέλω να κάνω ένα ταξίδι.",ru:"Я хочу совершить путешествие.",emoji:"✈️",cat:"κάνω (особый случай)"},
       {id:2687,greek:"Τι κάνεις αυτό το Σαββατοκύριακο;",ru:"Что ты делаешь в эти выходные?",emoji:"📅",cat:"κάνω (особый случай)"},
       // έρχομαι vs πάω — движение к говорящему или в другое место
@@ -2523,6 +2577,60 @@ const SECTIONS=[{
       {id:2715,greek:"καθώς",ru:"поскольку / так как",emoji:"",cat:"Бизнес"},
       {id:2716,greek:"αναμένω",ru:"я ожидаю",emoji:"",cat:"Глаголы"},
       {id:2717,greek:"χρησιμοποιώ",ru:"я использую",emoji:"",cat:"Глаголы"},
+      {id:2718,greek:"κατάστημα",ru:"магазин",emoji:"",cat:"Дополнительно"},
+      {id:2719,greek:"ανοιχτός",ru:"открытый",emoji:"",cat:"Дополнительно"},
+      {id:2720,greek:"αυτοκίνητο",ru:"машина",emoji:"",cat:"Дополнительно"},
+      {id:2721,greek:"δουλειά",ru:"работа",emoji:"",cat:"Дополнительно"},
+      {id:2722,greek:"κουρασμένος",ru:"уставший",emoji:"",cat:"Дополнительно"},
+      {id:2723,greek:"άρρωστος",ru:"больной",emoji:"",cat:"Дополнительно"},
+      {id:2724,greek:"κλειστός",ru:"закрытый",emoji:"",cat:"Дополнительно"},
+    ]
+  },{
+    id:"s4u9",title:"Ήδη vs Εδώ και",titleRu:"Уже vs уже в течение",emoji:"⏳",
+    isPhraseUnit:true,
+    words:[
+      // ήδη — уже (факт, свершившееся)
+      {id:2725,greek:"Έχω ήδη φάει.",ru:"Я уже поел.",emoji:"",cat:"ήδη"},
+      {id:2726,greek:"Είναι ήδη εδώ.",ru:"Он/она уже здесь.",emoji:"",cat:"ήδη"},
+      {id:2727,greek:"Ξέρω ήδη το όνομά σου.",ru:"Я уже знаю твоё имя.",emoji:"",cat:"ήδη"},
+      {id:2728,greek:"Έχω ήδη το βιβλίο.",ru:"У меня уже есть книга.",emoji:"",cat:"ήδη"},
+      {id:2729,greek:"Η Μαρία έχει ήδη φύγει.",ru:"Мария уже ушла.",emoji:"",cat:"ήδη"},
+      {id:2730,greek:"Ο δάσκαλος έχει ήδη έρθει.",ru:"Учитель уже пришёл.",emoji:"",cat:"ήδη"},
+      {id:2731,greek:"Το κατάστημα είναι ήδη ανοιχτό.",ru:"Магазин уже открыт.",emoji:"",cat:"ήδη"},
+      {id:2732,greek:"Έχω ήδη τελειώσει.",ru:"Я уже закончил.",emoji:"",cat:"ήδη"},
+      {id:2733,greek:"Έχουμε ήδη μιλήσει.",ru:"Мы уже поговорили.",emoji:"",cat:"ήδη"},
+      {id:2734,greek:"Έχετε ήδη πληρώσει;",ru:"Вы уже заплатили?",emoji:"",cat:"ήδη"},
+      {id:2735,greek:"Το παιδί κοιμάται ήδη.",ru:"Ребёнок уже спит.",emoji:"",cat:"ήδη"},
+      {id:2736,greek:"Ήδη είναι αργά.",ru:"Уже поздно.",emoji:"",cat:"ήδη"},
+      {id:2737,greek:"Έχει ήδη αυτοκίνητο.",ru:"У него/неё уже есть машина.",emoji:"",cat:"ήδη"},
+      {id:2738,greek:"Έχω ήδη δουλειά.",ru:"У меня уже есть работа.",emoji:"",cat:"ήδη"},
+      {id:2739,greek:"Ο φίλος μου είναι ήδη σπίτι.",ru:"Мой друг уже дома.",emoji:"",cat:"ήδη"},
+      {id:2740,greek:"Ήδη καταλαβαίνω λίγο.",ru:"Я уже немного понимаю.",emoji:"",cat:"ήδη"},
+      {id:2741,greek:"Έχουμε ήδη χρόνο.",ru:"У нас уже есть время.",emoji:"",cat:"ήδη"},
+      {id:2742,greek:"Το ξέρεις ήδη;",ru:"Ты это уже знаешь?",emoji:"",cat:"ήδη"},
+      {id:2743,greek:"Έχουν ήδη φτάσει.",ru:"Они уже прибыли.",emoji:"",cat:"ήδη"},
+      {id:2744,greek:"Είμαι ήδη έτοιμος.",ru:"Я уже готов.",emoji:"",cat:"ήδη"},
+      // εδώ και — уже в течение (началось раньше, длится до сих пор)
+      {id:2745,greek:"Ζω εδώ και δύο χρόνια στην Κύπρο.",ru:"Я живу на Кипре уже два года.",emoji:"",cat:"εδώ και"},
+      {id:2746,greek:"Μαθαίνω ελληνικά εδώ και έναν χρόνο.",ru:"Я учу греческий уже год.",emoji:"",cat:"εδώ και"},
+      {id:2747,greek:"Δουλεύω εδώ και έξι μήνες.",ru:"Я работаю уже шесть месяцев.",emoji:"",cat:"εδώ και"},
+      {id:2748,greek:"Περιμένω εδώ και μία ώρα.",ru:"Я жду уже час.",emoji:"",cat:"εδώ και"},
+      {id:2749,greek:"Μένουμε εδώ και πολλά χρόνια.",ru:"Мы живём здесь уже много лет.",emoji:"",cat:"εδώ και"},
+      {id:2750,greek:"Διαβάζω εδώ και είκοσι λεπτά.",ru:"Я читаю уже двадцать минут.",emoji:"",cat:"εδώ και"},
+      {id:2751,greek:"Κάνει ζέστη εδώ και τρεις μέρες.",ru:"Жара стоит уже три дня.",emoji:"",cat:"εδώ και"},
+      {id:2752,greek:"Βρέχει εδώ και δύο ώρες.",ru:"Дождь идёт уже два часа.",emoji:"",cat:"εδώ και"},
+      {id:2753,greek:"Είμαι κουρασμένος εδώ και μία εβδομάδα.",ru:"Я устал уже неделю.",emoji:"",cat:"εδώ και"},
+      {id:2754,greek:"Έχω αυτό το αυτοκίνητο εδώ και πέντε χρόνια.",ru:"У меня эта машина уже пять лет.",emoji:"",cat:"εδώ και"},
+      {id:2755,greek:"Ψάχνω τη δουλειά εδώ και έναν μήνα.",ru:"Я ищу работу уже месяц.",emoji:"",cat:"εδώ και"},
+      {id:2756,greek:"Τον ξέρω εδώ και δέκα χρόνια.",ru:"Я знаю его уже десять лет.",emoji:"",cat:"εδώ και"},
+      {id:2757,greek:"Έχουμε μάθημα εδώ και έναν μήνα.",ru:"У нас урок уже месяц.",emoji:"",cat:"εδώ και"},
+      {id:2758,greek:"Περιμένουμε εδώ και πολλή ώρα.",ru:"Мы ждём уже долгое время.",emoji:"",cat:"εδώ και"},
+      {id:2759,greek:"Είναι άρρωστος εδώ και τρεις μέρες.",ru:"Он болен уже три дня.",emoji:"",cat:"εδώ και"},
+      {id:2760,greek:"Μιλάμε εδώ και μισή ώρα.",ru:"Мы разговариваем уже полчаса.",emoji:"",cat:"εδώ και"},
+      {id:2761,greek:"Χρησιμοποιώ αυτό το τηλέφωνο εδώ και δύο χρόνια.",ru:"Я пользуюсь этим телефоном уже два года.",emoji:"",cat:"εδώ και"},
+      {id:2762,greek:"Διαμένει εδώ και πολλά χρόνια.",ru:"Он/она проживает здесь уже много лет.",emoji:"",cat:"εδώ και"},
+      {id:2763,greek:"Η πόρτα είναι κλειστή εδώ και μία ώρα.",ru:"Дверь закрыта уже час.",emoji:"",cat:"εδώ και"},
+      {id:2764,greek:"Το παιδί μαθαίνει αγγλικά εδώ και δύο χρόνια.",ru:"Ребёнок учит английский уже два года.",emoji:"",cat:"εδώ και"},
     ]
   }]
 },{
@@ -2879,12 +2987,16 @@ function breakdownPhrase(greek){
 }
 
 // ─── STATE ────────────────────────────────────────────────
-// By default ALL words are checked
-const defaultChecked=new Set(ALL_IDS);
+// By default ALL single words (not phrases) are checked.
+// Phrases (multi-word entries) never belong in checked/learned/practice —
+// they're drilled inside their own phrase units instead.
+const FLAT_VOCAB_IDS=ALL_WORDS.filter(w=>!isPhraseWord(w)).map(w=>w.id);
+const defaultChecked=new Set(FLAT_VOCAB_IDS);
+const flatIdSet=new Set(FLAT_VOCAB_IDS);
 let S={
   tab:LS.get('tab','learn'),
-  checked:new Set(LS.get('checked',ALL_IDS)),
-  learned:new Set(LS.get('learned',[])),
+  checked:new Set(LS.get('checked',FLAT_VOCAB_IDS).filter(id=>flatIdSet.has(id))),
+  learned:new Set(LS.get('learned',[]).filter(id=>flatIdSet.has(id))),
   mode:'home',
   activeUnit:null,
   queue:[],qi:0,ex:null,
@@ -3012,7 +3124,7 @@ function buildEx(word,pool,forceType){
 }
 
 // ─── PRACTICE WORDS (only checked, not learned) ───────────
-function pracWords(){return ALL_WORDS.filter(w=>S.checked.has(w.id)&&!S.learned.has(w.id));}
+function pracWords(){return ALL_WORDS.filter(w=>!isPhraseWord(w)&&S.checked.has(w.id)&&!S.learned.has(w.id));}
 
 function buildPEx(){
   const pw=pracWords(); // already excludes learned
@@ -3189,8 +3301,8 @@ function splitGreekSyllables(word){
 }
 
 // ─── ADAPTIVE UNIT HELPERS ───────────────────────────────
-function isAdaptiveUnit(unit){return unit&&(unit.id==='s1u0'||unit.id==='s2u1'||unit.id==='s2u2'||unit.id==='s2u3'||unit.id==='s3u1'||unit.id==='s4u1'||unit.id==='s4u2'||unit.id==='s4u3'||unit.id==='s4u4'||unit.id==='s4u5'||unit.id==='s4u7');}
-function isPhraseUnit(unit){return unit&&(unit.id==='s4u1'||unit.id==='s4u2'||unit.id==='s4u3'||unit.id==='s4u4'||unit.id==='s4u5'||unit.id==='s4u7');}
+function isAdaptiveUnit(unit){return unit&&(unit.id==='s1u0'||unit.id==='s2u1'||unit.id==='s2u2'||unit.id==='s2u3'||unit.id==='s3u1'||unit.id==='s4u1'||unit.id==='s4u2'||unit.id==='s4u3'||unit.id==='s4u4'||unit.id==='s4u5'||unit.id==='s4u7'||unit.id==='s4u9');}
+function isPhraseUnit(unit){return unit&&(unit.id==='s4u1'||unit.id==='s4u2'||unit.id==='s4u3'||unit.id==='s4u4'||unit.id==='s4u5'||unit.id==='s4u7'||unit.id==='s4u9');}
 
 function saveAdaptHistory(){
   if(!S.adaptHistory)S.adaptHistory=[];
@@ -4877,7 +4989,7 @@ function advance(ok){
     }
   } else if(!ok){
     if(S.ex) S.errs.push({...S.ex});
-    if(S.ex?.word && !S.checked.has(S.ex.word.id)){
+    if(S.ex?.word && !isPhraseWord(S.ex.word) && !S.checked.has(S.ex.word.id)){
       S.checked.add(S.ex.word.id);
     }
   }
@@ -5708,9 +5820,13 @@ function renderEx(){
         else if(opt===S.fillChosen&&opt!==S.ex.answer)cls+=' cw';
       } else if(S.fillChosen===opt) cls+=' ms';
       const b=el('button',cls);b.textContent=opt;
-      if(S.fillChecked)b.disabled=true;
       b.onclick=()=>{
-        if(S.fillChecked)return;
+        if(S.fillChecked){
+          // After checking, buttons stay tappable so the learner can
+          // listen to any option's pronunciation (including the correct one)
+          speak(opt);
+          return;
+        }
         S.fillChosen=opt;
         render();
         setTimeout(()=>speak(opt),50);
@@ -5907,7 +6023,8 @@ function renderWords(){
     stabs.appendChild(tb);
   });
   sc.appendChild(stabs);
-  const secWords=(!S.wlSection||S.wlSection==='all')?ALL_WORDS:ALL_WORDS.filter(w=>{
+  const secWords=(!S.wlSection||S.wlSection==='all')?ALL_WORDS.filter(w=>!isPhraseWord(w)):ALL_WORDS.filter(w=>{
+    if(isPhraseWord(w))return false;
     const sec=SECTIONS.find(s=>s.units.some(u=>u.words.some(uw=>uw.id===w.id)));
     return sec&&sec.id===S.wlSection;
   });
@@ -6366,7 +6483,7 @@ async function generateText(){
   S.genText={loading:true,greek:null,russian:null};
   render();
 
-  const learnedWords=ALL_WORDS.filter(w=>S.learned.has(w.id));
+  const learnedWords=ALL_WORDS.filter(w=>!isPhraseWord(w)&&S.learned.has(w.id));
   const sample=shuffle(learnedWords).slice(0,25);
   const wordList=sample.map(w=>w.greek+' ('+w.ru+')').join(', ');
   const selectedTopic=S.genTopic||'Любая тема';
@@ -6459,7 +6576,7 @@ ${topicInstruction}
 // Highlight learned words in greek text
 function highlightLearnedInText(text){
   if(!text)return text;
-  const learnedWords=ALL_WORDS.filter(w=>S.learned.has(w.id)&&w.greek&&w.greek.length>=2);
+  const learnedWords=ALL_WORDS.filter(w=>!isPhraseWord(w)&&S.learned.has(w.id)&&w.greek&&w.greek.length>=2);
   // Sort by length descending — longer words first prevents "την" matching inside "στην"
   const sorted=[...learnedWords].sort((a,b)=>b.greek.length-a.greek.length);
 
@@ -6499,8 +6616,7 @@ function renderLearnedWords(wrap){
     wrap.appendChild(pe);return wrap;
   }
 
-  const learnedWords=ALL_WORDS.filter(w=>S.learned.has(w.id));
-  const q=S.lwSearch.toLowerCase();
+  const learnedWords=ALL_WORDS.filter(w=>!isPhraseWord(w)&&S.learned.has(w.id));
   const filtered=learnedWords.filter(w=>!q||w.greek.toLowerCase().includes(q)||w.ru.toLowerCase().includes(q));
   // Topic selector
   const topicWrap=el('div');topicWrap.style.cssText='margin-bottom:10px;background:var(--sur);border-radius:12px;padding:12px 14px;border:1.5px solid var(--border)';
@@ -7691,6 +7807,20 @@ const VERBS = [
     past:["χρησιμοποίησα","χρησιμοποίησες","χρησιμοποίησε","χρησιμοποιήσαμε","χρησιμοποιήσατε","χρησιμοποίησαν"],
     future:["θα χρησιμοποιήσω","θα χρησιμοποιήσεις","θα χρησιμοποιήσει","θα χρησιμοποιήσουμε","θα χρησιμοποιήσετε","θα χρησιμοποιήσουν"],
     note:"Глагол на -ώ. Пассивная форма «χρησιμοποιούμαι» — «использоваться»: «θα χρησιμοποιηθούν» — «будут использованы»."
+  },
+  {
+    id:"v144", greek:"βρέχω", ru:"мочить / (безлично) идти (о дожде)",
+    present:["βρέχω","βρέχεις","βρέχει","βρέχουμε","βρέχετε","βρέχουν"],
+    past:["έβρεξα","έβρεξες","έβρεξε","βρέξαμε","βρέξατε","έβρεξαν"],
+    future:["θα βρέξω","θα βρέξεις","θα βρέξει","θα βρέξουμε","θα βρέξετε","θα βρέξουν"],
+    note:"«Βρέχει» — безличная форма 3-го лица «идёт дождь»."
+  },
+  {
+    id:"v145", greek:"διαμένω", ru:"проживать",
+    present:["διαμένω","διαμένεις","διαμένει","διαμένουμε","διαμένετε","διαμένουν"],
+    past:["διέμεινα","διέμεινες","διέμεινε","διαμείναμε","διαμείνατε","διέμειναν"],
+    future:["θα διαμείνω","θα διαμείνεις","θα διαμείνει","θα διαμείνουμε","θα διαμείνετε","θα διαμείνουν"],
+    note:"Более формальный синоним «μένω» — «жить/проживать»."
   },
 ];
 
